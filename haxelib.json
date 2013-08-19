@@ -1,0 +1,11 @@
+{
+	"name": "openfl-bitfive",
+	"url": "http://yal.cc",
+	"license": "MIT",
+	"tags": ["flash", "html5", "nme", "openfl"],
+	"description": "Alternative blitting-targeted HTML5 backend for OpenFL.",
+	"version": "1.0.5",
+	"releasenote": "Initial release",
+	"contributors": [ "YellowAfterlife" ],
+	"dependencies": {}
+}
