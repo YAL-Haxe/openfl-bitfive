@@ -144,10 +144,10 @@ class BitmapData implements IBitmapDrawable {
 	}
 	private inline function getTime():Float { return qTime; }
 	private inline function getTick():Int { return qTick; }
-	private function get_width():Int {
+	@:extern private inline function get_width():Int {
 		return component.width;
 	}
-	private function get_height():Int {
+	@:extern private inline function get_height():Int {
 		return component.height;
 	}
 	//
@@ -177,28 +177,27 @@ class BitmapData implements IBitmapDrawable {
 		var bit:CanvasElement = sourceBitmapData.handle(), bw, bh,
 			tw = width, th = height;
 		// pointless operation handling:
-		if (component == null) return;
 		if (bit == null || (bw = bit.width) <= 0 || (bh = bit.height) <= 0) return;
 		var dx = untyped ~~destPoint.x, dy = untyped ~~destPoint.y, sx, sy, sw, sh;
-		// no need for clip rectangle:
-		if (sourceRect != null && sourceRect.equals(sourceBitmapData.rect)) sourceRect = null;
 		// apply cliprect, if needed:
 		if (sourceRect != null) {
 			sx = sourceRect.x;
 			sy = sourceRect.y;
 			sw = sourceRect.width;
 			sh = sourceRect.height;
+			if (sx < 0) { sw += sx; sx = 0; }
+			if (sy < 0) { sh += sy; sy = 0; }
 			if (sx + sw > bw) sw = bw - sx;
 			if (sy + sh > bh) sh = bh - sy;
 		} else {
 			sx = sy = 0; sw = bw; sh = bh;
 		}
-		//
+		// drawing outside bounds is useless.
 		if (dx < 0) { sw += dx; sx -= dx; dx = 0; }
 		if (dy < 0) { sh += dy; sy -= dy; dy = 0; }
 		if (dx + sw > tw) sw = tw - dx;
 		if (dy + sh > th) sh = th - dy;
-		//
+		// drawing nothing may crash some browsers:
 		if (sw <= 0 || sh <= 0) return;
 		// clear area before drawing if needed:
 		if (qTransparent && !mergeAlpha) {
@@ -206,7 +205,7 @@ class BitmapData implements IBitmapDrawable {
 		}
 		// draw:
 		qContext.drawImage(bit, sx, sy, sw, sh, dx, dy, sw, sh);
-		// reset clip:
+		//
 		qSync |= SY_CANVAS | SY_CHANGE;
 	}
 	public function draw(source:IBitmapDrawable, ?matrix:Matrix,
