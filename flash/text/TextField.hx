@@ -87,7 +87,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		return component.clientWidth;
 	}
 	private function get_textHeight():Float {
-		return component.clientWidth;
+		return component.clientHeight;
 	}
 	private function set_selectable(v:Bool):Bool {
 		if (selectable != v) {
