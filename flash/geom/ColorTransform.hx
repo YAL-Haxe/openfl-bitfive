@@ -31,6 +31,13 @@ class ColorTransform {
 		alphaMultiplier += o.alphaMultiplier;
 	}
 	
+	/** Returns whether CT is used to fully override RGB(A) of image */
+	public function isColorSetter():Bool {
+		return redMultiplier == 0 && greenMultiplier == 0 && blueMultiplier == 0
+		&& (alphaMultiplier == 0 || alphaOffset == 0);
+	}
+	
+	/** Returns whether CT only affects alpha channel */
 	public function isAlphaMultiplier():Bool {
 		return redMultiplier == 1 && greenMultiplier == 1 && blueMultiplier == 1
 		&& redOffset == 0 && greenOffset == 0 && blueOffset == 0 && alphaOffset == 0;

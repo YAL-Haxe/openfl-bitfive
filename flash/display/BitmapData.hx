@@ -381,46 +381,84 @@ class BitmapData implements IBitmapDrawable {
 		if (wasCanvas) unlock();
 	}
 	public function colorTransform(q:flash.geom.Rectangle, o:flash.geom.ColorTransform):Void {
+		// 
+		var x:Int = untyped ~~q.x, y:Int = untyped ~~q.y,
+			w:Int = untyped ~~q.width, h:Int = untyped ~~q.height,
+			tw:Int = this.width, th:Int = this.height,
+			f:String = qContext.globalCompositeOperation, a:Float = qContext.globalAlpha;
+		// Recoloring something outside bounds may be a bad idea:
+		if (x < 0) { w += x; x = 0; }
+		if (y < 0) { h += y; y = 0; }
+		if (x + w > tw) w = tw - x;
+		if (y + h > th) h = th - y;
+		// Nothing to be done case:
+		if (w <= 0 || h <= 0) return;
+		// 
 		if (o.isAlphaMultiplier()) {
 			// "Oh, the easy case!"
 			syncCanvas();
-			var x = q.x, y = q.y, w = q.width, h = q.height,
-				f = qContext.globalCompositeOperation, a = qContext.globalAlpha;
-			// Transforming something outside bounds may be a bad idea:
-			if (x < 0) { w += x; x = 0; }
-			if (y < 0) { h += y; y = 0; }
-			if (x + w > width) w = width - x;
-			if (y + h > height) h = height - y;
-			//
-			if (w <= 0 || h <= 0) return;
 			// May need to use an extra canvas if GCO is not supported?
 			qContext.globalCompositeOperation = "copy";
 			qContext.globalAlpha *= o.alphaMultiplier;
 			qContext.drawImage(component, x, y, w, h, x, y, w, h);
-			qContext.globalCompositeOperation = f;
-			qContext.globalAlpha = a;
 			//
 			qSync |= 5;
+		} else if (o.isColorSetter()) {
+			// 
+			var s = qContext.fillStyle;
+			if (o.alphaMultiplier != 0) {
+				// replace, multiply
+				qContext.globalCompositeOperation = "source-in";
+				qContext.fillStyle = untyped "rgb(" + ~~o.redOffset + "," + ~~o.greenOffset
+					+ "," + ~~o.blueOffset + ")";
+				qContext.fillRect(x, y, w, h);
+				qContext.globalCompositeOperation = "copy";
+				qContext.globalAlpha = o.alphaMultiplier;
+				qContext.drawImage(component, x, y, w, h, x, y, w, h);
+			} else {
+				// replace
+				qContext.globalCompositeOperation = "copy";
+				qContext.fillStyle = untyped "rgba(" + ~~o.redOffset + "," + ~~o.greenOffset
+					+ "," + ~~o.blueOffset + "," + ~~o.alphaOffset + ")";
+				qContext.fillRect(x, y, w, h);
+			}
+			qContext.fillStyle = s;
 		} else {
-			// currently only allows processing image as whole:
+			// the long way around
 			var wasCanvas = hasCanvas();
 			lock();
 			var d:Uint8ClampedArray = qImageData.data,
-				w:Int = width, h:Int = height, c:Int = w * h * 4, i:Int = c, v:Int,
+				c:Int = tw * th * 4, i:Int = c, v:Int,
 				rm:Float = o.redMultiplier, gm:Float = o.greenMultiplier,
 				bm:Float = o.blueMultiplier, am:Float = o.alphaMultiplier,
 				ro:Float = o.redOffset, go:Float = o.greenOffset,
 				bo:Float = o.blueOffset, ao:Float = o.alphaOffset;
+			if (x == 0 && y == 0 && w == tw && h == th)
 			untyped while ((i -= 4) >= 0) {
 				if ((v = d[i + 3]) > 0) // flash behaviour: only A>0 pixels are affected
 					d[i + 3] = (v = v * am + ao) < 0 ? 0 : v > 255 ? 255 : ~~v;
 				d[i + 2] = (v = d[i + 2] * bm + bo) < 0 ? 0 : v > 255 ? 255 : ~~v;
 				d[i + 1] = (v = d[i + 1] * gm + go) < 0 ? 0 : v > 255 ? 255 : ~~v;
 				d[  i  ] = (v = d[  i  ] * rm + ro) < 0 ? 0 : v > 255 ? 255 : ~~v;
+			} else {
+				var px:Int, py:Int = y - 1, pb:Int = y + h, pr:Int;
+				while (++py < pb) {
+					i = (tw * py + x - 1) << 2;
+					pr = i + w * 4;
+					untyped while ((i += 4) < pr) {
+						if ((v = d[i + 3]) > 0)
+							d[i + 3] = (v = v * am + ao) < 0 ? 0 : v > 255 ? 255 : ~~v;
+						d[i + 2] = (v = d[i + 2] * bm + bo) < 0 ? 0 : v > 255 ? 255 : ~~v;
+						d[i + 1] = (v = d[i + 1] * gm + go) < 0 ? 0 : v > 255 ? 255 : ~~v;
+						d[  i  ] = (v = d[  i  ] * rm + ro) < 0 ? 0 : v > 255 ? 255 : ~~v;
+					}
+				}
 			}
 			qSync |= SY_CHANGE | SY_IMDATA;
 			if (wasCanvas) unlock();
 		}
+		qContext.globalCompositeOperation = f;
+		qContext.globalAlpha = a;
 	}
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:flash.geom.Rectangle,
 	destPoint:flash.geom.Point, filter:flash.filters.BitmapFilter):Void {
