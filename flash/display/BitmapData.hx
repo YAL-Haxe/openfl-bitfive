@@ -90,7 +90,7 @@ class BitmapData implements IBitmapDrawable {
 		setSmoothing(qContext, true);
 		qPixel = qContext.createImageData(1, 1);
 		// fill with white by default:
-		if (inFillColor == null) inFillColor = 0xFFFFFF;
+		if (inFillColor == null) inFillColor = 0xFFFFFFFF;
 		// make fill opaque if not transparent:
 		if (!inTransparent) inFillColor |= 0xFF000000;
 		// if context must be filled:
@@ -123,7 +123,7 @@ class BitmapData implements IBitmapDrawable {
 	//
 	public function clone():BitmapData {
 		syncCanvas();
-		var r:BitmapData = new BitmapData(width, height, qTransparent);
+		var r:BitmapData = new BitmapData(width, height, qTransparent, 0x0);
 		r.qContext.drawImage(component, 0, 0);
 		r.qSync |= SY_CANVAS | SY_CHANGE;
 		return r;
@@ -459,6 +459,68 @@ class BitmapData implements IBitmapDrawable {
 		}
 		qContext.globalCompositeOperation = f;
 		qContext.globalAlpha = a;
+	}
+	public function copyChannel(o:BitmapData, q:Rectangle, p:Point,
+	sourceChannel:Int, destChannel:Int):Void {
+		var x:Int = untyped ~~o.x, px:Int = untyped ~~p.x,
+			y:Int = untyped ~~o.y, py:Int = untyped ~~p.y,
+			w:Int = untyped ~~q.width, h:Int = untyped ~~q.height,
+			sw:Int = o.width, sh:Int = o.height,
+			tw:Int = this.width, th:Int = this.height,
+			i:Int, j:Int, u:Int, v:Int, c:Int,
+			sc = sourceChannel, dc = destChannel;
+		// No modifications outside bounds.
+		if (px < 0) { w += px; px = 0; }
+		if (py < 0) { h += py; py = 0; }
+		if (x < 0) { w += x; x = 0; }
+		if (y < 0) { h += y; y = 0; }
+		if (x + w > sw) w = sw - x;
+		if (y + h > sh) h = sh - y;
+		if (px + w > tw) w = tw - px;
+		if (py + h > th) h = th - py;
+		// Nothing to be done case:
+		if (w <= 0 || h <= 0) return;
+		//
+		if (sc == BitmapDataChannel.ALPHA && dc == BitmapDataChannel.ALPHA) {
+			// ridiculous, but still 10x faster than ImageData...
+			var f = qContext.globalCompositeOperation, s = qContext.fillStyle;
+			// draw image into itself 8 times to max out opacity:
+			qContext.globalCompositeOperation = "darker";
+			i = 0; while (i++ < 8)
+			qContext.drawImage(component, px, py, w, h, px, py, w, h);
+			// replace fully transparent areas with black (flash behaviour):
+			qContext.globalCompositeOperation = "destination-over";
+			qContext.fillStyle = "black";
+			qContext.fillRect(x, y, w, h);
+			// "multiply" alpha channels of images:
+			qContext.globalCompositeOperation = "destination-atop";
+			qContext.drawImage(o.handle(), x, y, w, h, px, py, w, h);
+			// restore state:
+			qContext.globalCompositeOperation = f;
+			qContext.fillStyle = s;
+		} else {
+			var wasCanvas = hasCanvas(), ds:Uint8ClampedArray, dd:Uint8ClampedArray;
+			lock(); dd = qImageData.data;
+			o.lock(); ds = o.qImageData.data;
+			// find channel offsets:
+			sc = sc == 8 ? 3 : sc == 4 ? 2 : sc == 2 ? 1 : sc == 1 ? 0 : -1;
+			dc = dc == 8 ? 3 : dc == 4 ? 2 : dc == 2 ? 1 : dc == 1 ? 0 : -1;
+			// wrong channels?
+			if (sc < 0 || dc < 0) return;
+			// a bit of optimized mess:
+			j = py + h; v = y + h;
+			while (--v >= y) {
+				--j;
+				c = w;
+				i = (px + tw * j) * 4 + dc; u = (x + sw * v) * 4 + sc;
+				while (c-- > 0) {
+					dd[u] = ds[i];
+					i += 4; u += 4;
+				}
+			}
+			qSync |= SY_CHANGE | SY_IMDATA;
+			if (wasCanvas) unlock();
+		}
 	}
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:flash.geom.Rectangle,
 	destPoint:flash.geom.Point, filter:flash.filters.BitmapFilter):Void {
