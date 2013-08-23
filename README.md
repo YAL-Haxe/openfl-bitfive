@@ -1,3 +1,4 @@
+![OpenFL-bitfive logo](https://raw.github.com/YellowAfterlife/openfl-microtests/master/assets/img/bitfive.png)
 # openfl-bitfive
 OpenFL-bitfive is an alternative backend to OpenFL-html5, intended for usage with canvas-driven applications, such as ones made with [HaxePunk](http://haxepunk.com/) or [HaxeFlixel](http://haxeflixel.com/) frameworks. It features mostly custom code with several classes (most importantly number of flash.net ones and ByteArray) being taken from original [OpenFL-html5](https://github.com/openfl/openfl-html5).
 
