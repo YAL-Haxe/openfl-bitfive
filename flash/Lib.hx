@@ -15,6 +15,7 @@ class Lib {
 	private static var qCurrent:MovieClip;
 	private static var qStage:Stage;
 	private static var qTimeStamp:Float = untyped __js__("Date.now() + 0");
+	private static var qHelper:DivElement;
 	public static var mouseX:Float = 0;
 	public static var mouseY:Float = 0;
 	//
@@ -54,6 +55,18 @@ class Lib {
 		return cast jsNode("canvas");
 	}
 	//
+	public static function jsHelper():DivElement {
+		if (qHelper == null) {
+			var o = jsDiv();
+			get_stage().component.appendChild(o);
+			o.style.visibility = "hidden";
+			#if debug
+				o.setAttribute("node", "Lib.jsHelper");
+			#end
+			o.appendChild(qHelper = jsDiv());
+		}
+		return qHelper;
+	}
 	private static function get_current():MovieClip {
 		if (qCurrent == null) {
 			get_stage().addChild(qCurrent = new MovieClip());

@@ -20,7 +20,7 @@ Compiling (or at least trying to) your projects with openfl-bitfive is pretty st
 <haxelib name="openfl-bitfive" if="html5" />
 ```
 3.	Run the project. If everything was done right, first noticeable difference will be in stage background covering whole browser tab, as well as HTML elements forming a more common DOM tree and having "node" properties indicating their names in code (if ran in Debug mode).
-4.	For audio to work equally in all browsers, project should also include OGG versions of audio files (as opposed to MP30. This can be done with code like this:
+4.	For audio to work equally in all browsers, project should also include OGG versions of audio files (as opposed to MP3). This can be done with code like this:
 ```xml
 <assets path="assets/snd" rename="snd" include="*.ogg" if="html5" />
 ```

@@ -50,21 +50,10 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 				component.innerHTML = StringTools.htmlEscape(v);
 			} else component.innerText = v;
 			var o = component.style, q:TextFormat = defaultTextFormat;
-			o.fontFamily = translateFont(q.font);
+			o.font = q.get_fontStyle();
 			o.color = flash.Lib.rgbf(q.color, 1);
-			o.fontSize = q.size + "px";
 		}
 		return v;
-	}
-	private function translateFont(n:String):String {
-		switch (n) {
-		case "_sans": return "sans-serif";
-		case "_serif": return "sans";
-		case "_typewriter": return "monospace";
-		default:
-			if (n == null) return "sans-serif";
-			return n;
-		}
 	}
 	public function appendText(v:String):Void {
 		
@@ -83,10 +72,34 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	override private function get_height():Float {
 		return qHeight != null ? qHeight : get_textHeight();
 	}
+	private function _measure_pre():js.html.DivElement {
+		var o = flash.Lib.jsHelper(),
+			s = o.style, q = component.style, i:Int;
+		i = q.length; while (--i >= 0) untyped s[q[i]] = q[q[i]];
+		o.innerHTML = component.innerHTML;
+		return o;
+	}
+	private function _measure_post(o:js.html.DivElement):Void {
+		var i:Int, s = o.style;
+		i = s.length; while (--i >= 0) untyped s[s[i]] = "";
+		o.innerHTML = "";
+	}
 	private function get_textWidth():Float {
+		if (stage == null) {
+			var o = _measure_pre(),
+				r = o.clientWidth;
+			_measure_post(o);
+			return r;
+		}
 		return component.clientWidth;
 	}
 	private function get_textHeight():Float {
+		if (stage == null) {
+			var o = _measure_pre(),
+				r = o.clientHeight;
+			_measure_post(o);
+			return r;
+		}
 		return component.clientHeight;
 	}
 	private function set_selectable(v:Bool):Bool {

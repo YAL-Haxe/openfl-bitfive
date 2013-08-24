@@ -69,7 +69,21 @@ class TextFormat {
 		
 	}
 	
+	public function get_fontStyle():String {
+		return (bold ? "bold " : "") + (italic ? "italic " : "")
+			+ size + "px " + translateFont(font);
+	}
 	
+	public static function translateFont(n:String):String {
+		switch (n) {
+		case "_sans": return "sans-serif";
+		case "_serif": return "sans";
+		case "_typewriter": return "monospace";
+		default:
+			if (n == null) return "sans-serif";
+			return n;
+		}
+	}
 }
 
 
