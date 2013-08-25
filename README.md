@@ -14,13 +14,17 @@ A few to mention:
 
 ## Usage
 Compiling (or at least trying to) your projects with openfl-bitfive is pretty straightforward:
-1.	Install the library. I suppose that you can figure this out on your own.
-2.	Navigate to application.xml of your project and add the following after inclusion of OpenFL library
+Install the library. I suppose that you can figure this out on your own.
+
+Navigate to application.xml of your project and add the following after inclusion of OpenFL library:
 ```xml
 <haxelib name="openfl-bitfive" if="html5" />
 ```
-3.	Run the project. If everything was done right, first noticeable difference will be in stage background covering whole browser tab, as well as HTML elements forming a more common DOM tree and having "node" properties indicating their names in code (if ran in Debug mode).
-4.	For audio to work equally in all browsers, project should also include OGG versions of audio files (as opposed to MP3). This can be done with code like this:
+
+Run the project. If everything was done right, first noticeable difference will be in stage background covering whole browser tab, as well as HTML elements forming a more common DOM tree and having "node" properties indicating their names in code (if ran in Debug mode).
+
+For audio to work equally in all browsers, project should also include OGG versions of audio files (as opposed to MP3). This can be done with code like this:
+
 ```xml
 <assets path="assets/snd" rename="snd" include="*.ogg" if="html5" />
 ```
