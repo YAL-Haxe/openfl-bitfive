@@ -31,12 +31,14 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public var type:String;
 	public var wordWrap:Bool;
 	//
-	
+	private var qFontStyle:String;
 	//
 	public function new() {
 		super();
 		component.style.whiteSpace = 'nowrap';
 		defaultTextFormat = new TextFormat("_sans", 16, 0);
+		textColor = 0;
+		wordWrap = false;
 	}
 	//
 	public function setTextFormat(v:TextFormat, ?f:Int, ?l:Int) {
@@ -50,8 +52,8 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 				component.innerHTML = StringTools.htmlEscape(v);
 			} else component.innerText = v;
 			var o = component.style, q:TextFormat = defaultTextFormat;
-			o.font = q.get_fontStyle();
-			o.color = flash.Lib.rgbf(q.color, 1);
+			qFontStyle = o.font = q.get_fontStyle();
+			o.color = flash.Lib.rgbf(q.color != null ? q.color : textColor, 1);
 		}
 		return v;
 	}
@@ -64,7 +66,14 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
 	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
 	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
-		
+		var q:TextFormat = defaultTextFormat;
+		ctx.save();
+		ctx.fillStyle = component.style.color;
+		ctx.font = qFontStyle;
+		ctx.textBaseline = "top";
+		ctx.textAlign = "left";
+		ctx.fillText(text, 0, 0);
+		ctx.restore();
 	}
 	override private function get_width():Float {
 		return qWidth != null ? qWidth : get_textWidth();
