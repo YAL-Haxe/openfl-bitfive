@@ -159,7 +159,7 @@ class DisplayObject extends EventWrapper {
 		var r:Point = new Point();
 		var m:Matrix = convMatrix;
 		if (m == null) m = convMatrix = new Matrix();
-		m.identify();
+		m.identity();
 		var o:DisplayObject = this;
 		while (o != null) {
 			if (x != 0 || y != 0) m.translate(x, y);

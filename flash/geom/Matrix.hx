@@ -26,17 +26,17 @@ class Matrix {
 	public inline function clone() {
 		return new Matrix(a, b, c, d, tx, ty);
 	}
-	
-	public function identity() {
+	/** Resets matrix state */
+	public function identity():Void {
 		a = d = 1;
 		b = c = tx = ty = 0;
 	}
-	
+	/** Returns whether matrix is in identity state */
 	public function isIdentity():Bool {
 		return a == 1 && d == 1 && tx == 0 && ty == 0 && b == 0 && c == 0;
 	}
-	
-	public function copy(s:Matrix) {
+	/** Mimics properties of specified matrix*/
+	public function copy(s:Matrix):Void {
 		a = s.a; b = s.b;
 		c = s.c; d = s.d;
 		tx = s.tx; ty = s.ty;
@@ -107,12 +107,6 @@ class Matrix {
 		ty = tx * o.b + ty * o.d + o.ty;
 		tx = t;
 		//
-	}
-	/** Resets matrix state */
-	public function identify() {
-		a = 1; b = 0;
-		c = 0; d = 1;
-		tx = 0; ty = 0;
 	}
 	
 	public function transformPoint(o:Point):Point {

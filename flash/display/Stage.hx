@@ -78,6 +78,14 @@ class Stage extends DisplayObjectContainer {
 	}
 	private function onAnimationFrame() {
 		var t = Lib.getTimer();
+		// handle scheduled executions:
+		var i:Int = -1;
+		while (++i < Lib.schLength) {
+			Lib.schList[i]();
+			Lib.schList[i] = null;
+		}
+		Lib.schLength = 0;
+		//
 		if (frameRate <= 0 || t - qTimeStamp >= 1000 / frameRate) {
 			qTimeStamp = t;
 			var e = new flash.events.Event(flash.events.Event.ENTER_FRAME);

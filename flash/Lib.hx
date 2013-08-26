@@ -19,7 +19,12 @@ class Lib {
 	public static var mouseX:Float = 0;
 	public static var mouseY:Float = 0;
 	//
+	public static var schList:Array<Void->Void>;
+	public static var schLength:Int;
+	//
 	static function __init__() {
+		schList = [];
+		schLength = 0;
 		// bind a "delay" method:
 		untyped window.reqAnimFrame =
 				window.requestAnimationFrame ||
@@ -82,6 +87,9 @@ class Lib {
 	// Utilities
 	public static function requestAnimationFrame(handler:Dynamic) {
 		untyped window.reqAnimFrame(handler);
+	}
+	public static function schedule(m:Void->Void):Void {
+		schList[schLength++] = m;
 	}
 	/** Forms an RGBA string from 32-bit color integer */
 	public static function rgba(color:Int):String {

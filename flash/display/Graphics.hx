@@ -23,6 +23,7 @@ class Graphics implements IBitmapDrawable {
 	@:extern private static inline var GFX_RECT = 13;
 	@:extern private static inline var GFX_CIRCLE = 14;
 	@:extern private static inline var GFX_ROUNDRECT = 15;
+	@:extern private static inline var GFX_TILES = 16; // also used in openfl.display.Tilesheet.drawTiles
 	//
 	@:extern private static inline var GFF_FILL = 1;
 	@:extern private static inline var GFF_STROKE = 2;
@@ -35,8 +36,8 @@ class Graphics implements IBitmapDrawable {
 	/** Only left here for correct bounds expansion */
 	private var lineWidth:Float;
 	/** Sequence of drawing commands. Array is cleaned up but never trimmed. */
-	private var rec(default, null):Array<Dynamic>;
-	private var len:Int;
+	public var rec(default, null):Array<Dynamic>;
+	public var len:Int;
 	private var synced:Bool = true;
 	//
 	public function new() {
@@ -53,39 +54,37 @@ class Graphics implements IBitmapDrawable {
 		len = 0;
 	}
 	private function regenerate():Void {
-		var o = component, s = component.style, q = context;
+		var o = component, s = component.style, q = context, b = bounds,
+			bx:Int = untyped ~~(b.x - 2), by:Int = untyped ~~(b.y - 2);
 		// maybe generate higher-resolution graphic if image is scaled?
 		// on one hand, higher-quality graphics, but on other hand, would
 		// have to override component scaling... somehow?
 		synced = true;
-		if (bounds.width <= 0 || bounds.height <= 0) {
-			component.width = component.height = 1;
+		if (b.width <= 0 || b.height <= 0) {
+			o.width = o.height = 1;
 			s.top = s.left = "0";
 			return;
 		}
 		// take a slightly larger area for case of excessive anti-aliasing:
-		s.left = (bounds.x - 2) + "px";
-		s.top = (bounds.y - 2) + "px";
-		o.width = Math.ceil(bounds.width + 4);
-		o.height = Math.ceil(bounds.height + 4);
+		s.left = bx + "px";
+		s.top = by + "px";
+		o.width = Math.ceil(b.width + 4);
+		o.height = Math.ceil(b.height + 4);
 		//
 		q.save();
-		q.translate( -bounds.x + 2, -bounds.y + 2);
+		q.translate( -bx, -by);
 		render(o, q);
 		q.restore();
 	}
 	private function set_displayObject(v:DisplayObject):DisplayObject {
 		if (displayObject != v) {
 			displayObject = v;
-			if (!synced) untyped setTimeout(regenerate, 0);
+			if (!synced) Lib.schedule(regenerate);
 		}
 		return v;
 	}
 	private function resetBounds():Void {
-		bounds.left = 0x7fffffff;
-		bounds.right = -0x80000000;
-		bounds.top = 0x7fffffff;
-		bounds.bottom = -0x80000000;
+		bounds.setVoid();
 		invalidate();
 	}
 	/**
@@ -95,7 +94,7 @@ class Graphics implements IBitmapDrawable {
 	 * @param	r	Right coordinate of rectangle
 	 * @param	b	Bottom coordinate of rectangle
 	 */
-	private function grab(x:Float, y:Float, r:Float, b:Float):Void {
+	public function grab(x:Float, y:Float, r:Float, b:Float):Void {
 		var i;
 		if (x < (i = bounds.x)) { i = i - x; bounds.x -= i; bounds.width += i; }
 		if (y < (i = bounds.y)) { i = i - y; bounds.y -= i; bounds.height += i; }
@@ -117,12 +116,14 @@ class Graphics implements IBitmapDrawable {
 		if (synced) {
 			synced = false;
 			// should develop a better "do on next frame" mechanism.
-			if (displayObject != null) untyped setTimeout(regenerate, 0);
+			Lib.schedule(regenerate);
 		}
 	}
 	public function clear():Void {
 		var i:Int = 0;
 		while (i < len) rec[i++] = GFX_STOP;
+		len = 0;
+		resetBounds();
 		invalidate();
 	}
 	public function lineStyle(?w:Float, c:Int = 0, a:Float = 1, ?nz:Dynamic, ?lsm:Dynamic):Void {
@@ -203,10 +204,6 @@ class Graphics implements IBitmapDrawable {
 	@:extern public static inline var TILE_BLEND_NORMAL = 0x00000000;
 	@:extern public static inline var TILE_BLEND_ADD = 0x00010000;
 	//
-	public function drawTiles(sheet:openfl.display.Tilesheet,
-	tileData:Array<Float>, smooth:Bool = false, flags:Int = 0):Void {
-		Lib.trace("drawTiles");
-	}
 	
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
 	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
@@ -275,6 +272,43 @@ class Graphics implements IBitmapDrawable {
 				ctx.lineTo(x, y + h - v);
 				ctx.quadraticCurveTo(x, y + h, x + u, y + h);
 			}
+		case GFX_TILES:
+			var tex:BitmapData = rec[++p],
+				d:CanvasElement = tex.handle(),
+				fx:Int = rec[++p],
+				fs:Bool = (fx & TILE_SCALE) != 0,
+				fr:Bool = (fx & TILE_ROTATION) != 0,
+				fc:Bool = (fx & TILE_RGB) != 0, // not actually supported
+				fa:Bool = (fx & TILE_ALPHA) != 0,
+				fm:Bool = (fx & TILE_TRANS_2x2) != 0,
+				c:Int = cast (rec[++p] - 1),
+				tx:Float, ty:Float,
+				ox:Float, oy:Float,
+				rx:Float, ry:Float, rw:Float, rh:Float;
+			//
+			ctx.save();
+			ctx.globalCompositeOperation = ((fx & TILE_BLEND_ADD) != 0) ? "lighter" : "source-over";
+			while (p < c) {
+				tx = rec[++p]; ty = rec[++p];
+				ox = rec[++p]; oy = rec[++p];
+				rx = rec[++p]; ry = rec[++p];
+				rw = rec[++p]; rh = rec[++p];
+				ctx.save();
+				// the extra data:
+				if (fm) {
+					ctx.setTransform(rec[++p], rec[++p], rec[++p], rec[++p], tx, ty);
+				} else {
+					ctx.translate(tx, ty);
+					if (fs) ctx.scale(v = rec[++p], v);
+					if (fr) ctx.rotate(rec[++p]);
+				}
+				if (fc) p += 3;
+				if (fa) ctx.globalAlpha = rec[++p];
+				//
+				ctx.drawImage(d, rx, ry, rw, rh, -ox, -oy, rw, rh);
+				ctx.restore();
+			}
+			ctx.restore();
 		default:
 			Lib.trace(Std.string(v));
 			break;

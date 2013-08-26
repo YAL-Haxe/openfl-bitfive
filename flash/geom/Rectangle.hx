@@ -28,8 +28,16 @@ class Rectangle {
 	public function equals(o:Rectangle):Bool {
 		return x == o.x && y == o.y && width == o.width && height == o.height;
 	}
-	function setEmpty():Void {
+	public function setEmpty():Void {
 		x = y = width = height = 0;
+	}
+	public function setVoid():Void {
+		//x = y = 0x7fffffff;
+		//width = height = -0xffffffff;
+		left = 0x7fffffff;
+		right = -0x80000000;
+		top = 0x7fffffff;
+		bottom = -0x80000000;
 	}
 	// Float fields:
 	private inline function get_left():Float { return x; }
@@ -63,6 +71,39 @@ class Rectangle {
 			? false : (y0 = (y < (y0 = o.y) ? y0 : y))
 			<= (y1 = (bottom > (y1 = o.bottom) ? y1 : y));
 		
+	}
+	//
+	public function join(o:Rectangle):Void {
+		var v:Float;
+		if ((v = o.x - x) < 0) { x += v; width -= v; }
+		if ((v = o.y - y) < 0) { y += v; height -= v; }
+		if ((v = o.right - right) > 0) { width += v; }
+		if ((v = o.bottom - bottom) > 0) { height += v; }
+	}
+	//
+	public function transform(m:Matrix):Void {
+		var v, l, t, r, b;
+		// top left (default):
+		r = l = m.a * x + m.c * y;
+		b = t = m.b * x + m.d * y;
+		// top right:
+		v = m.a * (x + width) + m.c * y;
+		if (v < l) l = v; if (v > r) r = v;
+		v = m.b * (x + width) + m.d * y;
+		if (v < t) t = v; if (v > b) b = v;
+		// bottom left:
+		v = m.a * x + m.c * (y + height);
+		if (v < l) l = v; if (v > r) r = v;
+		v = m.b * x + m.d * (y + height);
+		if (v < t) t = v; if (v > b) b = v;
+		// bottom right:
+		v = m.a * (x + width) + m.c * (y + height);
+		if (v < l) l = v; if (v > r) r = v;
+		v = m.b * (x + width) + m.d * (y + height);
+		if (v < t) t = v; if (v > b) b = v;
+		// save:
+		x = l + m.tx; width = r - l;
+		y = t + m.ty; height = b - t;
 	}
 	public function toString():String {
 		return "Rectangle(" + x + ", " + y + ", " + width + ", " + height + ")";
