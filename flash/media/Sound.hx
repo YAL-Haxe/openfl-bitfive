@@ -30,7 +30,12 @@ class Sound extends flash.events.EventDispatcher {
 		if (library.exists(s)) {
 			component = library.get(s);
 			library.set(s, cast component.cloneNode(true));
-		} else component = untyped __js__("new Audio(s)");
+		} else {
+			#if OFL_LOG_LOAD
+				flash.Lib.trace("Loading " + s);
+			#end
+			component = untyped __js__("new Audio(s)");
+		}
 		qCache = [];
 	}
 	

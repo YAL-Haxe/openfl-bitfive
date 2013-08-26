@@ -51,6 +51,9 @@ class ApplicationMain {
 				var type = Type.resolveClass(StringTools.replace (resourceName.substring(resourcePrefix.length), "_", "."));
 				if (type != null) {
 					total++;
+					#if OFL_LOG_LOAD
+						flash.Lib.trace("Loading " + Std.string(type));
+					#end
 					var instance = Type.createInstance (type, [ 0, 0, true, 0x00FFFFFF, bitmapClass_onComplete ]);
 				}
 			}
@@ -70,12 +73,28 @@ class ApplicationMain {
 		if (loaderStack.length != 0) {
 			var p:String = loaderStack.shift(),
 				o:Loader = loaders.get(p);
-			o.contentLoaderInfo.addEventListener("complete", loader_onComplete);
+			#if OFL_LOG_LOAD
+				flash.Lib.trace("Loading " + p);
+				o.contentLoaderInfo.addEventListener("complete", function(e) {
+					flash.Lib.trace("Loaded " + p);
+					loader_onComplete(e);
+				});
+			#else
+				o.contentLoaderInfo.addEventListener("complete", loader_onComplete);
+			#end
 			o.load(new URLRequest(p));
 		} else if (urlLoaderStack.length != 0) {
 			var p:String = urlLoaderStack.shift(),
 				o:URLLoader = urlLoaders.get(p);
-			o.addEventListener("complete", loader_onComplete);
+			#if OFL_LOG_LOAD
+				flash.Lib.trace("Loading " + p);
+				o.addEventListener("complete", function(e) {
+					flash.Lib.trace("Loaded " + p);
+					loader_onComplete(e);
+				});
+			#else
+				o.addEventListener("complete", loader_onComplete);
+			#end
 			o.load(new URLRequest(p));
 		}
 	}
@@ -93,6 +112,7 @@ class ApplicationMain {
 	}
 	
 	private static function loadSound(p:String):Void {
+		return;
 		var i:Int = p.lastIndexOf("."), c:Dynamic = untyped flash.media.Sound, s:String,
 			o:AudioElement, f:Dynamic->Void = null, q:String = 'canplaythrough';
 		if (i == -1) return;
@@ -100,9 +120,15 @@ class ApplicationMain {
 		if (!c.library) c.library = new Map<String, AudioElement>();
 		s = p.substr(0, i) + ".mp3";
 		if (c.library.exists(s)) return;
+		#if OFL_LOG_LOAD
+			flash.Lib.trace("Loading " + p);
+		#end
 		total++;
 		c.library.set(s, o = untyped __js__("new Audio(p)"));
 		f = function(e) {
+			#if OFL_LOG_LOAD
+				flash.Lib.trace("Loaded " + p);
+			#end
 			o.removeEventListener(q, f);
 			preloader.onUpdate(++completed, total);
 			if (completed == total) begin();

@@ -19,8 +19,9 @@ class AssetData {
 		
 		if (!initialized) {
 			
-			::if (assets != null)::::foreach assets::::if (type == "font")::className.set ("::id::", nme.NME_::flatName::);::else::path.set ("::id::", "::resourceName::");::end::
-			type.set ("::id::", Reflect.field (AssetType, "::type::".toUpperCase ()));
+			::if (assets != null)::::foreach assets::::if (type == "font")::className.set ("::id::", nme.NME_::flatName::);
+			::else::path.set ("::id::", "::resourceName::");
+			::end::type.set ("::id::", Reflect.field (AssetType, "::type::".toUpperCase ()));
 			::end::::end::
 			::if (libraries != null)::::foreach libraries::library.set ("::name::", Reflect.field (LibraryType, "::type::".toUpperCase ()));
 			::end::::end::
@@ -34,5 +35,5 @@ class AssetData {
 }
 
 
-::foreach assets::::if (type == "font")::class NME_::flatName:: extends flash.text.Font { }::end::
-::end::
+::foreach assets::::if (type == "font")::class NME_::flatName:: extends flash.text.Font { }
+::end::::end::
