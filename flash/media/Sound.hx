@@ -38,7 +38,7 @@ class Sound extends flash.events.EventDispatcher {
 		var o:SoundChannel, i:Int;
 		//flash.Lib.trace(component.src + ":play[" + qCache.length + "]");
 		if (qCache.length == 0) {
-			(o = new SoundChannel()).init(this, component);
+			(o = new SoundChannel()).init(this, component, loops);
 			component = cast component.cloneNode(true);
 		} else {
 			// attempt to find a sound with currentTime matching one asked:
