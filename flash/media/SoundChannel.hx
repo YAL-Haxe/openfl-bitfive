@@ -13,13 +13,15 @@ class SoundChannel extends flash.events.EventDispatcher {
 	public var qSound:Sound;
 	public var active:Bool = false;
 	private var _position:Float = 0;
+	private var _loops:Int = 1;
 	//
 	public function new():Void {
 		super();
 	}
-	public function init(q:Sound, v:AudioElement):Void {
+	public function init(q:Sound, v:AudioElement, loops:Int=1):Void {
 		qSound = q;
 		component = v;
+		_loops = loops;
 		component.addEventListener("ended", cast onEnded);
 		//component.loop = true;
 	}
@@ -56,10 +58,18 @@ class SoundChannel extends flash.events.EventDispatcher {
 	}
 	private function onEnded(e:Event):Void {
 		if (active) {
-			stop();
-			component.currentTime = 0;
-			flash.Lib.trace(component.src + ":complete");
-			dispatchEvent(new Event(Event.SOUND_COMPLETE));
+			_loops--;
+			if ( _loops > 0 )
+			{
+				component.play();
+			}
+			else
+			{
+				stop();
+				component.currentTime = 0;
+				flash.Lib.trace(component.src + ":complete");
+				dispatchEvent(new Event(Event.SOUND_COMPLETE));
+			}
 		}
 	}
 }
