@@ -39,6 +39,10 @@ class Graphics implements IBitmapDrawable {
 	public var rec(default, null):Array<Dynamic>;
 	public var len:Int;
 	private var synced:Bool = true;
+	/** Whether a regeneration is already scheduled and no change is needed*/
+	private var rgPending:Bool = false;
+	private var compX:Int;
+	private var compY:Int;
 	//
 	public function new() {
 		component = Lib.jsCanvas();
@@ -55,21 +59,27 @@ class Graphics implements IBitmapDrawable {
 	}
 	private function regenerate():Void {
 		var o = component, s = component.style, q = context, b = bounds,
-			bx:Int = untyped ~~(b.x - 2), by:Int = untyped ~~(b.y - 2);
+			bx:Int = untyped ~~(b.x - 2), by:Int = untyped ~~(b.y - 2),
+			bw:Int = Math.ceil(b.width + 4), bh:Int = Math.ceil(b.height + 4);
 		// maybe generate higher-resolution graphic if image is scaled?
 		// on one hand, higher-quality graphics, but on other hand, would
 		// have to override component scaling... somehow?
 		synced = true;
+		rgPending = false;
 		if (b.width <= 0 || b.height <= 0) {
 			o.width = o.height = 1;
 			s.top = s.left = "0";
 			return;
 		}
 		// take a slightly larger area for case of excessive anti-aliasing:
-		s.left = bx + "px";
-		s.top = by + "px";
-		o.width = Math.ceil(b.width + 4);
-		o.height = Math.ceil(b.height + 4);
+		if (compX != bx || compY != by) {
+			s.left = bx + "px";
+			s.top = by + "px";
+		}
+		if (bw != o.width || bh != o.height) {
+			o.width = bw;
+			o.height = bh;
+		}
 		//
 		q.save();
 		q.translate( -bx, -by);
@@ -112,11 +122,14 @@ class Graphics implements IBitmapDrawable {
 		var r:Float = lineWidth;
 		grab(x - r, y - r, x + r, y + r);
 	}
-	private function invalidate() {
+	public function invalidate() {
 		if (synced) {
 			synced = false;
 			// should develop a better "do on next frame" mechanism.
-			Lib.schedule(regenerate);
+			if (!rgPending && displayObject != null && displayObject.stage != null) {
+				Lib.schedule(regenerate);
+				rgPending = true;
+			}
 		}
 	}
 	public function clear():Void {
@@ -171,7 +184,7 @@ class Graphics implements IBitmapDrawable {
 		rec[len++] = y;
 		rec[len++] = w;
 		rec[len++] = h;
-		grab(x, y, w, h);
+		grab(x, y, x + w, y + h);
 	}
 	public function drawRoundRect(x:Float, y:Float, w:Float, h:Float, r:Float, ?q:Float):Void {
 		rec[len++] = GFX_ROUNDRECT;
@@ -181,7 +194,7 @@ class Graphics implements IBitmapDrawable {
 		rec[len++] = h;
 		rec[len++] = r;
 		rec[len++] = q;
-		grab(x, y, w, h);
+		grab(x, y, x + w, y + h);
 	}
 	public function drawCircle(x:Float, y:Float, r:Float):Void {
 		rec[len++] = GFX_CIRCLE;
@@ -195,7 +208,7 @@ class Graphics implements IBitmapDrawable {
 		return "rgba(" + ((c >> 16) & 255) + ", " + ((c >> 8) & 255)
 			+ ", " + (c & 255) + ", " + (untyped a.toFixed(4)) + ")";
 	}
-	// TILES TILES TILES
+	// Tile constants:
 	@:extern public static inline var TILE_SCALE = 0x0001;
 	@:extern public static inline var TILE_ROTATION = 0x0002;
 	@:extern public static inline var TILE_RGB = 0x0004;

@@ -24,6 +24,13 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 		return _graphics;
 	}
 	
+	override private function set_stage(v:Stage):Stage {
+		var z = stage == null && v != null,
+			r = super.set_stage(v);
+		if (z && _graphics != null) _graphics.invalidate();
+		return r;
+	}
+	
 	private function set_useHandCursor(o:Bool):Bool {
 		component.style.cursor = o ? 'pointer' : null;
 		return (useHandCursor = o);
