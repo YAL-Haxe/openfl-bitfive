@@ -263,7 +263,9 @@ class Graphics implements IBitmapDrawable {
 		case GFX_CURVETO:
 			ctx.quadraticCurveTo(rec[++p], rec[++p], rec[++p], rec[++p]);
 		case GFX_RECT:
-			ctx.rect(rec[++p], rec[++p], rec[++p], rec[++p]);
+			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p];
+			if ((f & GFF_FILL) != 0) ctx.fillRect(x, y, w, h);
+			if ((f & GFF_STROKE) != 0) ctx.strokeRect(x, y, w, h);
 		case GFX_CIRCLE:
 			ctx.arc(rec[++p], rec[++p], rec[++p], 0, Math.PI * 2, true);
 		case GFX_ROUNDRECT:
@@ -330,7 +332,7 @@ class Graphics implements IBitmapDrawable {
 			ctx.closePath();
 			ctx.fill();
 		}
-		//if ((f & GFF_STROKE) != 0) ctx.stroke();
+		if ((f & GFF_STROKE) != 0) ctx.stroke();
 	}
 }
 #end
