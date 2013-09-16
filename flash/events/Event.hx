@@ -1,15 +1,15 @@
 package flash.events;
 #if js
 import js.html.Event;
-class Event/* extends NativeEvent */{
+class Event {
 	// from NativeEvent:
 	private var _target:Dynamic;
 	private var _current:Dynamic;
 	public var target(get, set):Dynamic;
-	private function get_target():Dynamic { return _target; }
+	private function get_target():Dynamic { return untyped __js__("this._target || this.target"); }
 	private function set_target(v:Dynamic):Dynamic { return _target = v; }
 	public var currentTarget(get, set):Dynamic;
-	private function get_currentTarget():Dynamic { return _current; }
+	private function get_currentTarget():Dynamic { return  untyped __js__("this._current || this.currentTarget"); }
 	private function set_currentTarget(v:Dynamic):Dynamic { return _current = v; }
 	public var type:String;
 	public var timeStamp:Int;
@@ -47,7 +47,7 @@ class Event/* extends NativeEvent */{
 	//
 	static function __init__() {
 		untyped (function() {
-			var a = NativeEvent.prototype, b = Event.prototype;
+			var a = js.html.Event.prototype, b = flash.events.Event.prototype;
 			a.clone = b.clone;
 			a.isDefaultPrevented = b.isDefaultPrevented;
 			a.get_target = b.get_target;
@@ -67,22 +67,5 @@ class Event/* extends NativeEvent */{
 	public function clone():Event {
 		return new Event(type, bubbles, cancelable);
 	}
-}
-@:native("Event") extern class NativeEvent {
-	var target(get, null):Dynamic;
-	var currentTarget(get, null):Dynamic;
-	var type:String;
-	var timeStamp:Int;
-	var bubbles:Bool;
-	var cancelBubble:Bool;
-	var cancelable:Bool;
-	var defaultPrevented:Bool;
-	
-	//
-	function new(type:String, canBubble:Bool = true, cancelable:Bool = true):Void;
-	function initEvent(eventTypeArg:String, canBubbleArg:Bool, cancelableArg:Bool ) : Void;
-	function preventDefault():Void;
-	function stopImmediatePropagation():Void;
-	function stopPropagation():Void;
 }
 #end

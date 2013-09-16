@@ -155,11 +155,8 @@ class DisplayObject extends EventWrapper {
 	}
 	private static var convMatrix:Matrix;
 	private static var convPoint:Point;
-	public function globalToLocal(q:Point):Point {
-		var r:Point = new Point();
-		var m:Matrix = convMatrix;
-		if (m == null) m = convMatrix = new Matrix();
-		m.identity();
+	private function getGlobalMatrix(?m:Matrix):Matrix {
+		if (m == null) m = new Matrix();
 		var o:DisplayObject = this;
 		while (o != null) {
 			if (x != 0 || y != 0) m.translate(x, y);
@@ -168,16 +165,34 @@ class DisplayObject extends EventWrapper {
 			m.concat(o.transform.matrix);
 			o = o.parent;
 		}
+		return m;
+	}
+	public function globalToLocal(q:Point, ?r:Point):Point {
+		if (r == null) r = new Point();
+		var m:Matrix = convMatrix, u = q.x, v = q.y;
+		if (m == null) m = convMatrix = new Matrix();
+		m.identity();
+		m = getGlobalMatrix(m);
 		m.invert();
-		r.x = q.x * m.a + q.y * m.c + m.tx;
-		r.y = q.x * m.b + q.y * m.d + m.ty;
+		r.x = u * m.a + v * m.c + m.tx;
+		r.y = u * m.b + v * m.d + m.ty;
+		return r;
+	}
+	public function localToGlobal(q:Point, ?r:Point):Point {
+		if (r == null) r = new Point();
+		var m:Matrix = convMatrix, u = q.x, v = q.y;
+		if (m == null) m = convMatrix = new Matrix();
+		m.identity();
+		m = getGlobalMatrix(m);
+		r.x = u * m.a + v * m.c + m.tx;
+		r.y = u * m.b + v * m.d + m.ty;
 		return r;
 	}
 	private function get_mouseX():Float {
-		return stage != null ? globalToLocal(stage.mousePos).x : 0;
+		return (convPoint = globalToLocal(stage.mousePos, convPoint)).x;
 	}
 	private function get_mouseY():Float {
-		return stage != null ? globalToLocal(stage.mousePos).y : 0;
+		return (convPoint = globalToLocal(stage.mousePos, convPoint)).y;
 	}
 	public function toString():String {
 		return Type.getClassName(Type.getClass(this));
