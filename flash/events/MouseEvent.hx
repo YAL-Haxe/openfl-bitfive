@@ -32,14 +32,14 @@ class MouseEvent extends Event {
 	// OpenFL-specific:
 	public var relatedObject:InteractiveObject;
 	// JavaScript-specific:
-	private var button:Int;
-	private var wheelDelta:Int;
-	private var pageX:Float;
-	private var pageY:Float;
+	public var button:Int;
+	public var wheelDelta:Int;
+	public var pageX:Float;
+	public var pageY:Float;
 	//
 	private static var convPoint:Point;
 	
-	function new(type:String, bubbles:Bool = true, cancelable:Bool = false, ?lx:Float, ?ly:Float,
+	public function new(type:String, bubbles:Bool = true, cancelable:Bool = false, ?lx:Float, ?ly:Float,
 	?obj:InteractiveObject, ctrlKey:Bool = false, altKey:Bool = false, shiftKey:Bool = false,
 	buttonDown:Bool = false, delta:Int = 0):Void {
 		super(type, bubbles, cancelable);

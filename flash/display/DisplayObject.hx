@@ -41,6 +41,7 @@ class DisplayObject extends EventWrapper {
 	//
 	public function new() {
 		super();
+		eventRemap = new Map();
 		if (component == null) component = Lib.jsDiv();
 		untyped component.node = this;
 		#if debug
@@ -194,8 +195,37 @@ class DisplayObject extends EventWrapper {
 	private function get_mouseY():Float {
 		return (convPoint = globalToLocal(stage.mousePos, convPoint)).y;
 	}
+	//
+	private var eventRemap:Map<String, Dynamic->Void>;
+	static private var remapTouch:Map<String, String>;
+	override public function addEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
+		super.addEventListener(type, listener, useCapture, priority, weak);
+		if (remapTouch.exists(type)) {
+			var f = function(e:js.html.TouchEvent):Void {
+				var n = new flash.events.MouseEvent(type, e.bubbles, e.cancelable, 0, 0, cast this,
+					e.ctrlKey, e.altKey, e.shiftKey, false), l = e.targetTouches;
+				if (l.length > 0) {
+					untyped n.pageX = l[0].pageX;
+					untyped n.pageY = l[0].pageY;
+				} else {
+					untyped n.pageX = stage.mousePos.x;
+					untyped n.pageY = stage.mousePos.y;
+				}
+				dispatchEvent(n);
+			};
+			super.addEventListener(remapTouch.get(type), f, useCapture, priority, weak);
+		}
+	}
+	//
 	public function toString():String {
 		return Type.getClassName(Type.getClass(this));
+	}
+	//
+	private static function __init__():Void {
+		remapTouch = new Map();
+		remapTouch.set("mousedown", "touchstart");
+		remapTouch.set("mousemove", "touchmove");
+		remapTouch.set("mouseup", "touchend");
 	}
 }
 #end

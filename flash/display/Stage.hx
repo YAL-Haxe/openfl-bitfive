@@ -30,12 +30,13 @@ class Stage extends DisplayObjectContainer {
 		qTimeStamp = Lib.getTimer();
 		Lib.requestAnimationFrame(onAnimationFrame);
 		mousePos = new Point();
+		var o = Browser.window;
 		// mouse move listener (to keep track of mouseX/mouseY)
-		addEventListener(flash.events.MouseEvent.MOUSE_MOVE, onMouseMove);
+		o.addEventListener("mousemove", onMouseMove);
 		// touch events (to prevent scrolling and to track mouse position):
-		addEventListener("touchstart", onTouch);
-		addEventListener("touchend", onTouch);
-		addEventListener("touchmove", function(e) {
+		o.addEventListener("touchstart", onTouch);
+		o.addEventListener("touchend", onTouch);
+		o.addEventListener("touchmove", function(e) {
 			onTouch(e);
 			e.preventDefault();
 			return false;
