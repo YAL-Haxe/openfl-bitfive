@@ -36,11 +36,7 @@ class Stage extends DisplayObjectContainer {
 		// touch events (to prevent scrolling and to track mouse position):
 		o.addEventListener("touchstart", onTouch);
 		o.addEventListener("touchend", onTouch);
-		o.addEventListener("touchmove", function(e) {
-			onTouch(e);
-			e.preventDefault();
-			return false;
-		});
+		o.addEventListener("touchmove", onTouch);
 	}
 	private function onTouch(e:js.html.TouchEvent):Void {
 		isTouchScreen = true;
@@ -48,6 +44,7 @@ class Stage extends DisplayObjectContainer {
 			mousePos.x = e.targetTouches[0].pageX;
 			mousePos.y = e.targetTouches[0].pageY;
 		}
+		e.preventDefault();
 	}
 	private function onMouseMove(e:js.html.MouseEvent):Void {
 		if (!isTouchScreen) {
