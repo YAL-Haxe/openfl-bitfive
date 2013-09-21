@@ -190,10 +190,10 @@ class DisplayObject extends EventWrapper {
 		return r;
 	}
 	private function get_mouseX():Float {
-		return (convPoint = globalToLocal(stage.mousePos, convPoint)).x;
+		return (convPoint = globalToLocal(Lib.current.stage.mousePos, convPoint)).x;
 	}
 	private function get_mouseY():Float {
-		return (convPoint = globalToLocal(stage.mousePos, convPoint)).y;
+		return (convPoint = globalToLocal(Lib.current.stage.mousePos, convPoint)).y;
 	}
 	//
 	private var eventRemap:Map<String, Dynamic->Void>;
