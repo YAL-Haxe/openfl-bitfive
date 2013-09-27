@@ -235,7 +235,10 @@ class Graphics implements IBitmapDrawable {
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
 	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
 	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
+		ctx.save();
+		ctx.transform(mtx.a, mtx.b, mtx.c, mtx.d, mtx.tx, mtx.ty);
 		render(cnv, ctx);
+		ctx.restore();
 	}
 	
 	private function _closePath(cnv:CanvasElement, ctx:CanvasRenderingContext2D, f:Int, m:Matrix,
