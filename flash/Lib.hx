@@ -107,5 +107,9 @@ class Lib {
 			+ "," + (color & 255)
 			+ "," + alpha.toFixed(4) + ")";
 	}
+	/** Strictly JavaScript-specific cast for leaving decision to browser. */
+	@:extern public static inline function bool(v:Dynamic):Bool {
+		return cast v;
+	}
 }
 #end

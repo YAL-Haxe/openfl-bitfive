@@ -1,9 +1,11 @@
 package flash.display;
 #if js
+import flash.geom.Matrix;
 import flash.geom.Rectangle;
 import flash.Lib;
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
+import js.html.ImageElement;
 /**
  * Status: Getting there.
  * Some standard path functions are supported.
@@ -27,6 +29,8 @@ class Graphics implements IBitmapDrawable {
 	//
 	@:extern private static inline var GFF_FILL = 1;
 	@:extern private static inline var GFF_STROKE = 2;
+	@:extern private static inline var GFF_PATTERN = 4;
+	@:extern private static inline var GFF_TILED = 8;
 	//
 	public var component:CanvasElement;
 	public var context:CanvasRenderingContext2D;
@@ -43,6 +47,8 @@ class Graphics implements IBitmapDrawable {
 	private var rgPending:Bool = false;
 	private var compX:Int;
 	private var compY:Int;
+	//
+	private var _drawMatrix:Matrix;
 	//
 	public function new() {
 		component = Lib.jsCanvas();
@@ -79,7 +85,7 @@ class Graphics implements IBitmapDrawable {
 		if (bw != o.width || bh != o.height) {
 			o.width = bw;
 			o.height = bh;
-		}
+		} else q.clearRect(0, 0, o.width, o.height);
 		//
 		q.save();
 		q.translate( -bx, -by);
@@ -148,11 +154,19 @@ class Graphics implements IBitmapDrawable {
 		rec[len++] = GFX_FILL_SOLID;
 		rec[len++] = Lib.rgbf(c, a);
 	}
-	public function beginBitmapFill(bitmap:BitmapData, ?matrix:flash.geom.Matrix,
+	public function beginBitmapFill(bitmap:BitmapData, ?m:flash.geom.Matrix,
 	?repeat:Bool, ?smooth:Bool):Void {
 		rec[len++] = GFX_FILL_BITMAP;
 		rec[len++] = bitmap;
-		rec[len++] = repeat != false ? "repeat" : "no-repeat";
+		rec[len++] = repeat;
+		if (Lib.bool(rec[len++] = m != null)) {
+			rec[len++] = m.a;
+			rec[len++] = m.b;
+			rec[len++] = m.c;
+			rec[len++] = m.d;
+			rec[len++] = m.tx;
+			rec[len++] = m.ty;
+		}
 	}
 	public function endFill() {
 		rec[len++] = GFX_END_FILL;
@@ -223,10 +237,30 @@ class Graphics implements IBitmapDrawable {
 	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
 		render(cnv, ctx);
 	}
+	
+	private function _closePath(cnv:CanvasElement, ctx:CanvasRenderingContext2D, f:Int, m:Matrix,
+	texture:ImageElement):Int {
+		ctx.closePath();
+		if (Lib.bool(f & GFF_STROKE)) ctx.stroke();
+		if (Lib.bool(f & GFF_FILL)) {
+			if (Lib.bool(f & GFF_PATTERN)) {
+				ctx.save();
+				ctx.transform(m.a, m.b, m.c, m.d, m.tx, m.ty);
+				ctx.fillStyle = ctx.createPattern(texture,
+					Lib.bool(f & GFF_TILED) ? "repeat" : "no-repeat");
+				ctx.fill();
+				ctx.restore();
+			} else {
+				ctx.fill();
+			}
+		}
+		return f;
+	}
 	/** Renders Graphics into given canvas-context pair */
-	public function render(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D):Void {
-		var f:Int = 0, p:Int = -1, v:Dynamic;
-		//Lib.trace(rec);
+	public function render(cnv:CanvasElement, ctx:CanvasRenderingContext2D):Void {
+		var f:Int = 0, p:Int = -1, v:Dynamic, m:Matrix = _drawMatrix, n:Int = 0,
+		tex:ImageElement = null;
+		if (m == null) _drawMatrix = m = new Matrix();
 		while (++p < len) switch (v = rec[p]) {
 		case GFX_STOP:
 			break;
@@ -240,37 +274,48 @@ class Graphics implements IBitmapDrawable {
 				ctx.strokeStyle = null;
 			}
 		case GFX_FILL_SOLID, GFX_FILL_BITMAP:
-			if ((f & GFF_FILL) != 0) {
-				ctx.closePath();
-				if ((f & GFF_STROKE) != 0) ctx.stroke();
-				ctx.fill();
-			} else f |= GFF_FILL;
-			ctx.fillStyle = v == GFX_FILL_BITMAP
-				? ctx.createPattern(rec[++p].handle(), rec[++p])
-				: rec[++p];
-			ctx.beginPath();
-		case GFX_END_FILL:
-			ctx.closePath();
-			if ((f & GFF_FILL) != 0) {
-				ctx.fill();
-				f &= ~GFF_FILL;
+			if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
+			f |= GFF_FILL;
+			if (v == GFX_FILL_BITMAP) {
+				tex = rec[++p].handle();
+				var r:Bool = rec[++p];
+				if (rec[++p]) {
+					if (r) f |= GFF_TILED; else f &= ~GFF_TILED;
+					m.a = rec[++p];
+					m.b = rec[++p];
+					m.c = rec[++p];
+					m.d = rec[++p];
+					m.tx = rec[++p];
+					m.ty = rec[++p];
+					f |= GFF_PATTERN;
+				} else {
+					ctx.fillStyle = ctx.createPattern(cast tex, r ? "repeat" : "no-repeat");
+					f &= ~GFF_PATTERN;
+				}
+			} else {
+				ctx.fillStyle = rec[++p];
+				f &= ~GFF_PATTERN;
 			}
-			if ((f & GFF_STROKE) != 0) ctx.stroke();
+			ctx.beginPath(); n = 0;
+		case GFX_END_FILL:
+			if (n > 0) { f = _closePath(cnv, ctx, f, m, tex); n = 0; }
 		case GFX_MOVETO:
-			ctx.moveTo(rec[++p], rec[++p]);
+			ctx.moveTo(rec[++p], rec[++p]); n++;
 		case GFX_LINETO:
-			ctx.lineTo(rec[++p], rec[++p]);
+			ctx.lineTo(rec[++p], rec[++p]); n++;
 		case GFX_CURVETO:
-			ctx.quadraticCurveTo(rec[++p], rec[++p], rec[++p], rec[++p]);
+			ctx.quadraticCurveTo(rec[++p], rec[++p], rec[++p], rec[++p]); n++;
 		case GFX_RECT:
 			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p];
-			if ((f & GFF_FILL) != 0) ctx.fillRect(x, y, w, h);
-			if ((f & GFF_STROKE) != 0) ctx.strokeRect(x, y, w, h);
+			ctx.rect(x, y, w, h);
+			//if ((f & GFF_FILL) != 0) ctx.fillRect(x, y, w, h);
+			//if ((f & GFF_STROKE) != 0) ctx.strokeRect(x, y, w, h);
+			n++;
 		case GFX_CIRCLE:
-			ctx.arc(rec[++p], rec[++p], rec[++p], 0, Math.PI * 2, true);
+			ctx.arc(rec[++p], rec[++p], rec[++p], 0, Math.PI * 2, true); n++;
 		case GFX_ROUNDRECT:
-			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p], u = rec[++p], v = rec[++p];
-			if (v == null || ctx.quadraticCurveTo == null) {
+			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p], u = rec[++p], q = rec[++p];
+			if (q == null || ctx.quadraticCurveTo == null) {
 				ctx.moveTo(x + u, y + h);
 				ctx.arcTo(x + w - u, y + h - u, x + w, y + h - u, u); // bottom right
 				ctx.arcTo(x + w, y + u, x + w - u, y, u); // top right
@@ -279,14 +324,15 @@ class Graphics implements IBitmapDrawable {
 			} else {
 				ctx.moveTo(x + u, y + h);
 				ctx.lineTo(x + w - u, y + h);
-				ctx.quadraticCurveTo(x + w, y + h, x + w, y + h - v);
-				ctx.lineTo(x + w, y + v);
+				ctx.quadraticCurveTo(x + w, y + h, x + w, y + h - q);
+				ctx.lineTo(x + w, y + q);
 				ctx.quadraticCurveTo(x + w, y, x + w - u, y);
 				ctx.lineTo(x + u, y);
-				ctx.quadraticCurveTo(x, y, x, y + v);
-				ctx.lineTo(x, y + h - v);
+				ctx.quadraticCurveTo(x, y, x, y + q);
+				ctx.lineTo(x, y + h - q);
 				ctx.quadraticCurveTo(x, y + h, x + u, y + h);
 			}
+			n++;
 		case GFX_TILES:
 			var tex:BitmapData = rec[++p],
 				d:CanvasElement = tex.handle(),
@@ -328,11 +374,7 @@ class Graphics implements IBitmapDrawable {
 			Lib.trace(Std.string(v));
 			break;
 		}
-		if ((f & GFF_FILL) != 0) {
-			ctx.closePath();
-			ctx.fill();
-		}
-		if ((f & GFF_STROKE) != 0) ctx.stroke();
+		if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
 	}
 }
 #end
