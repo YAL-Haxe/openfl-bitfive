@@ -32,7 +32,8 @@ class ApplicationMain {
 		
 		flash.Lib.current.loaderInfo = flash.display.LoaderInfo.create (null);
 		
-		::if (WIN_WIDTH == "0")::::if (WIN_HEIGHT == "0")::flash.Lib.preventDefaultTouchMove();
+		::if (WIN_FPS != "0")::flash.Lib.stage.frameRate = ::WIN_FPS::;
+		::end::::if (WIN_WIDTH == "0")::::if (WIN_HEIGHT == "0")::flash.Lib.preventDefaultTouchMove();
 		::end::::end::// preloader:
 		Lib.current.addChild(preloader = new ::PRELOADER_NAME::());
 		preloader.onInit();
