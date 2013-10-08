@@ -93,19 +93,20 @@ class Tilesheet {
 			r[p++] = qx = q.x; r[p++] = qy = q.y;
 			r[p++] = qw = q.width; r[p++] = qh = q.height;
 			// handle bounds:
-			u.x = q.x; u.width = q.width;
-			u.y = q.y; u.height = q.height;
-			if (ft) {
+			u.x = -o.x; u.width = q.width;
+			u.y = -o.y; u.height = q.height;
+			if (ft) { // bounds transformations
 				m.identity();
-				if (fm) {
+				if (fm) { // matrix
 					r[p++] = m.a = d[i++];
 					r[p++] = m.b = d[i++];
 					r[p++] = m.c = d[i++];
 					r[p++] = m.d = d[i++];
-				} else {
+				} else { // rotation/scaling
 					if (fs) m.scale(r[p++] = v = d[i++], v);
 					if (fr) m.rotate(r[p++] = d[i++]);
 				}
+				m.translate(q.x, q.y);
 				u.transform(m);
 			}
 			u.x += tx; u.y += ty;

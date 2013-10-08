@@ -268,6 +268,7 @@ class Graphics implements IBitmapDrawable {
 		case GFX_STOP:
 			break;
 		case GFX_LINESTYLE:
+			if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
 			ctx.lineWidth = v = rec[++p];
 			if (v > 0) {
 				f |= GFF_STROKE;
@@ -338,17 +339,17 @@ class Graphics implements IBitmapDrawable {
 			n++;
 		case GFX_TILES:
 			var tex:BitmapData = rec[++p],
-				d:CanvasElement = tex.handle(),
-				fx:Int = rec[++p],
-				fs:Bool = (fx & TILE_SCALE) != 0,
-				fr:Bool = (fx & TILE_ROTATION) != 0,
+				d:CanvasElement = tex.handle(), // element to draw
+				fx:Int = rec[++p], // flags
+				fs:Bool = (fx & TILE_SCALE) != 0, // scaling
+				fr:Bool = (fx & TILE_ROTATION) != 0, // rotation
 				fc:Bool = (fx & TILE_RGB) != 0, // not actually supported
-				fa:Bool = (fx & TILE_ALPHA) != 0,
-				fm:Bool = (fx & TILE_TRANS_2x2) != 0,
+				fa:Bool = (fx & TILE_ALPHA) != 0, // alpha
+				fm:Bool = (fx & TILE_TRANS_2x2) != 0, // Transform (abcd of matrix)
 				c:Int = cast (rec[++p] - 1),
-				tx:Float, ty:Float,
-				ox:Float, oy:Float,
-				rx:Float, ry:Float, rw:Float, rh:Float;
+				tx:Float, ty:Float, // translateXY
+				ox:Float, oy:Float, // originXY
+				rx:Float, ry:Float, rw:Float, rh:Float; // source rectangle
 			//
 			ctx.save();
 			ctx.globalCompositeOperation = ((fx & TILE_BLEND_ADD) != 0) ? "lighter" : "source-over";
@@ -360,7 +361,7 @@ class Graphics implements IBitmapDrawable {
 				ctx.save();
 				// the extra data:
 				if (fm) {
-					ctx.setTransform(rec[++p], rec[++p], rec[++p], rec[++p], tx, ty);
+					ctx.transform(rec[++p], rec[++p], rec[++p], rec[++p], tx, ty);
 				} else {
 					ctx.translate(tx, ty);
 					if (fs) ctx.scale(v = rec[++p], v);
