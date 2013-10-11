@@ -1,5 +1,4 @@
 #if !macro
-#if (openfl_html5 && !flambe)
 import ::APP_MAIN_PACKAGE::::APP_MAIN_CLASS::;
 import haxe.Resource;
 import flash.display.Bitmap;
@@ -177,19 +176,6 @@ class DocumentClass extends ::APP_MAIN:: {
 	}
 }
 
-#else
-import ::APP_MAIN_PACKAGE::::APP_MAIN_CLASS::;
-
-class ApplicationMain {
-	public static function main() {
-		if (Reflect.field(::APP_MAIN::, "main") == null) {
-			Type.createInstance(::APP_MAIN::, []);
-		} else {
-			Reflect.callMethod(::APP_MAIN::, Reflect.field(::APP_MAIN::, "main"), []);
-		}
-	}
-}
-#end
 #else // macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
