@@ -236,7 +236,7 @@ class Graphics implements IBitmapDrawable {
 	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
 	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
 		ctx.save();
-		ctx.transform(mtx.a, mtx.b, mtx.c, mtx.d, mtx.tx, mtx.ty);
+		if (mtx != null) ctx.transform(mtx.a, mtx.b, mtx.c, mtx.d, mtx.tx, mtx.ty);
 		render(cnv, ctx);
 		ctx.restore();
 	}
