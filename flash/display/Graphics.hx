@@ -158,7 +158,7 @@ class Graphics implements IBitmapDrawable {
 	?repeat:Bool, ?smooth:Bool):Void {
 		rec[len++] = GFX_FILL_BITMAP;
 		rec[len++] = bitmap;
-		rec[len++] = repeat;
+		rec[len++] = repeat != null ? repeat : true;
 		if (Lib.bool(rec[len++] = m != null)) {
 			rec[len++] = m.a;
 			rec[len++] = m.b;
@@ -273,7 +273,7 @@ class Graphics implements IBitmapDrawable {
 			if (v > 0) {
 				f |= GFF_STROKE;
 				ctx.strokeStyle = rec[++p];
-			} else {
+			} else { // disable stroke if lineWidth <= 0
 				f &= ~GFF_STROKE;
 				ctx.strokeStyle = null;
 			}
@@ -283,8 +283,9 @@ class Graphics implements IBitmapDrawable {
 			if (v == GFX_FILL_BITMAP) {
 				tex = rec[++p].handle();
 				var r:Bool = rec[++p];
-				if (rec[++p]) {
-					if (r) f |= GFF_TILED; else f &= ~GFF_TILED;
+				if (rec[++p]) { // uses matrix
+					if (r) f |= GFF_TILED; else f &= ~GFF_TILED; // repeat
+					// matrix:
 					m.a = rec[++p];
 					m.b = rec[++p];
 					m.c = rec[++p];
@@ -296,7 +297,7 @@ class Graphics implements IBitmapDrawable {
 					ctx.fillStyle = ctx.createPattern(cast tex, r ? "repeat" : "no-repeat");
 					f &= ~GFF_PATTERN;
 				}
-			} else {
+			} else { // solid fill
 				ctx.fillStyle = rec[++p];
 				f &= ~GFF_PATTERN;
 			}
@@ -319,13 +320,13 @@ class Graphics implements IBitmapDrawable {
 			ctx.arc(rec[++p], rec[++p], rec[++p], 0, Math.PI * 2, true); n++;
 		case GFX_ROUNDRECT:
 			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p], u = rec[++p], q = rec[++p];
-			if (q == null || ctx.quadraticCurveTo == null) {
+			if (q == null || ctx.quadraticCurveTo == null) { // single-radius or fallback
 				ctx.moveTo(x + u, y + h);
 				ctx.arcTo(x + w - u, y + h - u, x + w, y + h - u, u); // bottom right
 				ctx.arcTo(x + w, y + u, x + w - u, y, u); // top right
 				ctx.arcTo(x + u, y, x, y + u, u); // top left
 				ctx.arcTo(x + u, y + h - u, x + u, y + h, u); // bottom left
-			} else {
+			} else { // multi-radius. Actually pretty simple.
 				ctx.moveTo(x + u, y + h);
 				ctx.lineTo(x + w - u, y + h);
 				ctx.quadraticCurveTo(x + w, y + h, x + w, y + h - q);
