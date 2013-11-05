@@ -244,7 +244,6 @@ class Graphics implements IBitmapDrawable {
 	private function _closePath(cnv:CanvasElement, ctx:CanvasRenderingContext2D, f:Int, m:Matrix,
 	texture:ImageElement):Int {
 		ctx.closePath();
-		if (Lib.bool(f & GFF_STROKE)) ctx.stroke();
 		if (Lib.bool(f & GFF_FILL)) {
 			if (Lib.bool(f & GFF_PATTERN)) {
 				ctx.save();
@@ -257,6 +256,7 @@ class Graphics implements IBitmapDrawable {
 				ctx.fill();
 			}
 		}
+		if (Lib.bool(f & GFF_STROKE)) ctx.stroke();
 		return f;
 	}
 	/** Renders Graphics into given canvas-context pair */
