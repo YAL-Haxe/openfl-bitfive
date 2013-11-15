@@ -257,6 +257,7 @@ class Graphics implements IBitmapDrawable {
 			}
 		}
 		if (Lib.bool(f & GFF_STROKE)) ctx.stroke();
+		ctx.beginPath();
 		return f;
 	}
 	/** Renders Graphics into given canvas-context pair */
@@ -301,7 +302,7 @@ class Graphics implements IBitmapDrawable {
 				ctx.fillStyle = rec[++p];
 				f &= ~GFF_PATTERN;
 			}
-			ctx.beginPath(); n = 0;
+			n = 0;
 		case GFX_END_FILL:
 			if (n > 0) { f = _closePath(cnv, ctx, f, m, tex); n = 0; }
 		case GFX_MOVETO:
