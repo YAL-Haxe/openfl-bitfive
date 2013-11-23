@@ -7,6 +7,7 @@ import flash.display.IBitmapDrawable;
  */
 class TextField extends flash.display.InteractiveObject implements IBitmapDrawable {
 	public var autoSize:String;
+	public var antiAliasType:AntiAliasType;
 	public var background:Bool;
 	public var backgroundColor:Int;
 	public var border:Bool;
