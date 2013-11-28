@@ -151,9 +151,23 @@ class DisplayObject extends EventWrapper {
 		return v;
 	}
 	//
-	public function getBounds(?o:Dynamic):Rectangle {
-		return null;
+	public function getBounds(?o:DisplayObject):Rectangle {
+		var m:Matrix = getGlobalMatrix(), r:Rectangle = new Rectangle(0, 0, width, height);
+		if (o == null) o = this;
+		if (o != this) {
+			r.transform(m);
+			if (o != null) {
+				m = o.getGlobalMatrix();
+				m.invert();
+				r.transform(m);
+			}
+		}
+		return r;
 	}
+	public function getRect(?o:DisplayObject):Rectangle {
+		return getBounds(o);
+	}
+	//
 	private static var convMatrix:Matrix;
 	private static var convPoint:Point;
 	private function getGlobalMatrix(?m:Matrix):Matrix {
