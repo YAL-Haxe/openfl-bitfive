@@ -29,49 +29,10 @@ For audio to work equally in all browsers, project should also include OGG versi
 <assets path="assets/snd" rename="snd" include="*.ogg" if="html5" />
 ```
 
-## Improving usage with HaxePunk
-Several minor edits can be done to HaxePunk code to improve performance or gain other advantages:
-
-### Running (most) games without web server
-```haxe
-// com.haxepunk.graphics.Canvas.render()
-target.lock();
-// ->
-#if !bitfive target.lock(); #end
-```
-(and similarly)
-```haxe
-// com.haxepunk.graphics.Canvas.render()
-target.unlock();
-// ->
-#if !bitfive target.unlock(); #end
-```
-Following common usage pattern, bitfive assumes that BitmapData.lock() precedes per-pixel manipulations. That means that it a ImageData instance should be retrieved for faster manipulations. Which in turn is not possible when running on local filesystem due to security restrictions.
-For certain manipulations (in which per-pixel processing is unavoidable) web server will be needed though.
-
-### Less doubtful buffering
-```haxe
-// com.haxepunk.Screen.swap()
-_current = 1 - _current;
-// ->
-#if !bitfive _current = 1 - _current; #end
-```
-Double buffering is obviously pretty cool (citation needed), but has no positive effects in HTML5, where imagery is already redrawn "all at once". Disabling it, on other hand, frees browser from unnecessary DO swapping, granting 15-25% performance boost, depending on browser.
-
-### Colours of the screen
-```haxe
-// com.haxepunk.Screen.set_color(value)
-#if flash
-// ->
-#if flash||bitfive
-```
-BitmapData.fillRect operation is not expensive in bitfive, just as it isn't in Flash. Though you can leave this as-is - when clearing BitmapData with fillRect operation, width modification is used, which can be slightly faster in some browsers.
-
-## Things that do not work (yet)
-*	Graphics.drawTiles(). This will be added later.
+## Notable incompatibilities
 *	BitmapData and Graphics objects can only be bound to a single DisplayObject at time.
 *	TextField-related classes are fairly draft. These will make attempts to display provided text anyway (for sake of compatibility), but they do not support embed fonts and most of needed properties.
-*	Touch events. JavaScript touch events are fairly different from Flash ones, making it not possible to "simply" convert between two. Mouse events will work just fine though.
+*	HTML5 touch events are currently not being mapped to Flash touch events. Mouse events are mapped and dispatched fine though (including mapping of touch events into mouse events).
 *	BitmapFilters are currently not implemented, but will be later on.
 
 ## License
