@@ -26,6 +26,7 @@ class Graphics implements IBitmapDrawable {
 	@:extern private static inline var GFX_CIRCLE = 14;
 	@:extern private static inline var GFX_ROUNDRECT = 15;
 	@:extern private static inline var GFX_TILES = 16; // also used in openfl.display.Tilesheet.drawTiles
+	@:extern private static inline var GFX_ELLIPSE = 17;
 	//
 	@:extern private static inline var GFF_FILL = 1;
 	@:extern private static inline var GFF_STROKE = 2;
@@ -217,6 +218,14 @@ class Graphics implements IBitmapDrawable {
 		rec[len++] = r;
 		grabRange(x, y, r);
 	}
+	public function drawEllipse(x:Float, y:Float, w:Float, h:Float):Void {
+		rec[len++] = GFX_ELLIPSE;
+		rec[len++] = x;
+		rec[len++] = y;
+		rec[len++] = w;
+		rec[len++] = h;
+		grab(x, y, x + w, y + h);
+	}
 	//
 	function rgba(c:Int, a:Float):String {
 		return "rgba(" + ((c >> 16) & 255) + ", " + ((c >> 8) & 255)
@@ -319,6 +328,16 @@ class Graphics implements IBitmapDrawable {
 			n++;
 		case GFX_CIRCLE:
 			ctx.arc(rec[++p], rec[++p], rec[++p], 0, Math.PI * 2, true); n++;
+		case GFX_ELLIPSE:
+			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p],
+				x1 = x + w / 2, y1 = y + h / 2, x2 = x + w, y2 = y + h,
+				m = 0.275892, xm = w * m, ym = h * m;
+			ctx.moveTo(x1, y);
+			ctx.bezierCurveTo(x1 + xm, y, x2, y1 - ym, x2, y1);
+			ctx.bezierCurveTo(x2, y1 + ym, x1 + xm, y2, x1, y2);
+			ctx.bezierCurveTo(x1 - xm, y2, x, y1 + ym, x, y1);
+			ctx.bezierCurveTo(x, y1 - ym, x1 - xm, y, x1, y);
+			n++;
 		case GFX_ROUNDRECT:
 			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p], u = rec[++p], q = rec[++p];
 			if (q == null || ctx.quadraticCurveTo == null) { // single-radius or fallback
