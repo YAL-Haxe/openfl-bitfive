@@ -6,7 +6,7 @@ import flash.display.IBitmapDrawable;
  * Included solely to avoid infinite errors.
  */
 class TextField extends flash.display.InteractiveObject implements IBitmapDrawable {
-	public var autoSize:String;
+	public var autoSize(default, set):String;
 	public var antiAliasType:AntiAliasType;
 	public var background:Bool;
 	public var backgroundColor:Int;
@@ -20,12 +20,14 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public var length(default, null):Int;
 	public var maxChars:Int;
 	public var multiline:Bool;
+	public var scrollV:Int;
+	public var maxScrollV:Int;
 	public var selectable(default, set):Bool;
 	public var selectedText:String;
 	public var selectionBeginIndex:Int;
 	public var selectionEndIndex:Int;
 	public var styleSheet:Dynamic;
-	public var text(default, set):String;
+	public var text(default, set):String = "";
 	public var textColor:Int;
 	public var textHeight(get, null):Float;
 	public var textWidth(get, null):Float;
@@ -33,13 +35,17 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public var wordWrap:Bool;
 	//
 	private var qFontStyle:String;
+	private var qLineHeight:Float;
 	//
 	public function new() {
 		super();
-		component.style.whiteSpace = 'nowrap';
-		defaultTextFormat = new TextFormat("_sans", 16, 0);
+		var s = component.style;
+		s.whiteSpace = "nowrap";
+		s.overflow = "hidden";
+		defaultTextFormat = new TextFormat("_serif", 16, 0);
 		textColor = 0;
 		wordWrap = false;
+		width = height = 100;
 	}
 	//
 	public function setTextFormat(v:TextFormat, ?f:Int, ?l:Int) {
@@ -54,6 +60,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			} else component.innerText = v;
 			var o = component.style, q:TextFormat = defaultTextFormat;
 			qFontStyle = o.font = q.get_fontStyle();
+			untyped o.lineHeight = (qLineHeight = q.size) + "px";
 			o.color = flash.Lib.rgbf(q.color != null ? q.color : textColor, 1);
 		}
 		return v;
@@ -81,6 +88,20 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	}
 	override private function get_height():Float {
 		return qHeight != null ? qHeight : get_textHeight();
+	}
+	override private function set_width(v:Float):Float {
+		if (qWidth != v) {
+			component.style.width = (v != null ? v + "px" : "");
+			qWidth = v;
+		}
+		return v;
+	}
+	override private function set_height(v:Float):Float {
+		if (qHeight != v) {
+			component.style.height = (v != null ? v + "px" : "");
+			qHeight = v;
+		}
+		return v;
 	}
 	private function _measure_pre():js.html.DivElement {
 		var o = flash.Lib.jsHelper(),
@@ -111,6 +132,12 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			return r;
 		}
 		return component.clientHeight;
+	}
+	private function set_autoSize(v:String):String {
+		if (autoSize != v) {
+			if ((autoSize = v) != TextFieldAutoSize.NONE) width = height = null;
+		}
+		return v;
 	}
 	private function set_selectable(v:Bool):Bool {
 		if (selectable != v) {
