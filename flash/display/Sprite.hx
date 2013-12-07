@@ -7,6 +7,7 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 	public var graphics(get, null):Graphics;
 	private var _graphics:Graphics;
 	public var useHandCursor(default, set):Bool;
+	public var buttonMode:Bool;
 	//
 	public function new() {
 		super();
