@@ -119,10 +119,28 @@ class DisplayObject extends EventWrapper {
 	private function get_height():Float { return untyped qHeight || 0; }
 	private function set_width(v:Float):Float {
 		//Lib.trace(Std.string(this) + ".width = " + v);
+		if (width == 0 || width == null)
+		{
+			scaleX = 1;
+		}
+		else
+		{
+			scaleX = v / this.width;
+		}
+		qWidth = v;
 		return v;
 	}
 	private function set_height(v:Float):Float {
 		//Lib.trace(Std.string(this) + ".height = " + v);
+		if (height == 0 || height == null)
+		{
+			scaleY = 1;
+		}
+		else
+		{
+			scaleY = v / this.height;
+		}
+		qHeight = v;
 		return v;
 	}
 	private function set_alpha(v:Float):Float {
