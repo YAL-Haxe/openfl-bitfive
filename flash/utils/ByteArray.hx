@@ -254,6 +254,23 @@ class ByteArray implements ArrayAccess<Int> {
 		return r;
 	}
 	
+	public function toBase64():String {
+		var o:ByteArray = this, q = o.position, l = o.length, p = -1, v:DataView = o.data,
+			r:String = "",
+			m:String = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+			a:Int, b:Int, c:Int;
+		while (++p < l) {
+			a = v.getUint8(p);
+			b = ++p < l ? v.getUint8(p) : 0;
+			c = ++p < l ? v.getUint8(p) : 0;
+			r += m.charAt(a >> 2)
+				+ m.charAt(((a & 0x3) << 4) | (b >> 4))
+				+ (p - 1 < l ? m.charAt(((b & 0xF) << 2) | (c >> 6)) : "=")
+				+ (p < l ? m.charAt(c & 0x3F) : "=");
+		}
+		return r;
+	}
+	
 	
 	#if format
 	public function uncompress():Void {

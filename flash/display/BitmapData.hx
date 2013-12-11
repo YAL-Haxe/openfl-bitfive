@@ -648,59 +648,10 @@ class BitmapData implements IBitmapDrawable {
 		}
 		
 		img.addEventListener("load", drawImage, false);
-		img.src = 'data:$type;base64,${nmeBase64Encode(bytes)}';
+		img.src = "data:" + type + ";base64," + bytes.toBase64();
 		
 	}
-	private static function nmeBase64Encode(bytes:ByteArray) {
-		
-		var blob = "";
-		var codex = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-		bytes.position = 0;
-		
-		while (bytes.position < bytes.length) {
-			
-			var by1 = 0, by2 = 0, by3 = 0;
-			
-			by1 = bytes.readByte();
-			
-			if (bytes.position < bytes.length) by2 = bytes.readByte();
-			if (bytes.position < bytes.length) by3 = bytes.readByte();
-			
-			var by4 = 0, by5 = 0, by6 = 0, by7 = 0;
-			
-			by4 = by1 >> 2;
-			by5 = ((by1 & 0x3) << 4) |(by2 >> 4);
-			by6 = ((by2 & 0xF) << 2) |(by3 >> 6);
-			by7 = by3 & 0x3F;
-			
-			blob += codex.charAt(by4);
-			blob += codex.charAt(by5);
-			
-			if (bytes.position < bytes.length) {
-				
-				blob += codex.charAt(by6);
-				
-			} else {
-				
-				blob += "=";
-				
-			}
-			
-			if (bytes.position < bytes.length) {
-				
-				blob += codex.charAt(by7);
-				
-			} else {
-				
-				blob += "=";
-				
-			}
-			
-		}
-		
-		return blob;
-		
-	}
+
 	private static function nmeIsPNG(bytes:ByteArray) {
 		
 		bytes.position = 0;
