@@ -19,66 +19,37 @@ import format.tools.Inflate;
 @:autoBuild(openfl.Assets.embedFile())
 class ByteArray implements ArrayAccess<Int> {
 	
-	
 	public var bytesAvailable(get, null):Int;
 	public var endian(get, set):String;
 	public var length(default, set):Int = 0;
 	public var objectEncoding:Int;
-	public var position:Int = 0;
+	public var position:Int;
 	
-	private var allocated:Int = 0;
+	private var allocated:Int;
 	public var byteView:Uint8Array;
-	private var data:DataView;
+	public var data:DataView;
 	// NOTE: default ByteArray endian is BIG_ENDIAN
 	private var littleEndian:Bool = false;
 	
-	
 	public function new():Void {
-		
-		_nmeResizeBuffer(allocated);
+		_nmeResizeBuffer(allocated = position = 0);
 		//this.byteView = untyped __new__("Uint8Array", allocated);
 		//this.data = untyped __new__("DataView", this.byteView.buffer);
-		
 	}
-	
 	
 	public function __get(pos:Int):Int { return data.getUint8(pos); }
 	public function __set(pos:Int, v:Int):Void { data.setUint8(pos, v); }
 	
-	
 	private function _getUTFBytesCount(value:String):Int {
-		
+		var r:Int = 0, i:Int = -1, l:Int = value.length, c:Int;
 		var count:Int = 0;
 		// utf8-decode
-		
-		for (i in 0...value.length) {
-			
-			var c = StringTools.fastCodeAt(value, i);
-			
-			if (c <= 0x7F) {
-				
-				count += 1;
-				
-			} else if (c <= 0x7FF) {
-				
-				count += 2;
-				
-			} else if (c <= 0xFFFF) {
-				
-				count += 3;
-				
-			} else {
-				
-				count += 4;
-				
-			}
-			
+		while (++i < l) {
+			c = StringTools.fastCodeAt(value, i);
+			r += c <= 0x7F ? 1 : c <= 0x7FF ? 2 : c <= 0xFFFF ? 3 : 4;			
 		}
-		
-		return count;
-		
+		return r;
 	}
-	
 	
 	private function _nmeResizeBuffer(len:Int):Void {
 		var oldByteView:Uint8Array = this.byteView;
@@ -94,11 +65,9 @@ class ByteArray implements ArrayAccess<Int> {
 		
 	}
 	
-	
 	public function clear() {
 		length = position = 0;
 	}
-	
 	
 	@:extern private inline function ensureWrite(l:Int):Void {
 		if (this.length < l) this.length = l;
@@ -116,15 +85,9 @@ class ByteArray implements ArrayAccess<Int> {
 		allocated = length;
 	}
 	
-	public inline function nmeGet(pos:Int):Int {
-		return data.getUint8(pos);
-	}
+	public inline function nmeGet(pos:Int):Int return data.getUint8(pos);
 	
-	
-	public inline function nmeGetBuffer() {
-		return data.buffer;
-	}
-	
+	public inline function nmeGetBuffer() return data.buffer;
 	
 	public static function nmeOfBuffer(buffer:ArrayBuffer):ByteArray {
 		var r = new ByteArray();
@@ -134,21 +97,11 @@ class ByteArray implements ArrayAccess<Int> {
 		return r;
 	}
 	
+	public inline function nmeSet(p:Int, v:Int):Void data.setUint8(p, v);
 	
-	public inline function nmeSet(p:Int, v:Int):Void {
-		data.setUint8(p, v);
-	}
+	public inline function readBoolean():Bool return readByte() != 0;
 	
-	
-	public inline function readBoolean():Bool {
-		return (this.readByte() != 0);
-	}
-	
-	
-	public inline function readByte():Int {
-		return data.getUint8(this.position++);
-	}
-	
+	public inline function readByte():Int return data.getUint8(position++);
 	
 	public function readBytes(bytes:ByteArray, ?offset:Int, ?length:Int):Void {
 		if (offset == null) offset = 0;
@@ -165,13 +118,11 @@ class ByteArray implements ArrayAccess<Int> {
 		
 	}
 	
-	
 	public function readDouble():Float {
 		var r = data.getFloat64(this.position, littleEndian);
 		this.position += 8;
 		return r;
 	}
-	
 	
 	public function readFloat():Float {
 		var r = data.getFloat32(this.position, littleEndian);
@@ -200,11 +151,7 @@ class ByteArray implements ArrayAccess<Int> {
 		return r;
 	}
 	
-	
-	public inline function readUnsignedByte():Int {
-		return data.getUint8(this.position++);
-	}
-	
+	public inline function readUnsignedByte():Int return data.getUint8(this.position++);
 	
 	public function readUnsignedInt():Int {
 		var uInt = data.getUint32(this.position, littleEndian);
@@ -212,16 +159,13 @@ class ByteArray implements ArrayAccess<Int> {
 		return uInt;
 	}
 	
-	
 	public function readUnsignedShort():Int {
 		var r = data.getUint16(this.position, littleEndian);
 		this.position += 2;
 		return r;
 	}
 	
-	public function readUTF():String {
-		return readUTFBytes(readUnsignedShort());
-	}
+	public function readUTF():String return readUTFBytes(readUnsignedShort());
 	
 	public function readUTFBytes(len:Int):String {
 		var r = "", max = this.position + len;
@@ -271,7 +215,6 @@ class ByteArray implements ArrayAccess<Int> {
 		return r;
 	}
 	
-	
 	#if format
 	public function uncompress():Void {
 		var bytes = Bytes.ofData(cast byteView);
@@ -282,11 +225,7 @@ class ByteArray implements ArrayAccess<Int> {
 	}
 	#end
 	
-	
-	public inline function writeBoolean(v:Bool):Void {
-		this.writeByte(v ? 1 : 0);
-	}
-	
+	public inline function writeBoolean(v:Bool):Void this.writeByte(v ? 1 : 0);
 	
 	public function writeByte(v:Int):Void {
 		ensureWrite(this.position + 1);
@@ -294,7 +233,6 @@ class ByteArray implements ArrayAccess<Int> {
 		data.setInt8(this.position, v);
 		this.position += 1;
 	}
-	
 	
 	public function writeBytes(bytes:ByteArray, ?offset:UInt, ?length:UInt):Void {
 		if (offset < 0 || length < 0) throw new IOError("Write error - Out of bounds");
@@ -304,107 +242,72 @@ class ByteArray implements ArrayAccess<Int> {
 		this.position += length;
 	}
 	
-	
 	public function writeDouble(x:Float):Void {
-		
 		ensureWrite(this.position + 8);
 		data.setFloat64(this.position, x, littleEndian);
 		this.position += 8;
-		
 	}
 	
-	
 	public function writeFloat(x:Float):Void {
-		
 		ensureWrite(this.position + 4);
 		data.setFloat32(this.position, x, littleEndian);
 		this.position += 4;
-		
 	}
 	
-	
 	public function writeInt(value:Int):Void {
-		
 		ensureWrite(this.position + 4);
 		data.setInt32(this.position, value, littleEndian);
 		this.position += 4;
-		
 	}
 	
-	
 	public function writeShort(value:Int):Void {
-		
 		ensureWrite(this.position + 2);
 		data.setInt16(this.position, value, littleEndian);
 		this.position += 2;
-		
 	}
 	
-	
 	public function writeUnsignedInt(value:Int):Void {
-		
 		ensureWrite(this.position + 4);
 		data.setUint32(this.position, value, littleEndian);
 		this.position += 4;
-		
 	}
 	
-	
 	public function writeUnsignedShort(value:Int):Void {
-		
 		ensureWrite(this.position + 2);
 		data.setUint16(this.position, value, littleEndian);
 		this.position += 2;
-		
 	}
-	
 	
 	public function writeUTF(value:String):Void {
-		
 		writeUnsignedShort(_getUTFBytesCount(value));
 		writeUTFBytes(value);
-		
 	}
 	
-	
 	public function writeUTFBytes(value:String):Void {
-		
-		// utf8-decode
-		for (i in 0...value.length) {
-			
-			var c = StringTools.fastCodeAt(value, i);
-			
+		var i:Int = -1, l:Int = value.length, c:Int;
+		while (++i < l) { // utf8-decode
+			c = StringTools.fastCodeAt(value, i);
 			if (c <= 0x7F) {
-				
 				writeByte(c);
-				
 			} else if (c <= 0x7FF) {
-				
-				writeByte(0xC0 |(c >> 6));
-				writeByte(0x80 |(c & 63));
-				
+				writeByte(0xC0 | (c >> 6));
+				writeByte(0x80 | (c & 63));
 			} else if (c <= 0xFFFF) {
-				
-				writeByte(0xE0 |(c >> 12));
-				writeByte(0x80 |((c >> 6) & 63));
-				writeByte(0x80 |(c & 63));
-				
+				writeByte(0xE0 | (c >> 12));
+				writeByte(0x80 | ((c >> 6) & 63));
+				writeByte(0x80 | (c & 63));
 			} else {
-				
-				writeByte(0xF0 |(c >> 18));
-				writeByte(0x80 |((c >> 12) & 63));
-				writeByte(0x80 |((c >> 6) & 63));
-				writeByte(0x80 |(c & 63));
-				
+				writeByte(0xF0 | (c >> 18));
+				writeByte(0x80 | ((c >> 12) & 63));
+				writeByte(0x80 | ((c >> 6) & 63));
+				writeByte(0x80 | (c & 63));
 			}
-			
 		}
-		
 	}
 	
 	// Getters & Setters
 	
-	private inline function get_bytesAvailable():Int { return length - position; }
+	private inline function get_bytesAvailable():Int return length - position;
 	
 	private inline function get_endian():String {
 		return littleEndian ? Endian.LITTLE_ENDIAN : Endian.BIG_ENDIAN;
