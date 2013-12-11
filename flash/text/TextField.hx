@@ -56,7 +56,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		if (text != v) {
 			text = v;
 			if (component.innerText == null) {
-				component.innerHTML = StringTools.htmlEscape(v);
+				component.innerHTML = StringTools.replace(StringTools.htmlEscape(v), "\n", "<br>");
 			} else component.innerText = v;
 			var o = component.style, q:TextFormat = defaultTextFormat;
 			qFontStyle = o.font = q.get_fontStyle();
