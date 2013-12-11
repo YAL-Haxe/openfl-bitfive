@@ -594,62 +594,35 @@ class BitmapData implements IBitmapDrawable {
 		return bitmapData;
 	}
 	
-	private inline function nmeLoadFromBytes(bytes:ByteArray, inRawAlpha:ByteArray = null, ?onload:BitmapData -> Void) {
-		
-		var type = "";
-		
-		if (nmeIsPNG(bytes)) {
-			
-			type = "image/png";
-			
-		} else if (nmeIsJPG(bytes)) {
-			
-			type = "image/jpeg";
-			
-		} else {
-			
-			throw new IOError("BitmapData tried to read a PNG/JPG ByteArray, but found an invalid header.");
-			
-		}
-		
-		var img:ImageElement = cast js.Browser.document.createElement("img");
-		var canvas = this.component;
-		
-		var drawImage = function(_) {
-			
-			canvas.width = img.width;
-			canvas.height = img.height;
-			
-			var ctx = canvas.getContext('2d');
-			ctx.drawImage(img, 0, 0);
-			
-			if (inRawAlpha != null) {
-				
-				var pixels = ctx.getImageData(0, 0, img.width, img.height);
-				
-				for (i in 0...inRawAlpha.length) {
-					
-					pixels.data[i * 4 + 3] = inRawAlpha.readUnsignedByte();
-					
-				}
-				
-				ctx.putImageData(pixels, 0, 0);
-				
+	private function nmeLoadFromBytes(c:ByteArray, a:ByteArray = null, ?h:BitmapData->Void) {
+		var t:String,
+			o:ImageElement = untyped document.createElement("img"),
+			n:CanvasElement = component,
+			q:CanvasRenderingContext2D,
+			f:Dynamic->Void = null,
+			i:Int, l:Int, p:ImageData;
+		if (!flash.Lib.bool(t = nmeIsPNG(c) ? "png" : nmeIsJPG(c) ? "jpeg" : ""))
+			throw new IOError("BitmapData can only load from ByteArrays with PNG/JPEG data.");
+		f = function(_) {
+			o.removeEventListener("load", f);
+			//
+			rect.width = n.width = o.width;
+			rect.height = n.height = o.height;
+			q = qContext = n.getContext("2d");
+			//
+			q.drawImage(o, 0, 0);
+			//
+			if (a != null) {
+				i = -1; l = a.length;
+				p = q.getImageData(0, 0, o.width, o.height);
+				while (++i < l) p.data[(i << 2) + 3] = a.readUnsignedByte();
+				q.putImageData(p, 0, 0);
 			}
-			
-			rect = new Rectangle (0, 0, canvas.width, canvas.height);
-			
-			if (onload != null) {
-				
-				onload(this);
-				
-			}
-			
-		}
-		
-		img.addEventListener("load", drawImage, false);
-		img.src = "data:" + type + ";base64," + bytes.toBase64();
-		
+			//
+			if (h != null) h(this);
+		};
+		o.addEventListener("load", f);
+		o.src = "data:image/" + t + ";base64," + c.toBase64();
 	}
 
 	private static function nmeIsPNG(bytes:ByteArray) {
