@@ -2,8 +2,8 @@ package flash.events;
 #if js
 class FocusEvent extends Event {
 	//
-	@:extern public static inline var FOCUS_IN = "focusIn";
-	@:extern public static inline var FOCUS_OUT = "focusOut";
+	@:extern public static inline var FOCUS_IN = "focus";
+	@:extern public static inline var FOCUS_OUT = "blur";
 	@:extern public static inline var KEY_FOCUS_CHANGE = "keyFocusChange";
 	@:extern public static inline var MOUSE_FOCUS_CHANGE = "mouseFocusChange";
 	//
