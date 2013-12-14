@@ -1,6 +1,8 @@
 package flash.text;
-import flash.display.IBitmapDrawable;
 #if js
+import flash.display.IBitmapDrawable;
+import js.html.Element;
+import js.html.TextAreaElement;
 /**
  * Status: Implementation pending.
  * Included solely to avoid infinite errors.
@@ -27,24 +29,28 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public var selectionBeginIndex:Int;
 	public var selectionEndIndex:Int;
 	public var styleSheet:Dynamic;
-	public var text(default, set):String = "";
+	public var text(get, set):String = "";
 	public var textColor:Int;
 	public var textHeight(get, null):Float;
 	public var textWidth(get, null):Float;
-	public var type:String;
+	public var type(default, set):String = "DYNAMIC";
 	public var wordWrap:Bool;
 	//
+	private var qText:String = "";
 	private var qFontStyle:String;
 	private var qLineHeight:Float;
+	private var qNode:TextAreaElement;
+	private var qEditable:Bool;
 	//
 	public function new() {
 		super();
 		var s = component.style;
 		s.whiteSpace = "nowrap";
 		s.overflow = "hidden";
+		//
 		defaultTextFormat = new TextFormat("_serif", 16, 0);
 		textColor = 0;
-		wordWrap = false;
+		wordWrap = qEditable = false;
 		width = height = 100;
 	}
 	//
@@ -52,15 +58,22 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		
 	}
 	//
+	private function get_text():String {
+		return qEditable ? qNode.value : qText;
+	}
 	private function set_text(v:String):String {
 		if (text != v) {
-			text = v;
-			if (component.innerText == null) {
+			var o, q:TextFormat = defaultTextFormat, z = qEditable;
+			qText = v;
+			if (z) {
+				qNode.value = v;
+			} else if (component.innerText == null) {
 				component.innerHTML = StringTools.replace(StringTools.htmlEscape(v), "\n", "<br>");
 			} else component.innerText = v;
-			var o = component.style, q:TextFormat = defaultTextFormat;
+			// update according styles:
+			o = (z ? qNode : component).style;
 			qFontStyle = o.font = q.get_fontStyle();
-			untyped o.lineHeight = (qLineHeight = q.size) + "px";
+			untyped o.lineHeight = (qLineHeight = Std.int(q.size * 1.25)) + "px";
 			o.color = flash.Lib.rgbf(q.color != null ? q.color : textColor, 1);
 		}
 		return v;
@@ -91,14 +104,18 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	}
 	override private function set_width(v:Float):Float {
 		if (qWidth != v) {
-			component.style.width = (v != null ? v + "px" : "");
+			var o = (v != null ? v + "px" : "");
+			component.style.width = o;
+			if (qEditable) qNode.style.width = o;
 			qWidth = v;
 		}
 		return v;
 	}
 	override private function set_height(v:Float):Float {
 		if (qHeight != v) {
-			component.style.height = (v != null ? v + "px" : "");
+			var o = (v != null ? v + "px" : "");
+			component.style.height = o;
+			if (qEditable) qNode.style.height = o;
 			qHeight = v;
 		}
 		return v;
@@ -139,6 +156,33 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		}
 		return v;
 	}
+	private function set_type(v:String):String {
+		// Currently will cause event listener loss.
+		// Is someone crazy enough to switch type mid-run though?
+		var z:Bool = (v == "INPUT"), o:TextField = this, c:Element, e:TextAreaElement, q:Dynamic,
+			t:Dynamic, text:String, f:Float;
+		if (z != o.qEditable) {
+			c = o.component;
+			text = o.text; o.text = text != "" ? "" : " ";
+			if (o.qEditable = z) {
+				// create input node:
+				c.appendChild(e = untyped document.createElement("textarea"));
+				e.value = text + " ";
+				t = e.style;
+				t.border = "0";
+				t.background = "transparent";
+				if ((f = o.qWidth) != null) t.width = f + "px";
+				if ((f = o.qHeight) != null) t.height = f + "px";
+				o.qNode = e;
+			} else {
+				// destroy input node:
+				c.removeChild(o.qNode);
+				o.qNode = null;
+			}
+			o.text = text;
+		}
+		return v;
+	}
 	private function set_selectable(v:Bool):Bool {
 		if (selectable != v) {
 			var s = component.style,
@@ -154,6 +198,18 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			component.setAttribute('unselectable', v ? null : 'on');
 		}
 		return v;
+	}
+	override public function addEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
+		var o = component;
+		if (qEditable) component = qNode;
+		super.addEventListener(type, listener, useCapture, priority, weak);
+		if (qEditable) component = o;
+	}
+	override public function removeEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
+		var o = component;
+		if (qEditable) component = qNode;
+		super.removeEventListener(type, listener, useCapture, priority, weak);
+		if (qEditable) component = o;
 	}
 }
 #end
