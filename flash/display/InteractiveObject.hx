@@ -14,5 +14,8 @@ class InteractiveObject extends DisplayObject {
 		tabIndex = 0;
 		mouseEnabled = doubleClickEnabled = true;
 	}
+	public function giveFocus():Void {
+		component.focus();
+	}
 }
 #end

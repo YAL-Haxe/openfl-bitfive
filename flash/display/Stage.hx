@@ -67,10 +67,11 @@ class Stage extends DisplayObjectContainer {
 	}
 	//
 	function get_focus():InteractiveObject {
-		return untyped (document.activeElement && document.activeElement.node);
+		var o:Dynamic = untyped document.activeElement;
+		return o != null && Std.is(o = o.node, InteractiveObject) ? o : null;
 	}
 	function set_focus(v:InteractiveObject):InteractiveObject {
-		if (v != null) v.component.focus();
+		if (v != null) v.giveFocus();
 		else component.blur();
 		return v;
 	}

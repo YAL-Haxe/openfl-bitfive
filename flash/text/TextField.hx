@@ -209,6 +209,9 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		}
 		return v;
 	}
+	override public function giveFocus():Void {
+		(qEditable ? qTextArea : component).focus();
+	}
 	// selection:
 	private function get_selectionBeginIndex():Int return qEditable ? qTextArea.selectionStart : 0;
 	private function get_selectionEndIndex():Int return qEditable ? qTextArea.selectionEnd : 0;
