@@ -21,13 +21,13 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public var htmlText:String;
 	public var length(default, null):Int;
 	public var maxChars:Int;
-	public var multiline:Bool;
+	public var multiline(default, set):Bool;
 	public var scrollV:Int;
 	public var maxScrollV:Int;
 	public var selectable(default, set):Bool;
-	public var selectedText:String;
-	public var selectionBeginIndex:Int;
-	public var selectionEndIndex:Int;
+	public var selectedText(get, null):String;
+	public var selectionBeginIndex(get, set):Int;
+	public var selectionEndIndex(get, set):Int;
 	public var styleSheet:Dynamic;
 	public var text(get, set):String = "";
 	public var textColor:Int;
@@ -39,7 +39,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	private var qText:String = "";
 	private var qFontStyle:String;
 	private var qLineHeight:Float;
-	private var qNode:TextAreaElement;
+	private var qTextArea:TextAreaElement;
 	private var qEditable:Bool;
 	//
 	public function new() {
@@ -59,19 +59,19 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	}
 	//
 	private function get_text():String {
-		return qEditable ? qNode.value : qText;
+		return qEditable ? qTextArea.value : qText;
 	}
 	private function set_text(v:String):String {
 		if (text != v) {
 			var o, q:TextFormat = defaultTextFormat, z = qEditable;
 			qText = v;
 			if (z) {
-				qNode.value = v;
+				qTextArea.value = v;
 			} else if (component.innerText == null) {
 				component.innerHTML = StringTools.replace(StringTools.htmlEscape(v), "\n", "<br>");
 			} else component.innerText = v;
 			// update according styles:
-			o = (z ? qNode : component).style;
+			o = (z ? qTextArea : component).style;
 			qFontStyle = o.font = q.get_fontStyle();
 			untyped o.lineHeight = (qLineHeight = Std.int(q.size * 1.25)) + "px";
 			o.color = flash.Lib.rgbf(q.color != null ? q.color : textColor, 1);
@@ -106,7 +106,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		if (qWidth != v) {
 			var o = (v != null ? v + "px" : "");
 			component.style.width = o;
-			if (qEditable) qNode.style.width = o;
+			if (qEditable) qTextArea.style.width = o;
 			qWidth = v;
 		}
 		return v;
@@ -115,7 +115,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		if (qHeight != v) {
 			var o = (v != null ? v + "px" : "");
 			component.style.height = o;
-			if (qEditable) qNode.style.height = o;
+			if (qEditable) qTextArea.style.height = o;
 			qHeight = v;
 		}
 		return v;
@@ -166,20 +166,30 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			text = o.text; o.text = text != "" ? "" : " ";
 			if (o.qEditable = z) {
 				// create input node:
-				c.appendChild(e = untyped document.createElement("textarea"));
+				c.appendChild(e = untyped document.createElement(multiline ? "textarea" : "input"));
 				e.value = text + " ";
 				t = e.style;
 				t.border = "0";
 				t.background = "transparent";
 				if ((f = o.qWidth) != null) t.width = f + "px";
 				if ((f = o.qHeight) != null) t.height = f + "px";
-				o.qNode = e;
+				o.qTextArea = e;
 			} else {
 				// destroy input node:
-				c.removeChild(o.qNode);
-				o.qNode = null;
+				c.removeChild(o.qTextArea);
+				o.qTextArea = null;
 			}
 			o.text = text;
+		}
+		return v;
+	}
+	private function set_multiline(v:Bool):Bool {
+		if (multiline != v) {
+			multiline = v;
+			if (qEditable) {
+				type = "DYNAMIC";
+				type = "INPUT";
+			}
 		}
 		return v;
 	}
@@ -188,26 +198,49 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			var s = component.style,
 				q = (selectable = v) ? null : 'none',
 				u = 'user-select', z = null;
-			s.setProperty('-webkit-touch-callout', q, z);
+			s.setProperty('-webkit-touch-callout', q, z); // mobile webkit
 			s.setProperty('-webkit-' + u, q, z);
-			s.setProperty('-khtml-' + u, q, z);
+			s.setProperty('-khtml-' + u, q, z); 
 			s.setProperty('-moz-' + u, q, z);
-			s.setProperty('-ms-' + u, q, z);
+			s.setProperty('-ms-' + u, q, z); // newer IEs
 			s.setProperty(u, q, z);
 			s.setProperty("cursor", v ? "" : "default", z);
-			component.setAttribute('unselectable', v ? null : 'on');
+			component.setAttribute('unselectable', v ? null : 'on'); // older IEs
 		}
 		return v;
 	}
+	// selection:
+	private function get_selectionBeginIndex():Int return qEditable ? qTextArea.selectionStart : 0;
+	private function get_selectionEndIndex():Int return qEditable ? qTextArea.selectionEnd : 0;
+	private function set_selectionBeginIndex(v:Int):Int {
+		if (qEditable && selectionBeginIndex != v) {
+			qTextArea.selectionStart = v;
+		}
+		return v;
+	}
+	private function set_selectionEndIndex(v:Int):Int {
+		if (qEditable && selectionEndIndex != v) {
+			qTextArea.selectionEnd = v;
+		}
+		return v;
+	}
+	private function get_selectedText():String {
+		var a:Int = qTextArea.selectionStart,
+			b:Int = qTextArea.selectionEnd,
+			c:Int;
+		if (b < a) { c = a; a = b; b = c; }
+		return qEditable ? qTextArea.value.substring(a, b) : null;
+	}
+	// event target overrides:
 	override public function addEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
 		var o = component;
-		if (qEditable) component = qNode;
+		if (qEditable) component = qTextArea;
 		super.addEventListener(type, listener, useCapture, priority, weak);
 		if (qEditable) component = o;
 	}
 	override public function removeEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
 		var o = component;
-		if (qEditable) component = qNode;
+		if (qEditable) component = qTextArea;
 		super.removeEventListener(type, listener, useCapture, priority, weak);
 		if (qEditable) component = o;
 	}
