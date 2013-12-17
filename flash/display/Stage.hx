@@ -14,7 +14,7 @@ class Stage extends DisplayObjectContainer {
 	public var stageHeight(get, null):Int;
 	public var showDefaultContextMenu:Bool;
 	public var frameRate:Float = 0; // should be retrieved from XML instead.
-	public var focus:InteractiveObject;
+	public var focus(get, set):InteractiveObject;
 	public var mousePos:Point;
 	/** Whether device is touch screen.
 	 * If device dispatches touch events, these are more reliable source of mouse coordinates */
@@ -64,6 +64,15 @@ class Stage extends DisplayObjectContainer {
 		var o = component; component = untyped window;
 		super.removeEventListener(type, listener, useCapture, priority, useWeakReference);
 		component = o;
+	}
+	//
+	function get_focus():InteractiveObject {
+		return untyped (document.activeElement && document.activeElement.node);
+	}
+	function set_focus(v:InteractiveObject):InteractiveObject {
+		if (v != null) v.component.focus();
+		else component.blur();
+		return v;
 	}
 	function get_stageWidth():Int {
 		return Browser.window.innerWidth;
