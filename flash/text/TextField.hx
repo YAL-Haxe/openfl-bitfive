@@ -20,7 +20,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public var embedFonts:Bool;
 	public var htmlText:String;
 	public var length(default, null):Int;
-	public var maxChars:Int;
+	public var maxChars(default, set):Int = 0;
 	public var multiline(default, set):Bool;
 	public var scrollV:Int;
 	public var maxScrollV:Int;
@@ -29,7 +29,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public var selectionBeginIndex(get, set):Int;
 	public var selectionEndIndex(get, set):Int;
 	public var styleSheet:Dynamic;
-	public var text(get, set):String = "";
+	public var text(get, set):String;
 	public var textColor:Int;
 	public var textHeight(get, null):Float;
 	public var textWidth(get, null):Float;
@@ -82,7 +82,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		
 	}
 	public function setSelection(v:Int, o:Int):Void {
-		
+		if (qEditable) qTextArea.setSelectionRange(v, o);
 	}
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
 	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
@@ -168,6 +168,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 				// create input node:
 				c.appendChild(e = untyped document.createElement(multiline ? "textarea" : "input"));
 				e.value = text + " ";
+				e.maxLength = (t = maxChars) > 0 ? t : 2147483647;
 				t = e.style;
 				t.border = "0";
 				t.background = "transparent";
@@ -190,6 +191,13 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 				type = "DYNAMIC";
 				type = "INPUT";
 			}
+		}
+		return v;
+	}
+	private function set_maxChars(v:Int):Int {
+		if (maxChars != v) {
+			maxChars = v;
+			if (qEditable) qTextArea.maxLength = v > 0 ? v : 2147483647;
 		}
 		return v;
 	}
