@@ -212,20 +212,25 @@ class BitmapData implements IBitmapDrawable {
 			?colorTransform:ColorTransform, ?blendMode:Dynamic,
 			?clipRect:Rectangle, ?smoothing):Void {
 		syncCanvas();
-		var a:Float = 0, f:Float = 0;
+		var a:Float = 0;
+		qContext.save();
 		if (colorTransform != null) {
 			// currently only alpha channel of colorTransforms is supported.
 			// use .colorTransform to "bake" colored versions.
 			a = colorTransform.alphaMultiplier;
 			colorTransform.alphaMultiplier = 1;
-			f = qContext.globalAlpha;
 			qContext.globalAlpha *= a;
+		}
+		if (clipRect != null) {
+			qContext.beginPath();
+			qContext.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
+			qContext.clip();
 		}
 		if (smoothing != null) setSmoothing(qContext, smoothing);
 		source.drawToSurface(handle(), qContext, matrix, colorTransform, blendMode, clipRect, null);
+		qContext.restore();
 		if (colorTransform != null) {
 			colorTransform.alphaMultiplier = a;
-			qContext.globalAlpha = f;
 		}
 		qSync |= SY_CANVAS | SY_CHANGE;
 	}
