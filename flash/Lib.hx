@@ -91,6 +91,11 @@ class Lib {
 	public static function schedule(m:Void->Void):Void {
 		schList[schLength++] = m;
 	}
+	
+	/// For parameter and default value handling, returns value or otherwise.
+	@:extern public static inline function nz(value:Dynamic, otherwise:Dynamic):Dynamic {
+		return (value != null ? value : otherwise);
+	}
 	/** Forms an RGBA string from 32-bit color integer */
 	public static function rgba(color:Int):String {
 		untyped { return 'rgba(' + ((color >> 16) & 0xFF)

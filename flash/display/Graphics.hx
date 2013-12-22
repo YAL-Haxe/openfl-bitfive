@@ -123,11 +123,16 @@ class Graphics implements IBitmapDrawable {
 		grab(x, y, x, y);
 	}
 	@:extern inline private function grabRange(x:Float, y:Float, r:Float):Void {
+		r += lineWidth / 2;
 		grab(x - r, y - r, x + r, y + r);
 	}
 	@:extern inline private function grabPen(x:Float, y:Float):Void {
-		var r:Float = lineWidth;
+		var r:Float = lineWidth / 2;
 		grab(x - r, y - r, x + r, y + r);
+	}
+	@:extern inline private function grabRect(x:Float, y:Float, w:Float, h:Float):Void {
+		var r:Float = lineWidth / 2;
+		grab(x - r, y - r, x + w + r, y + h + r);
 	}
 	public function invalidate() {
 		if (synced) {
@@ -146,10 +151,25 @@ class Graphics implements IBitmapDrawable {
 		resetBounds();
 		invalidate();
 	}
-	public function lineStyle(?w:Float, c:Int = 0, a:Float = 1, ?nz:Dynamic, ?lsm:Dynamic):Void {
+	/**
+	 * @param	?w	Width (in pixels)
+	 * @param	?c	Color (24-bit)
+	 * @param	?a	Alpha (0..1)
+	 * @param	?ph	Pixel hinting (not actually supported)
+	 * @param	?sm	Scale mode (not supported)
+	 * @param	?cs	Caps style
+	 * @param	?js	Joints style
+	 * @param	?ml	Miter limit (default of 3)
+	 */
+	public function lineStyle(?w:Float, ?c:Int, ?a:Float, ?ph:Bool, ?sm:Dynamic, ?cs:CapsStyle,
+	?js:JointStyle, ?ml:Float):Void {
 		rec[len++] = GFX_LINESTYLE;
-		rec[len++] = lineWidth = (w != null && w > 0 ? w : 0);
-		if (w > 0) rec[len++] = Lib.rgbf(c, a);
+		rec[len++] = lineWidth = w > 0 ? w : 0;
+		if (w > 0) {
+			rec[len++] = Lib.rgbf(Lib.nz(c, 0), Lib.nz(a, 1));
+			rec[len++] = cs == CapsStyle.NONE ? 2 : cs == CapsStyle.SQUARE ? 1 : 0;
+			rec[len++] = js == JointStyle.BEVEL ? 2 : js == JointStyle.MITER ? 1 : 0;
+		}
 	}
 	public function beginFill(c:Int = 0, a:Float = 1):Void {
 		rec[len++] = GFX_FILL_SOLID;
@@ -199,7 +219,7 @@ class Graphics implements IBitmapDrawable {
 		rec[len++] = y;
 		rec[len++] = w;
 		rec[len++] = h;
-		grab(x, y, x + w, y + h);
+		grabRect(x, y, w, h);
 	}
 	public function drawRoundRect(x:Float, y:Float, w:Float, h:Float, r:Float, ?q:Float):Void {
 		rec[len++] = GFX_ROUNDRECT;
@@ -209,7 +229,7 @@ class Graphics implements IBitmapDrawable {
 		rec[len++] = h;
 		rec[len++] = r;
 		rec[len++] = q;
-		grab(x, y, x + w, y + h);
+		grabRect(x, y, w, h);
 	}
 	public function drawCircle(x:Float, y:Float, r:Float):Void {
 		rec[len++] = GFX_CIRCLE;
@@ -249,11 +269,11 @@ class Graphics implements IBitmapDrawable {
 		render(cnv, ctx);
 		ctx.restore();
 	}
-	
+	/** Finishes the path and applies fill/stroke if needed. */
 	private function _closePath(cnv:CanvasElement, ctx:CanvasRenderingContext2D, f:Int, m:Matrix,
 	texture:ImageElement):Int {
-		ctx.closePath();
 		if (Lib.bool(f & GFF_FILL)) {
+			ctx.closePath();
 			if (Lib.bool(f & GFF_PATTERN)) {
 				ctx.save();
 				ctx.transform(m.a, m.b, m.c, m.d, m.tx, m.ty);
@@ -283,6 +303,8 @@ class Graphics implements IBitmapDrawable {
 			if (v > 0) {
 				f |= GFF_STROKE;
 				ctx.strokeStyle = rec[++p];
+				ctx.lineCap = (v = rec[++p]) == 2 ? "butt" : v == 1 ? "square" : "round";
+				ctx.lineJoin = (v = rec[++p]) == 2 ? "bevel" : v == 1 ? "miter" : "round";
 			} else { // disable stroke if lineWidth <= 0
 				f &= ~GFF_STROKE;
 				ctx.strokeStyle = null;
@@ -323,8 +345,6 @@ class Graphics implements IBitmapDrawable {
 		case GFX_RECT:
 			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p];
 			ctx.rect(x, y, w, h);
-			//if ((f & GFF_FILL) != 0) ctx.fillRect(x, y, w, h);
-			//if ((f & GFF_STROKE) != 0) ctx.strokeRect(x, y, w, h);
 			n++;
 		case GFX_CIRCLE:
 			ctx.arc(rec[++p], rec[++p], rec[++p], 0, Math.PI * 2, true); n++;
@@ -396,7 +416,7 @@ class Graphics implements IBitmapDrawable {
 			}
 			ctx.restore();
 		default:
-			Lib.trace(Std.string(v));
+			Lib.trace("Unknown operation: " + Std.string(v));
 			break;
 		}
 		if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
