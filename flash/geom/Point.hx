@@ -22,6 +22,10 @@ class Point {
 		return x == o.x && y == o.y;
 	}
 	
+	public function setTo(u:Float, v:Float):Void {
+		x = u; y = v;
+	}
+	
 	public var length(get_length, null):Float;
 	private function get_length() {
 		return Math.sqrt(x * x + y * y);
