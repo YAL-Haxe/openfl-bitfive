@@ -225,6 +225,7 @@ class BitmapData implements IBitmapDrawable {
 			qContext.beginPath();
 			qContext.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
 			qContext.clip();
+			qContext.beginPath();
 		}
 		if (smoothing != null) setSmoothing(qContext, smoothing);
 		source.drawToSurface(handle(), qContext, matrix, colorTransform, blendMode, clipRect, null);
