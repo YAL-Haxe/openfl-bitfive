@@ -54,7 +54,7 @@ class FileReference extends flash.events.EventDispatcher {
 			s = "";
 			i = -1; l = fs.length; while (++i < l)
 			if ((p = fs[i].lastIndexOf(".")) != -1) // should have a dot
-			if ((x = fs[i].substr(p)) != "*") { // isn't *.* (which's auto-added by browser)
+			if ((x = fs[i].substr(p)) != ".*") { // isn't *.* (which's auto-added by browser)
 				if (s != "") s += ",";
 				s += x;
 			}
