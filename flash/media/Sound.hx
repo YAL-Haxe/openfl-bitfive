@@ -27,7 +27,7 @@ class Sound extends flash.events.EventDispatcher {
 	
 	public function load(?stream:URLRequest, ?ctx:SoundLoaderContext):Void {
 		var s = stream.url;
-		if (library.exists(s)) {
+		if (library != null && library.exists(s)) {
 			component = library.get(s);
 			library.set(s, cast component.cloneNode(true));
 		} else {
