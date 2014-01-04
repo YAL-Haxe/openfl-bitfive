@@ -5,11 +5,15 @@ import flash.events.Event;
 
 class DisplayObjectContainer extends InteractiveObject {
 	public var children(default, null):Array<DisplayObject>;
-	public var numChildren:Int;
+	public var numChildren(get, null):Int;
 	//
 	public function new() {
 		super();
 		children = [];
+	}
+	
+	private function get_numChildren():Int {
+		return children.length;
 	}
 	
 	public function addChild(o:DisplayObject):DisplayObject {
