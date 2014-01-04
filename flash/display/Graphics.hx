@@ -62,7 +62,7 @@ class Graphics implements IBitmapDrawable {
 		resetBounds();
 		//
 		rec = [];
-		len = 0;
+		lineWidth = len = 0;
 	}
 	private function regenerate():Void {
 		var o = component, s = component.style, q = context, b = bounds,
@@ -147,7 +147,7 @@ class Graphics implements IBitmapDrawable {
 	public function clear():Void {
 		var i:Int = 0;
 		while (i < len) rec[i++] = GFX_STOP;
-		len = 0;
+		lineWidth = len = 0;
 		resetBounds();
 		invalidate();
 	}
