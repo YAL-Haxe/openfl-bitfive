@@ -347,7 +347,9 @@ class Graphics implements IBitmapDrawable {
 			ctx.rect(x, y, w, h);
 			n++;
 		case GFX_CIRCLE:
-			ctx.arc(rec[++p], rec[++p], rec[++p], 0, Math.PI * 2, true); n++;
+			var x = rec[++p], y = rec[++p], r = rec[++p];
+			if (r < 0) r = -r;
+			if (r != 0) ctx.arc(x, y, r, 0, Math.PI * 2, true); n++;
 		case GFX_ELLIPSE:
 			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p],
 				x1 = x + w / 2, y1 = y + h / 2, x2 = x + w, y2 = y + h,
