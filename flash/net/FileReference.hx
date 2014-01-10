@@ -95,7 +95,6 @@ class FileReference extends flash.events.EventDispatcher {
 	private function onFileChange(_):Void {
 		file = fileInput.files[0];
 		if (file != null) dispatchEvent(new Event(Event.SELECT));
-		untyped window._file = file;
 	}
 	// properties
 	private function get_name() return file.name;
