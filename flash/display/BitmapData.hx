@@ -528,6 +528,35 @@ class BitmapData implements IBitmapDrawable {
 			if (wasCanvas) unlock();
 		}
 	}
+	public function noise(q:Int, l:Int = 0, h:Int = 255, c:Int = 7, m:Bool = false):Void {
+		var wasCanvas:Bool = hasCanvas(), i:Int = 0, n:Int,
+			// pixels, delta, random seed:
+			p:Uint8ClampedArray, d:Int = h - l + 1, z:Int = q,
+			// channel flags:
+			r:Bool = (c & 1) > 0, g:Bool = (c & 2) > 0,
+			b:Bool = (c & 4) > 0, a:Bool = (c & 8) > 0;
+		// Has exactly right behaviour:
+		inline function rand():Int return z = (z * 16807) % 2147483647;
+		// Lock and process:
+		lock();
+		p = qImageData.data;
+		n = p.length;
+		while (i < n) {
+			if (m) { // grayscale/monochrome
+				p[i] = p[i + 1] = p[i + 2] = l + rand() % d;
+				i += 3;
+			} else { // RGB
+				p[i++] = r ? l + rand() % d : 0;
+				p[i++] = g ? l + rand() % d : 0;
+				p[i++] = b ? l + rand() % d : 0;
+			}
+			// alpha channel:
+			p[i++] = a ? l + rand() % d : 255;
+		}
+		//
+		qSync |= SY_CHANGE | SY_IMDATA;
+		if (wasCanvas) unlock();
+	}
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:flash.geom.Rectangle,
 	destPoint:flash.geom.Point, filter:flash.filters.BitmapFilter):Void {
 		
