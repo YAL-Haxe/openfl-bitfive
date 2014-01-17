@@ -1,7 +1,5 @@
 package flash.net;
 #if js
-
-
 import flash.events.Event;
 import flash.events.EventDispatcher;
 import flash.events.HTTPStatusEvent;
@@ -10,6 +8,7 @@ import flash.events.ProgressEvent;
 import flash.errors.IOError;
 import flash.events.SecurityErrorEvent;
 import flash.utils.ByteArray;
+import js.html.ArrayBuffer;
 import js.html.EventTarget;
 import js.html.XMLHttpRequest;
 import js.Browser;
@@ -23,33 +22,21 @@ class URLLoader extends EventDispatcher {
 	public var bytesTotal:Int;
 	public var data:Dynamic;
 	public var dataFormat(default, set):URLLoaderDataFormat;
-	private function set_dataFormat(inputVal:URLLoaderDataFormat):URLLoaderDataFormat {
-		// prevent inadvertently using typed arrays when they are unsupported
-		// @todo move these sorts of tests somewhere common in the vein of Modernizr
-		if (inputVal == URLLoaderDataFormat.BINARY
-				&& !Reflect.hasField(Browser.window, "ArrayBuffer")) {
-			dataFormat = URLLoaderDataFormat.TEXT;
-		} else {
-			dataFormat = inputVal;
-		}
+	private function set_dataFormat(v:URLLoaderDataFormat):URLLoaderDataFormat {
+		// Handle lack of ArrayBuffer support:
+		dataFormat = (v == URLLoaderDataFormat.BINARY && untyped (ArrayBuffer == null))
+			? URLLoaderDataFormat.TEXT : v;
 		return dataFormat;
 	}
 	
 	
 	public function new(request:URLRequest = null) {
-		
 		super();
-		
-		bytesLoaded = 0;
-		bytesTotal = 0;
+		//
+		bytesLoaded = bytesTotal = 0;
 		dataFormat = URLLoaderDataFormat.TEXT;
-		
-		if (request != null) {
-			
-			load(request);
-			
-		}
-		
+		//
+		if (request != null) load(request);
 	}
 	
 	
@@ -57,11 +44,8 @@ class URLLoader extends EventDispatcher {
 		
 	}
 	
-	
-	private dynamic function getData():Dynamic {
-		return null;
-	}
-	
+	// Overriden in requestURL()
+	private dynamic function getData():Dynamic return null;
 	
 	public function load(request:URLRequest):Void {
 		requestUrl(request.url, request.method, request.data, request.formatRequestHeaders());
@@ -74,157 +58,76 @@ class URLLoader extends EventDispatcher {
 			subject.addEventListener("progress", onProgress, false);
 		}
 		
-		untyped subject.onreadystatechange = function() {
-			
-			if (subject.readyState != 4) return;
-			
-			var s = try subject.status catch( e : Dynamic ) null;
-			
-			if (s == untyped __js__("undefined")) {
-				
+		untyped subject.onreadystatechange = function() if (subject.readyState == 4) {
+			var s:Null<Int>;
+			// try to pull status from 
+			try {
+				s = subject.status;
+			} catch (_:Dynamic) {
 				s = null;
-				
 			}
 			
-			if (s != null) {
-				
-				self.onStatus(s);
-				
-			}
+			// dispatch status event:
+			if (s != null) self.onStatus(s);
 			
-			//js.Lib.alert (s);
-			
-			if (s != null && s >= 200 && s < 400) {
-				
+			// error handling:
+			if (s == null)
+				self.onError("Failed to connect or resolve host");
+			else if (s >= 200 && s < 400)
 				self.onData(subject.response);
-				
-			} else {
-				
-				if (s == null) {
-					
-					self.onError("Failed to connect or resolve host");
-					
-				} else if (s == 12029) {
-					
-					self.onError("Failed to connect to host");
-					
-				} else if (s == 12007) {
-					
-					self.onError("Unknown host");
-					
-				} else if (s == 0) {
-					
-					self.onError("Unable to make request (may be blocked due to cross-domain permissions)");
-					self.onSecurityError("Unable to make request (may be blocked due to cross-domain permissions)");
-					
-				} else {
-					
-					self.onError("Http Error #" + subject.status);
-					
-				}
-				
-			}
-			
+			else if (s == 12029)
+				self.onError("Failed to connect to host");
+			else if (s == 12007)
+				self.onError("Unknown host");
+			else if (s == 0) {
+				self.onError("Unable to make request (may be blocked due to cross-domain permissions)");
+				self.onSecurityError("Unable to make request (may be blocked due to cross-domain permissions)");
+			} else self.onError("Http Error #" + subject.status);
 		};
-		
 	}
 	
 	
 	private function requestUrl(url:String, method:String, data:Dynamic, requestHeaders:Array<URLRequestHeader>):Void {
-		
 		var xmlHttpRequest:XMLHttpRequest = untyped __new__("XMLHttpRequest");
+		// assign new data getter:
+		getData = function() return xmlHttpRequest.response != null
+			? xmlHttpRequest.response : xmlHttpRequest.responseText;
+		// 
 		registerEvents(cast xmlHttpRequest);
 		var uri:Dynamic = "";
 		
 		if (Std.is(data, ByteArray)) {
-			
 			var data:ByteArray = cast data;
-			
-			switch (dataFormat) {
-				
-				case URLLoaderDataFormat.BINARY: uri = data.nmeGetBuffer();
-				default: uri = data.readUTFBytes(data.length);
-				
-			}
-			
+			uri = dataFormat == URLLoaderDataFormat.BINARY
+				? data.nmeGetBuffer() : data.readUTFBytes(data.length);
 		} else if (Std.is(data, URLVariables)) {
-			
 			var data:URLVariables = cast data;
-			
 			for (p in Reflect.fields(data)) {
-				
 				if (uri.length != 0) uri += "&";
-				uri += StringTools.urlEncode(p) + "=" + StringTools.urlEncode(Reflect.field(data, p));
-				
+				uri += StringTools.urlEncode(p) + "="
+					+ StringTools.urlEncode(Reflect.field(data, p));
 			}
-			
-		} else {
-			
-			if (data != null) {
-				
-				uri = data.toString();
-				
-			}
-			
-		}
+		} else if (data != null) uri = data.toString();
 		
 		try {
-			
 			if (method == "GET" && uri != null && uri != "") {
-				
 				var question = url.split("?").length <= 1;
 				xmlHttpRequest.open(method, url + (if (question) "?" else "&") + uri, true);
 				uri = "";
-				
-			} else {
-				
-				//js.Lib.alert ("open: " + method + ", " + url + ", true");
-				xmlHttpRequest.open(method, url, true);
-				
-			}
-			
+			} else xmlHttpRequest.open(method, url, true);
 		} catch(e:Dynamic) {
-			
 			onError(e.toString());
 			return;
-			
 		}
-		
-		//js.Lib.alert ("dataFormat: " + dataFormat);
-		
-		switch (dataFormat) {
-			
-			case URLLoaderDataFormat.BINARY: untyped xmlHttpRequest.responseType = 'arraybuffer';
-			default:
-			
-		}
-		
+		// switch response type if needed:
+		if (dataFormat == URLLoaderDataFormat.BINARY) xmlHttpRequest.responseType = "arraybuffer";
+		// set request headers:
 		for (header in requestHeaders) {
-			
-			//js.Lib.alert ("setRequestHeader: " + header.name + ", " + header.value);
 			xmlHttpRequest.setRequestHeader(header.name, header.value);
-			
 		}
-		
-		//js.Lib.alert ("uri: " + uri);
-		
+		//
 		xmlHttpRequest.send(uri);
 		onOpen();
-		
-		getData = function() {
-			
-			if (xmlHttpRequest.response != null) {
-				
-				return xmlHttpRequest.response;
-				
-			} else { 
-				
-				return xmlHttpRequest.responseText;
-				
-			}
-			
-		};
-		
 	}
 	
 	
@@ -236,19 +139,17 @@ class URLLoader extends EventDispatcher {
 	
 	
 	private function onData(_):Void {
-		
-		var content:Dynamic = getData();
-		
-		switch (dataFormat) {
-			
-			case URLLoaderDataFormat.BINARY: this.data = ByteArray.nmeOfBuffer(content);
-			default: this.data = Std.string(content);
-			
-		}
-		
-		var evt = new Event(Event.COMPLETE);
-		evt.currentTarget = this;
-		dispatchEvent(evt);
+		// getData() sometimes returns empty strings. Need to investigate.
+		var v:Dynamic = untyped _ ? _ : getData(), e:Event;
+		// parse response accordingly:
+		this.data =
+			dataFormat == URLLoaderDataFormat.BINARY
+			? ByteArray.nmeOfBuffer(v)
+			: Std.string(v);
+		// dispatch an event:
+		e = new Event(Event.COMPLETE);
+		e.currentTarget = this;
+		dispatchEvent(e);
 	}
 	
 	private function onError(msg:String):Void {
