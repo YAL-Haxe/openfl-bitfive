@@ -1,6 +1,7 @@
 package flash.media;
 #if js
 import flash.events.Event;
+import flash.Lib;
 import js.html.AudioElement;
 
 class SoundChannel extends flash.events.EventDispatcher {
@@ -12,8 +13,8 @@ class SoundChannel extends flash.events.EventDispatcher {
 	public var component(default, null):AudioElement;
 	public var qSound:Sound;
 	public var active:Bool = false;
-	private var _position:Float = 0;
-	private var _loops:Int = 1;
+	public var _position:Float;
+	public var _loops:Int = 1;
 	//
 	public function new():Void {
 		super();
@@ -23,20 +24,30 @@ class SoundChannel extends flash.events.EventDispatcher {
 		component = v;
 		_loops = loops;
 		component.addEventListener("ended", cast onEnded);
-		//component.loop = true;
 	}
 	public function play(p:Float):Void {
+		var o = component, l:Float;
 		if (!active) {
-			component.play();
-			position = p;
-			active = true;
+			l = get_duration();
+			if (p == 0 || p / 1000 <= l) {
+				_position = position = p;
+				o.load();
+				o.play();
+				active = true;
+			} else {
+				// attempt to hint preloading:
+				position = 0;
+				o.load();
+				o.play();
+				o.pause();
+				qSound.qCache.push(this);
+			}
 		}
 	}
 	public function stop():Void {
 		if (active) {
 			active = false;
 			component.pause();
-			flash.Lib.trace(component.src + ":end");
 			qSound.qCache.push(this);
 		}
 	}
@@ -45,29 +56,36 @@ class SoundChannel extends flash.events.EventDispatcher {
 		component.volume = v != null ? v.volume : 1;
 		return v;
 	}
-	private function get_position():Float {
+	private function get_duration():Float {
+		var o = component, f:Float;
+		try {
+			f = o.buffered != null ? o.buffered.end(0) : o.duration;
+		} catch (_:Dynamic) {
+			f = o.duration;
+			if (Math.isNaN(f)) f = 0;
+		}
+		return f;
+	}
+	private inline function get_position():Float {
 		return component.currentTime * 1000;
 	}
 	private function set_position(v:Float):Float {
-		var p = !component.paused;
-		if (p) component.pause();
-		component.currentTime = (v / 1000);
-		if (p) component.play();
-		flash.Lib.trace(component.src + ".time = " + v);
+		if (component.currentTime != v / 1000) {
+			var p = !component.paused;
+			if (p) component.pause();
+			component.currentTime = (v / 1000);
+			if (p) component.play();
+		}
 		return v;
 	}
 	private function onEnded(e:Event):Void {
 		if (active) {
-			_loops--;
-			if ( _loops > 0 )
-			{
-				component.play();
-			}
-			else
-			{
+			if (--_loops > 0 ) {
+				position = _position;
+				if (component.paused) component.play();
+			} else {
 				stop();
 				component.currentTime = 0;
-				flash.Lib.trace(component.src + ":complete");
 				dispatchEvent(new Event(Event.SOUND_COMPLETE));
 			}
 		}

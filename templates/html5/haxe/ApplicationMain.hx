@@ -113,27 +113,36 @@ class ApplicationMain {
 	
 	private static function loadSound(p:String):Void {
 		return;
-		var i:Int = p.lastIndexOf("."), c:Dynamic = untyped flash.media.Sound, s:String,
-			o:AudioElement, f:Dynamic->Void = null, q:String = 'canplaythrough';
+		var i:Int = p.lastIndexOf("."), // extension separator location
+			c:Dynamic = untyped flash.media.Sound, // sound class
+			s:String, // perceived sound filename (*.mp3)
+			o:AudioElement, // audio node
+			m:Bool = Lib.mobile,
+			f:Dynamic->Void = null, // event listener
+			q:String = "canplaythrough"; // preload event
+		// not a valid sound path:
 		if (i == -1) return;
+		// wrong audio type:
 		if (!c.canPlayType || !c.canPlayType(p.substr(i + 1))) return;
-		if (!c.library) c.library = new Map<String, AudioElement>();
+		// form perceived path:
 		s = p.substr(0, i) + ".mp3";
+		// already loaded?
 		if (c.library.exists(s)) return;
 		#if OFL_LOG_LOAD
 			flash.Lib.trace("Loading " + p);
 		#end
 		total++;
 		c.library.set(s, o = untyped __js__("new Audio(p)"));
-		f = function(e) {
+		f = function(_) {
 			#if OFL_LOG_LOAD
 				flash.Lib.trace("Loaded " + p);
 			#end
-			o.removeEventListener(q, f);
+			if (!m) o.removeEventListener(q, f);
 			preloader.onUpdate(++completed, total);
 			if (completed == total) begin();
 		};
-		o.addEventListener(q, f);
+		// do not auto-preload sounds on mobile:
+		if (m) f(null); else o.addEventListener(q, f);
 	}
 
 	private static function begin():Void {

@@ -11,7 +11,8 @@ class Sound extends flash.events.EventDispatcher {
 	private var component:AudioElement;
 	public var qCache:Array<SoundChannel>;
 	public var length(get, null):Float;
-	public static var library:Map<String, AudioElement>;
+	//
+	public static var library:Map<String, AudioElement> = new Map();
 	private static var canPlayMap:Map<String, Bool>;
 	//
 	public function new(?stream:URLRequest, ?ctx:SoundLoaderContext) {
@@ -26,9 +27,9 @@ class Sound extends flash.events.EventDispatcher {
 	}
 	
 	public function load(?stream:URLRequest, ?ctx:SoundLoaderContext):Void {
-		var s = stream.url;
-		if (library != null && library.exists(s)) {
-			component = library.get(s);
+		var s:String = stream.url, m:Map<String, AudioElement> = library;
+		if (m != null && m.exists(s)) { // already cached
+			component = m.get(s);
 			library.set(s, cast component.cloneNode(true));
 		} else {
 			#if OFL_LOG_LOAD
@@ -53,14 +54,16 @@ class Sound extends flash.events.EventDispatcher {
 		}
 		o.soundTransform = stf;
 		try {
+			o._loops = loops;
 			o.play(ofs);
 		} catch (e:Dynamic) {
-			var f = null;
+			flash.Lib.trace(e);
+			/*var f = null;
 			f = function(e) {
 				o.component.removeEventListener("canplaythrough", f);
 				o.play(ofs);
 			};
-			o.addEventListener("canplaythrough", f);
+			o.addEventListener("canplaythrough", f);*/
 		}
 		return o;
 	}
