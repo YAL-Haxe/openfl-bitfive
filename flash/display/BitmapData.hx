@@ -1,5 +1,5 @@
 package flash.display;
-
+#if js
 import flash.errors.IOError;
 import flash.utils.ByteArray;
 import js.html.ImageData;
@@ -671,3 +671,4 @@ class BitmapData implements IBitmapDrawable {
 		return bytes.readByte() == 0xFF && bytes.readByte() == 0xD8;
 	}
 }
+#end

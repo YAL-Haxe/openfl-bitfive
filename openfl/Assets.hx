@@ -1,4 +1,5 @@
 package openfl;
+#if js
 #if !macro
 
 
@@ -75,7 +76,7 @@ class Assets {
 				b = cast ApplicationMain.loaders.get(AssetData.path.get(id)).contentLoaderInfo.content;
 				r = b.bitmapData.clone();
 				#elseif flash
-				r = cast Type.createInstance(AssetData.className.get(id), [])
+				r = cast Type.createInstance(AssetData.className.get(id), []);
 				#else // natives
 				r = BitmapData.load(AssetData.path.get(id));
 				#end
@@ -718,4 +719,5 @@ class Assets {
 }
 
 
+#end
 #end
