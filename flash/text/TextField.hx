@@ -1,6 +1,7 @@
 package flash.text;
 #if js
 import flash.display.IBitmapDrawable;
+import flash.Lib;
 import js.html.Element;
 import js.html.TextAreaElement;
 /**
@@ -10,10 +11,10 @@ import js.html.TextAreaElement;
 class TextField extends flash.display.InteractiveObject implements IBitmapDrawable {
 	public var autoSize(default, set):String;
 	public var antiAliasType:AntiAliasType;
-	public var background:Bool;
-	public var backgroundColor:Int;
-	public var border:Bool;
-	public var borderColor:Int;
+	public var background(get, set):Bool;
+	public var backgroundColor(default, set):Int = 0xffffff;
+	public var border(get, set):Bool;
+	public var borderColor(default, set):Int = 0x0;
 	public var caretIndex(default, null):Int;
 	public var defaultTextFormat:TextFormat;
 	public var displayAsPassword:Bool;
@@ -41,6 +42,8 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	private var qLineHeight:Float;
 	private var qTextArea:TextAreaElement;
 	private var qEditable:Bool;
+	private var qBackground:Bool;
+	private var qBorder:Bool;
 	//
 	public function new() {
 		super();
@@ -50,12 +53,40 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		//
 		defaultTextFormat = new TextFormat("_serif", 16, 0);
 		textColor = 0;
-		wordWrap = qEditable = false;
+		wordWrap = qEditable = qBackground = qBorder = false;
 		width = height = 100;
 	}
-	//
+	// Apperance
+	private function get_background() return qBackground;
+	private function set_background(v:Bool) {
+		if (qBackground != v) {
+			if (qBackground = v) this.component.style.background = Lib.rgbf(backgroundColor, 1);
+		}
+		return v;
+	}
+	private function set_backgroundColor(v:Int) {
+		if (backgroundColor != v) {
+			backgroundColor = v;
+			if (qBackground) this.component.style.background = Lib.rgbf(v, 1);
+		}
+		return v;
+	}
+	private function get_border() return qBorder;
+	private function set_border(v:Bool) {
+		if (qBorder != v) {
+			if (qBorder = v) this.component.style.border = "1px solid " + Lib.rgbf(borderColor, 1);
+		}
+		return v;
+	}
+	private function set_borderColor(v:Int) {
+		if (borderColor != v) {
+			borderColor = v;
+			if (qBorder) this.component.style.border = "1px solid " + Lib.rgbf(borderColor, 1);
+		}
+		return v;
+	}
 	public function setTextFormat(v:TextFormat, ?f:Int, ?l:Int) {
-		
+		// Soon.
 	}
 	//
 	private function get_text():String {
@@ -79,7 +110,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		return v;
 	}
 	public function appendText(v:String):Void {
-		
+		text += v;
 	}
 	public function setSelection(v:Int, o:Int):Void {
 		if (qEditable) qTextArea.setSelectionRange(v, o);
@@ -87,6 +118,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
 	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
 	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
+		// Not that good at the moment.
 		var q:TextFormat = defaultTextFormat;
 		ctx.save();
 		ctx.fillStyle = component.style.color;
@@ -96,6 +128,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		ctx.fillText(text, 0, 0);
 		ctx.restore();
 	}
+	// Size
 	override private function get_width():Float {
 		return qWidth != null ? qWidth : get_textWidth();
 	}
@@ -120,6 +153,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		}
 		return v;
 	}
+	// Text size
 	private function _measure_pre():js.html.DivElement {
 		var o = flash.Lib.jsHelper(),
 			s = o.style, q = component.style, i:Int;
@@ -150,6 +184,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		}
 		return component.clientHeight;
 	}
+	// Meta
 	private function set_autoSize(v:String):String {
 		if (autoSize != v) {
 			if ((autoSize = v) != TextFieldAutoSize.NONE) width = height = null;
