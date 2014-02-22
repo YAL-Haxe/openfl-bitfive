@@ -201,7 +201,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			text = o.text; o.text = text != "" ? "" : " ";
 			if (o.qEditable = z) {
 				// create input node:
-				c.appendChild(e = untyped document.createElement(multiline ? "textarea" : "input"));
+				c.appendChild(e = cast Lib.jsNode(multiline ? "textarea" : "input"));
 				e.value = text + " ";
 				e.maxLength = (t = maxChars) > 0 ? t : 2147483647;
 				t = e.style;
@@ -239,16 +239,12 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	private function set_selectable(v:Bool):Bool {
 		if (selectable != v) {
 			var s = component.style,
-				q = (selectable = v) ? null : 'none',
-				u = 'user-select', z = null;
-			s.setProperty('-webkit-touch-callout', q, z); // mobile webkit
-			s.setProperty('-webkit-' + u, q, z);
-			s.setProperty('-khtml-' + u, q, z); 
-			s.setProperty('-moz-' + u, q, z);
-			s.setProperty('-ms-' + u, q, z); // newer IEs
-			s.setProperty(u, q, z);
-			s.setProperty("cursor", v ? "" : "default", z);
-			component.setAttribute('unselectable', v ? null : 'on'); // older IEs
+				q = (selectable = v) ? null : "none";
+			s.setProperty("-webkit-touch-callout", q); // mobile webkit
+			s.setProperty("cursor", v ? "" : "default");
+			Lib.setCSS(s, "user-select", q, 0x2F);
+			// older IEs. They don't support HTML5 though, so why would this even be here...
+			// component.setAttribute("unselectable", v ? null : "on"); // older IEs
 		}
 		return v;
 	}

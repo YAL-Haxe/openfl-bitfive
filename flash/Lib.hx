@@ -3,8 +3,8 @@ package flash;
 import flash.display.MovieClip;
 import flash.display.Sprite;
 import flash.display.Stage;
-import js.Browser;
 import js.html.CanvasElement;
+import js.html.CSSStyleDeclaration;
 import js.html.DivElement;
 import js.html.Element;
 
@@ -53,12 +53,21 @@ class Lib {
 		return untyped ~~(__js__("Date.now()") - qTimeStamp);
 	}
 	public static function getURL(url:flash.net.URLRequest, ?target:String) {
-		Browser.window.open(url.url, target);
+		untyped window.open(url.url, target);
 	}
 	//
 	public static function jsNode(o:String):Element {
-		var r:Element = Browser.document.createElement(o);
-		r.style.position = 'absolute';
+		var r:Element = untyped document.createElement(o), s:js.html.CSSStyleDeclaration = r.style;
+		s.position = 'absolute';
+		switch (o) {
+		case "canvas":
+			// Disable accidental highlights (mostly in Firefox) for imagery
+			s.setProperty("-webkit-touch-callout", "none"); // mobile webkit
+			Lib.setCSS(s, "user-select", "none", 0x2F);
+		case "input", "textarea":
+			// counter Webkit focus outline
+			s.outline = "none";
+		}
 		return r;
 	}
 	public static function jsDiv():DivElement {
@@ -88,7 +97,7 @@ class Lib {
 	}
 	private static function get_stage():Stage {
 		if (qStage == null) {
-			Browser.document.body.appendChild((qStage = new Stage()).component);
+			untyped document.body.appendChild((qStage = new Stage()).component);
 		}
 		return qStage;
 	}
@@ -134,6 +143,23 @@ class Lib {
 			+ "," + ((color >> 8) & 255)
 			+ "," + (color & 255)
 			+ "," + alpha.toFixed(4) + ")";
+	}
+	
+	/**
+	 * 
+	 * @param	o	CSSStyleDeclaration node
+	 * @param	k	Property name
+	 * @param	v	Value
+	 * @param	?f	Flags (1:np, 2:webkit, 4:moz, 8:ms, 16:o, 32:khtml
+	 */
+	public static function setCSS(o:CSSStyleDeclaration, k:String, v:String, ?f:Int):Void {
+		if (!bool(f)) f = 0x1f;
+		if (bool(f & 1)) o.setProperty(k, v);
+		if (bool(f & 2)) o.setProperty(k, "-webkit-" + v);
+		if (bool(f & 4)) o.setProperty(k, "-moz-" + v);
+		if (bool(f & 8)) o.setProperty(k, "-ms-" + v);
+		if (bool(f & 16)) o.setProperty(k, "-o-" + v);
+		if (bool(f & 32)) o.setProperty(k, "-khtml-" + v);
 	}
 	
 	/// Strictly JavaScript-specific cast for leaving decision to browser.
