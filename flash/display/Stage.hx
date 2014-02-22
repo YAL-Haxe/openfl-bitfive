@@ -26,6 +26,7 @@ class Stage extends DisplayObjectContainer {
 		var s = component.style;
 		s.position = "absolute";
 		s.overflow = "hidden";
+		s.left = s.top = "0";
 		s.width = s.height = "100%";
 		qTimeStamp = Lib.getTimer();
 		Lib.requestAnimationFrame(onAnimationFrame);
