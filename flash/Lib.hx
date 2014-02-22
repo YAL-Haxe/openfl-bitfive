@@ -92,10 +92,24 @@ class Lib {
 		}
 		return qStage;
 	}
+	
 	// Utilities
+	
+	/// Gives you a new error! Yay! ... kind of.
+	@:extern public static inline function error(id:Int, msg:String):Void {
+		#if debug
+		throw new flash.errors.Error(msg, id);
+		#else
+		throw id;
+		#end
+	}
+	
+	/// Mapping for earlier set method
 	public static function requestAnimationFrame(handler:Dynamic) {
 		untyped window.reqAnimFrame(handler);
 	}
+	
+	/// Schedules function for execution at next ENTER_FRAME
 	public static function schedule(m:Void->Void):Void {
 		schList[schLength++] = m;
 	}
@@ -104,23 +118,25 @@ class Lib {
 	@:extern public static inline function nz(value:Dynamic, otherwise:Dynamic):Dynamic {
 		return (value != null ? value : otherwise);
 	}
-	/** Forms an RGBA string from 32-bit color integer */
+	
+	/// Forms an RGBA string from 32-bit color integer
 	public static function rgba(color:Int):String {
-		untyped { return 'rgba(' + ((color >> 16) & 0xFF)
+		untyped return 'rgba(' + ((color >> 16) & 0xFF)
 			+ ',' + ((color >> 8) & 0xFF)
 			+ ',' + (color & 0xFF)
 			+ ',' + (((color >> 24) & 0xFF) / 255).toFixed(4)
 			+ ')';
-		}
 	}
-	/** Forms an RGBA string from 24-bit color and alpha value */
+	
+	/// Forms an RGBA string from 24-bit color and alpha value
 	public static function rgbf(color:Int, alpha:Float):String {
 		untyped return "rgba(" + ((color >> 16) & 255)
 			+ "," + ((color >> 8) & 255)
 			+ "," + (color & 255)
 			+ "," + alpha.toFixed(4) + ")";
 	}
-	/** Strictly JavaScript-specific cast for leaving decision to browser. */
+	
+	/// Strictly JavaScript-specific cast for leaving decision to browser.
 	@:extern public static inline function bool(v:Dynamic):Bool {
 		return cast v;
 	}
