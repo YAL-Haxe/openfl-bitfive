@@ -174,9 +174,9 @@ class DisplayObject extends EventWrapper {
 		if (m == null) m = new Matrix();
 		var o:DisplayObject = this;
 		while (o != null) {
-			if (o.x != 0 || o.y != 0) m.translate(o.x, o.y);
 			if (o.scaleX != 1 || o.scaleY != 1) m.scale(o.scaleX, o.scaleY);
 			if (o.rotation != 0) m.rotate(o.rotation);
+			if (o.x != 0 || o.y != 0) m.translate(o.x, o.y);
 			m.concat(o.transform.matrix);
 			o = o.parent;
 		}
