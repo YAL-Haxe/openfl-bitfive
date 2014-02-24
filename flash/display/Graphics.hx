@@ -336,6 +336,7 @@ class Graphics implements IBitmapDrawable {
 			n = 0;
 		case GFX_END_FILL:
 			if (n > 0) { f = _closePath(cnv, ctx, f, m, tex); n = 0; }
+			f &= ~GFF_FILL;
 		case GFX_MOVETO:
 			ctx.moveTo(rec[++p], rec[++p]); n++;
 		case GFX_LINETO:
