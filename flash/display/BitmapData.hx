@@ -249,6 +249,16 @@ class BitmapData implements IBitmapDrawable {
 	public function unlock():Void {
 		syncCanvas();
 	}
+	public function hitTestLocal(x:Float, y:Float):Bool {
+		if (x >= 0 && y >= 0 && x < width && y < height) {
+			try {
+				return qContext.getImageData(x, y, 1, 1).data[3] != 0;
+			} catch (_:Dynamic) {
+				return true;
+			}
+		}
+		return false;
+	}
 	public function getPixel(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
 		if ((qSync & 3) == 1) {

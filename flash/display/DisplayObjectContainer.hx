@@ -1,15 +1,19 @@
 package flash.display;
+import flash.geom.Matrix;
 import flash.display.Stage;
 import flash.events.Event;
+import flash.events.MouseEvent;
 #if js
 
 class DisplayObjectContainer extends InteractiveObject {
 	public var children(default, null):Array<DisplayObject>;
 	public var numChildren(get, null):Int;
+	public var mouseChildren:Bool;
 	//
 	public function new() {
 		super();
 		children = [];
+		mouseChildren = true;
 	}
 	
 	private function get_numChildren():Int {
@@ -72,6 +76,29 @@ class DisplayObjectContainer extends InteractiveObject {
 	override public function broadcastEvent(e:Event):Void {
 		dispatchEvent(e);
 		for (o in children) o.broadcastEvent(e);
+	}
+	
+	//
+	override public function broadcastMouse(h:Array<DisplayObject>, e:MouseEvent,
+	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
+		var r:Bool = false, l:Int = children.length, i:Int = children.length;
+		// loop through child nodes, front-to-back:
+		if (mouseChildren) {
+			h.push(this);
+			while (--i >= 0) r = r || children[i].broadcastMouse(h, e, ms, mc);
+			h.pop();
+		}
+		// execute own check if everything fails:
+		r = r || super.broadcastMouse(h, e, ms, mc);
+		// clean-up:
+		while (ms.length > h.length) mc.push(ms.pop());
+		return r;
+	}
+	
+	override public function hitTestLocal(x:Float, y:Float):Bool {
+		var r:Bool = false, i:Int = children.length;
+		while (--i >= 0) if (children[i].hitTestLocal(x, y)) return true;
+		return false;
 	}
 	
 	override private function set_stage(v:Stage):Stage {

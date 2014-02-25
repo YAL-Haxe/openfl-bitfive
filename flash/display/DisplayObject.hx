@@ -2,6 +2,7 @@ package flash.display;
 #if js
 import flash.events.Event;
 import flash.events.EventWrapper;
+import flash.events.MouseEvent;
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
@@ -72,6 +73,7 @@ class DisplayObject extends EventWrapper {
 			s.setProperty("-webkit-" + n, v, null);
 		}
 		v = "";
+		// ttip: transformations are applied in reverse order here
 		if (x != 0 || y != 0) v += "translate(" + x + "px, " + y + "px) ";
 		if (scaleX != 1 || scaleY != 1) v += "scale(" + scaleX + ", " + scaleY + ") ";
 		if (rotation != 0) v += "rotate(" + rotation + "deg) ";
@@ -168,16 +170,20 @@ class DisplayObject extends EventWrapper {
 		return getBounds(o);
 	}
 	//
+	/// Adds current transformation to specified matrix
+	@:extern private static inline function concatTransform(o:DisplayObject, m:Matrix):Void {
+		if (!o.transform.matrix.isIdentity()) m.concat(o.transform.matrix);
+		if (o.rotation != 0) m.rotate(o.rotation * Math.PI / 180);
+		if (o.scaleX != 1 || o.scaleY != 1) m.scale(o.scaleX, o.scaleY);
+		if (o.x != 0 || o.y != 0) m.translate(o.x, o.y);
+	}
 	private static var convMatrix:Matrix;
 	private static var convPoint:Point;
 	private function getGlobalMatrix(?m:Matrix):Matrix {
 		if (m == null) m = new Matrix();
 		var o:DisplayObject = this;
 		while (o != null) {
-			if (o.scaleX != 1 || o.scaleY != 1) m.scale(o.scaleX, o.scaleY);
-			if (o.rotation != 0) m.rotate(o.rotation);
-			if (o.x != 0 || o.y != 0) m.translate(o.x, o.y);
-			if (!o.transform.matrix.isIdentity()) m.concat(o.transform.matrix);
+			concatTransform(o, m);
 			o = o.parent;
 		}
 		return m;
@@ -209,12 +215,16 @@ class DisplayObject extends EventWrapper {
 	private function get_mouseY():Float {
 		return (convPoint = globalToLocal(Lib.current.stage.mousePos, convPoint)).y;
 	}
+	/// Tests whether a local point is overlapping the object
+	public function hitTestLocal(x:Float, y:Float):Bool {
+		return x >= 0 && y >= 0 && x <= width && y <= height;
+	}
 	//
 	private var eventRemap:Map<String, Dynamic->Void>;
-	static private var remapTouch:Map<String, String>;
+	static private var routedEvents:Map<String, Int>;
 	override public function addEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
 		super.addEventListener(type, listener, useCapture, priority, weak);
-		if (remapTouch.exists(type)) {
+		/*if (remapTouch.exists(type)) {
 			var f = function(e:js.html.TouchEvent):Void {
 				var n = new flash.events.MouseEvent(type, e.bubbles, e.cancelable, 0, 0, cast this,
 					e.ctrlKey, e.altKey, e.shiftKey, false), l = e.targetTouches;
@@ -228,18 +238,83 @@ class DisplayObject extends EventWrapper {
 				dispatchEvent(n);
 			};
 			super.addEventListener(remapTouch.get(type), f, useCapture, priority, weak);
+		}*/
+	}
+	/**
+	 * This method of fair complication handles routing of mouse events through the DOM tree.
+	 * @param	h	"History" of DisplayObjects (hierarchy)
+	 * @param	e	MouseEvent to be dispatched
+	 * @param	ms	Matrix stack (auto-filled)
+	 * @param	mc	Matrix cache (matrices are taken from and pushed back into here)
+	 * @return	Whether an event was triggered
+	 */
+	public function broadcastMouse(h:Array<DisplayObject>, e:MouseEvent,
+	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
+		var o:DisplayObject, m:Matrix, m2:Matrix, d:Int = h.length, l:Int, x:Float, y:Float;
+		if (hasEventListener(e.type)) {
+			h.push(this);
+			m = mc.length > 0 ? mc.pop() : new Matrix();
+			// Lazy exploration: matrices are only calculated if actually needed:
+			l = ms.length;
+			while (l <= d) { // "<=" since "d" increases by 1 since it's assignment
+				o = h[l];
+				m.identity();
+				concatTransform(o, m);
+				m.invert();
+				// Set step matrix to one of previous step + one just calculated
+				m2 = mc.length > 0 ? mc.pop() : new Matrix();
+				if (l > 0) m2.copy(ms[l - 1]); else m2.identity();
+				m2.concat(m);
+				ms.push(m2);
+				l++;
+			}
+			// Transform mouse coordinates from global to local:
+			m.copy(ms[d]);
+			//Lib.trace(m.toString());
+			x = e.stageX * m.a + e.stageY * m.c + m.tx;
+			y = e.stageX * m.b + e.stageY * m.d + m.ty;
+			//Lib.trace(e.stageX + ' ' + e.stageY + ' -> $x $y');
+			// clean-up:
+			mc.push(m);
+			h.pop();
+			// dispatch events if mouse did hit the object:
+			if (hitTestLocal(x, y)) {
+				e.localX = x;
+				e.localY = y;
+				e.relatedObject = cast this;
+				dispatchEvent(e);
+				return true;
+			}
 		}
+		return false;
+	}
+	//
+	override public function dispatchEvent(event:Event):Bool {
+		var r:Bool = super.dispatchEvent(event);
+		// some events will not bubble naturally, thus:
+		if (r && routedEvents.exists(event.type) && event.bubbles) {
+			var o:DisplayObjectContainer = parent;
+			while (o != null) {
+				o.dispatchEvent(event);
+				o = o.parent;
+			}
+		}
+		return r;
 	}
 	//
 	public function toString():String {
 		return Type.getClassName(Type.getClass(this));
 	}
 	//
-	private static function __init__():Void {
-		remapTouch = new Map();
-		remapTouch.set("mousedown", "touchstart");
-		remapTouch.set("mousemove", "touchmove");
-		remapTouch.set("mouseup", "touchend");
-	}
+	private static function __init__():Void (function() {
+		routedEvents = new Map();
+		var m = [
+			MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_OVER, MouseEvent.MOUSE_OUT,
+			MouseEvent.CLICK, MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_UP,
+			MouseEvent.RIGHT_CLICK, MouseEvent.RIGHT_MOUSE_DOWN, MouseEvent.RIGHT_MOUSE_UP,
+			MouseEvent.MIDDLE_CLICK, MouseEvent.MIDDLE_MOUSE_DOWN, MouseEvent.MIDDLE_MOUSE_UP,
+			], i:Int = -1, l:Int = m.length;
+		while (++i < l) routedEvents.set(m[i], 1);
+	})();
 }
 #end

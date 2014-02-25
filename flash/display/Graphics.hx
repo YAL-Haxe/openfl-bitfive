@@ -292,7 +292,7 @@ class Graphics implements IBitmapDrawable {
 			try {
 				return context.getImageData(x - offsetX, y - offsetY, 1, 1).data[3] != 0;
 			} catch (_:Dynamic) {
-				// most likely canvas is tainted
+				// most likely canvas is tainted. assume a rectangular check
 				return true;
 			}
 		}

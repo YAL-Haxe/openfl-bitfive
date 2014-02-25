@@ -1,9 +1,12 @@
 package flash.display;
 #if js
+import flash.events.MouseEvent;
+import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.Lib;
 import js.Browser;
 import js.html.Element;
+import js.html.WheelEvent;
 //
 class Stage extends DisplayObjectContainer {
 	public var align:StageAlign;
@@ -19,6 +22,7 @@ class Stage extends DisplayObjectContainer {
 	/** Whether device is touch screen.
 	 * If device dispatches touch events, these are more reliable source of mouse coordinates */
 	private var isTouchScreen:Bool = false;
+	private var touchCount:Int = 0;
 	//
 	private var qTimeStamp:Int;
 	public function new() {
@@ -31,26 +35,99 @@ class Stage extends DisplayObjectContainer {
 		qTimeStamp = Lib.getTimer();
 		Lib.requestAnimationFrame(onAnimationFrame);
 		mousePos = new Point();
-		var o = Browser.window;
-		// mouse move listener (to keep track of mouseX/mouseY)
-		o.addEventListener("mousemove", onMouseMove);
+		var o:js.html.DOMWindow = untyped window;
+		// right and other clicks:
+		o.addEventListener("contextmenu", function(_:js.html.Event) _.preventDefault());
+		// mouse listeners:
+		o.addEventListener("click", onMouse);
+		o.addEventListener("mousedown", onMouse);
+		o.addEventListener("mouseup", onMouse);
+		o.addEventListener("mousemove", onMouse);
+		o.addEventListener("mousewheel", onWheel);
 		// touch events (to prevent scrolling and to track mouse position):
 		o.addEventListener("touchstart", onTouch);
 		o.addEventListener("touchend", onTouch);
 		o.addEventListener("touchmove", onTouch);
+		//
+		mouseMtxDepth = [];
+		mouseMtxStack = [];
+		mouseMtxCache = [];
+	}
+	// Mouse magic
+	private var mouseMtxDepth:Array<DisplayObject>;
+	private var mouseMtxStack:Array<Matrix>;
+	private var mouseMtxCache:Array<Matrix>;
+	private var mouseOver:DisplayObject;
+	private function _broadcastMouseEvent(f:MouseEvent):Void {
+		var o:DisplayObject = mouseOver, q:DisplayObject;
+		f.stageX = mousePos.x;
+		f.stageY = mousePos.y;
+		broadcastMouse(mouseMtxDepth, f, mouseMtxStack, mouseMtxCache);
+		q = f.target;
+		if (o != q) {
+			if (o != null) o.dispatchEvent(_alterMouseEvent(f, MouseEvent.MOUSE_OUT));
+			if (q != null) q.dispatchEvent(_alterMouseEvent(f, MouseEvent.MOUSE_OVER));
+		}
+	}
+	private function _alterMouseEvent(e:MouseEvent, type:String):MouseEvent {
+		var r:MouseEvent = new MouseEvent(type, e.bubbles, e.cancelable, e.localX, e.localY,
+			e.relatedObject, e.ctrlKey, e.altKey, e.shiftKey, e.buttonDown, e.delta);
+		r.stageX = e.stageX;
+		r.stageY = e.stageY;
+		return r;
+	}
+	/// Translates JavaScript event into OpenFL-bitfive one:
+	private function _translateMouseEvent(e:js.html.MouseEvent, type:String):MouseEvent {
+		return new MouseEvent(type, true, false, null, null, null, e.ctrlKey, e.altKey, e.shiftKey);
 	}
 	private function onTouch(e:js.html.TouchEvent):Void {
 		isTouchScreen = true;
-		if (e.targetTouches.length > 0) {
-			mousePos.x = e.targetTouches[0].pageX;
-			mousePos.y = e.targetTouches[0].pageY;
-		}
 		e.preventDefault();
+		var l:Int = e.targetTouches.length, n:Int = touchCount, t:String, f:MouseEvent,
+			q:js.html.Touch = l > 0 ? e.targetTouches[0] : null;
+		touchCount = l;
+		// update mouse coordinates:
+		if (l > 0) mousePos.setTo(q.pageX, q.pageY);
+		// determine correct event via current-previous state difference:
+		t = (l != 0 && n == 0) ? MouseEvent.MOUSE_DOWN
+			: (l == 0 && n != 0) ? MouseEvent.MOUSE_UP
+			: MouseEvent.MOUSE_MOVE;
+		_broadcastMouseEvent(new MouseEvent(t));
 	}
-	private function onMouseMove(e:js.html.MouseEvent):Void {
-		if (!isTouchScreen) {
-			mousePos.x = e.pageX;
-			mousePos.y = e.pageY;
+	private function onWheel(e:js.html.WheelEvent):Void {
+		var f:MouseEvent = _translateMouseEvent(e, MouseEvent.MOUSE_MOVE);
+		f.delta = e.wheelDelta;
+		mousePos.setTo(e.pageX, e.pageY);
+		_broadcastMouseEvent(f);
+	}
+	private function onMouse(e:js.html.MouseEvent):Void {
+		if (isTouchScreen) return;
+		mousePos.setTo(e.pageX, e.pageY);
+		// Convert events accordingly:
+		var t:String = "", f:MouseEvent = null;
+		switch (e.type) {
+		case "click": switch (e.button) {
+			case 0: t = MouseEvent.CLICK;
+			case 1: t = MouseEvent.MIDDLE_CLICK;
+			case 2: t = MouseEvent.RIGHT_CLICK;
+			}
+		case "mousemove":
+			t = MouseEvent.MOUSE_MOVE;
+		case "mousedown": switch (e.button) {
+			case 0: t = MouseEvent.MOUSE_DOWN;
+			case 1: t = MouseEvent.MIDDLE_MOUSE_DOWN;
+			case 2: t = MouseEvent.RIGHT_MOUSE_DOWN;
+			}
+		case "mouseup": switch (e.button) {
+			case 0: t = MouseEvent.MOUSE_UP;
+			case 1: t = MouseEvent.MIDDLE_MOUSE_UP;
+			case 2: t = MouseEvent.RIGHT_MOUSE_UP;
+			}
+		}
+		//if (e.button != 0) e.preventDefault();
+		if (t != "") f = new MouseEvent(t);
+		if (f != null) {
+			_broadcastMouseEvent(new MouseEvent(t));
 		}
 	}
 	// a not-very-smart method of adding Stage listeners to Window, as opposed to it's Div.

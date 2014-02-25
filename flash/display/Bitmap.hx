@@ -19,7 +19,6 @@ class Bitmap extends DisplayObject implements IBitmapDrawable {
 	}
 	private function set_smoothing(v:Bool):Bool {
 		var o = bitmapData.qContext;
-		flash.Lib.trace(Std.string(this) + ".smoothing = " + v);
 		untyped {
 			o.imageSmoothingEnabled = 
 			o.oImageSmoothingEnabled = 
@@ -39,6 +38,9 @@ class Bitmap extends DisplayObject implements IBitmapDrawable {
 	?matrix:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
 	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
 		bitmapData.drawToSurface(cnv, ctx, matrix, ctr, blendMode, clipRect, smoothing);
+	}
+	override public function hitTestLocal(x:Float, y:Float):Bool {
+		return bitmapData != null && bitmapData.hitTestLocal(x, y);
 	}
 }
 #end
