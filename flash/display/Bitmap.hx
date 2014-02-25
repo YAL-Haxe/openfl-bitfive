@@ -40,7 +40,7 @@ class Bitmap extends DisplayObject implements IBitmapDrawable {
 		bitmapData.drawToSurface(cnv, ctx, matrix, ctr, blendMode, clipRect, smoothing);
 	}
 	override public function hitTestLocal(x:Float, y:Float):Bool {
-		return bitmapData != null && bitmapData.hitTestLocal(x, y);
+		return bitmapData != null && x >= 0 && y >= 0 && x < bitmapData.width && y < bitmapData.height;
 	}
 }
 #end
