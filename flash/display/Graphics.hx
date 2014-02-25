@@ -46,8 +46,8 @@ class Graphics implements IBitmapDrawable {
 	private var synced:Bool = true;
 	/** Whether a regeneration is already scheduled and no change is needed*/
 	private var rgPending:Bool = false;
-	private var compX:Int;
-	private var compY:Int;
+	public var offsetX:Int;
+	public var offsetY:Int;
 	//
 	private var _drawMatrix:Matrix;
 	//
@@ -79,9 +79,9 @@ class Graphics implements IBitmapDrawable {
 			return;
 		}
 		// take a slightly larger area for case of excessive anti-aliasing:
-		if (compX != bx || compY != by) {
-			s.left = bx + "px";
-			s.top = by + "px";
+		if (offsetX != bx || offsetY != by) {
+			s.left = (offsetX = bx) + "px";
+			s.top = (offsetY = by) + "px";
 		}
 		if (bw != o.width || bh != o.height) {
 			o.width = bw;
@@ -93,10 +93,18 @@ class Graphics implements IBitmapDrawable {
 		render(o, q);
 		q.restore();
 	}
+	private function regenerateTask():Void {
+		// avoid rendering the same thing twice if canvas was already drawn by request:
+		if (rgPending) regenerate();
+	}
+	private function requestRegeneration():Void {
+		Lib.schedule(regenerateTask);
+		rgPending = true;
+	}
 	private function set_displayObject(v:DisplayObject):DisplayObject {
 		if (displayObject != v) {
 			displayObject = v;
-			if (!synced) Lib.schedule(regenerate);
+			if (!synced) requestRegeneration();
 		}
 		return v;
 	}
@@ -139,8 +147,7 @@ class Graphics implements IBitmapDrawable {
 			synced = false;
 			// should develop a better "do on next frame" mechanism.
 			if (!rgPending && displayObject != null && displayObject.stage != null) {
-				Lib.schedule(regenerate);
-				rgPending = true;
+				requestRegeneration();
 			}
 		}
 	}
@@ -171,6 +178,10 @@ class Graphics implements IBitmapDrawable {
 			rec[len++] = js == JointStyle.BEVEL ? 2 : js == JointStyle.MITER ? 1 : 0;
 		}
 	}
+	/**
+	 * @param	c	Color (24-bit)
+	 * @param	a	Alpha (0..1)
+	 */
 	public function beginFill(c:Int = 0, a:Float = 1):Void {
 		rec[len++] = GFX_FILL_SOLID;
 		rec[len++] = Lib.rgbf(c, a);
@@ -269,6 +280,25 @@ class Graphics implements IBitmapDrawable {
 		render(cnv, ctx);
 		ctx.restore();
 	}
+	
+	/**
+	 * Returns whether drawn image is non-transparent (alpha > 0) at given point.
+	 * @param	x	Point X
+	 * @param	y	Point Y
+	 */
+	public function hitTestLocal(x:Float, y:Float):Bool {
+		if (bounds.contains(x, y)) {
+			if (!synced) regenerate();
+			try {
+				return context.getImageData(x - offsetX, y - offsetY, 1, 1).data[3] != 0;
+			} catch (_:Dynamic) {
+				// most likely canvas is tainted
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/** Finishes the path and applies fill/stroke if needed. */
 	private function _closePath(cnv:CanvasElement, ctx:CanvasRenderingContext2D, f:Int, m:Matrix,
 	texture:ImageElement):Int {
