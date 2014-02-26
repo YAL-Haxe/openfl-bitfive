@@ -9,12 +9,12 @@ class MouseEvent extends Event {
 	@:extern public static inline var MOUSE_OVER:String = "mouseOver";
 	@:extern public static inline var MOUSE_OUT:String = "mouseOut";
 	// Misc:
-	@:extern public static inline var DOUBLE_CLICK:String = "doubleclick";
-	@:extern public static inline var MOUSE_WHEEL:String = "mousewheel";
+	@:extern public static inline var DOUBLE_CLICK:String = "doubleClick";
+	@:extern public static inline var MOUSE_WHEEL:String = "mouseWheel";
 	// Left button:
 	@:extern public static inline var CLICK:String = "mouseClick";
 	@:extern public static inline var MOUSE_DOWN:String = "mouseDown";
-	@:extern public static inline var MOUSE_UP:String = "mouseup";
+	@:extern public static inline var MOUSE_UP:String = "mouseUp";
 	// Middle button:
 	@:extern public static inline var MIDDLE_CLICK:String = "middleClick";
 	@:extern public static inline var MIDDLE_MOUSE_DOWN:String = "middleMouseDown";

@@ -313,7 +313,7 @@ class DisplayObject extends EventWrapper {
 			MouseEvent.CLICK, MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_UP,
 			MouseEvent.RIGHT_CLICK, MouseEvent.RIGHT_MOUSE_DOWN, MouseEvent.RIGHT_MOUSE_UP,
 			MouseEvent.MIDDLE_CLICK, MouseEvent.MIDDLE_MOUSE_DOWN, MouseEvent.MIDDLE_MOUSE_UP,
-			], i:Int = -1, l:Int = m.length;
+			MouseEvent.MOUSE_WHEEL], i:Int = -1, l:Int = m.length;
 		while (++i < l) routedEvents.set(m[i], 1);
 	})();
 }

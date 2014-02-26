@@ -95,8 +95,9 @@ class Stage extends DisplayObjectContainer {
 		_broadcastMouseEvent(new MouseEvent(t));
 	}
 	private function onWheel(e:js.html.WheelEvent):Void {
-		var f:MouseEvent = _translateMouseEvent(e, MouseEvent.MOUSE_MOVE);
-		f.delta = e.wheelDelta;
+		var f:MouseEvent = _translateMouseEvent(e, MouseEvent.MOUSE_WHEEL);
+		// approximation (Flash counts lines, HTML5 counts pixels):
+		f.delta = Math.round(e.wheelDelta / 40);
 		mousePos.setTo(e.pageX, e.pageY);
 		_broadcastMouseEvent(f);
 	}
@@ -104,7 +105,7 @@ class Stage extends DisplayObjectContainer {
 		if (isTouchScreen) return;
 		mousePos.setTo(e.pageX, e.pageY);
 		// Convert events accordingly:
-		var t:String = "", f:MouseEvent = null;
+		var t:String = null;
 		switch (e.type) {
 		case "click": switch (e.button) {
 			case 0: t = MouseEvent.CLICK;
@@ -124,9 +125,7 @@ class Stage extends DisplayObjectContainer {
 			case 2: t = MouseEvent.RIGHT_MOUSE_UP;
 			}
 		}
-		//if (e.button != 0) e.preventDefault();
-		if (t != "") f = new MouseEvent(t);
-		if (f != null) {
+		if (t != null) {
 			_broadcastMouseEvent(new MouseEvent(t));
 		}
 	}
