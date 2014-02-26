@@ -64,13 +64,8 @@ class DisplayObject extends EventWrapper {
 		var s = component.style, v, n;
 		if (_syncMtx_set != true) {
 			_syncMtx_set = true;
-			v = "0% 0%";
-			n = "syncMtx-origin";
-			s.setProperty(n, v, null);
-			s.setProperty("-o-" + n, v, null);
-			s.setProperty("-ms-" + n, v, null);
-			s.setProperty("-moz-" + n, v, null);
-			s.setProperty("-webkit-" + n, v, null);
+			// More than likely not actually needed.
+			Lib.setCSSProperties(s, "transform-origin", "0% 0%", 31);
 		}
 		v = "";
 		// ttip: transformations are applied in reverse order here
