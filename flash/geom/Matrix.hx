@@ -138,4 +138,16 @@ class Matrix {
 		+ tx + ', ' + ty + ', 0, 1)';
 	}
 	
+	// A little bit of pooling
+	/** Pool of reusable matrices */
+	public static var pool:Array<Matrix> = [];
+	/** Creates or takes a matrix from pool. Contents may vary. */
+	public static function create():Matrix {
+		var m:Array<Matrix> = pool;
+		return m.length > 0 ? m.pop() : new Matrix();
+	}
+	/** Pushes current matrix into reusable object pool. Do not access it afterwards. */
+	public inline function free() {
+		pool.push(this);
+	}
 }
