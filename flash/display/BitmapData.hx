@@ -47,6 +47,7 @@ class BitmapData implements IBitmapDrawable {
 
 	public var width(get, null):Int;
 	public var height(get, null):Int;
+	public var transparent(get, null):Bool;
 	public var rect:Rectangle;
 
 	// qSync flags
@@ -149,6 +150,9 @@ class BitmapData implements IBitmapDrawable {
 	}
 	@:extern private inline function get_height():Int {
 		return component.height;
+	}
+	@:extern private inline function get_transparent():Bool {
+		return qTransparent;
 	}
 	//
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
