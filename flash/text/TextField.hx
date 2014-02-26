@@ -25,6 +25,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	public var multiline(default, set):Bool;
 	public var scrollV:Int;
 	public var maxScrollV:Int;
+	public var numLines(get, null):Int;
 	public var selectable(default, set):Bool;
 	public var selectedText(get, null):String;
 	public var selectionBeginIndex(get, set):Int;
@@ -183,6 +184,11 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			return r;
 		}
 		return component.clientHeight;
+	}
+	private function get_numLines():Int {
+		var r:Int = 0, p:Int = 0, d:String = text, l:Int = d.length;
+		while (p < l) { r++; if ((p = d.indexOf("\n", p) + 1) == 0) p = l;}
+		return r;
 	}
 	// Meta
 	private function set_autoSize(v:String):String {
