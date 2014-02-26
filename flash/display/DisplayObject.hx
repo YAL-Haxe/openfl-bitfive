@@ -166,11 +166,11 @@ class DisplayObject extends EventWrapper {
 	}
 	//
 	/// Adds current transformation to specified matrix
-	@:extern private static inline function concatTransform(o:DisplayObject, m:Matrix):Void {
-		if (!o.transform.matrix.isIdentity()) m.concat(o.transform.matrix);
-		if (o.rotation != 0) m.rotate(o.rotation * Math.PI / 180);
-		if (o.scaleX != 1 || o.scaleY != 1) m.scale(o.scaleX, o.scaleY);
-		if (o.x != 0 || o.y != 0) m.translate(o.x, o.y);
+	public function concatTransform(m:Matrix):Void {
+		if (!transform.matrix.isIdentity()) m.concat(transform.matrix);
+		if (rotation != 0) m.rotate(rotation * Math.PI / 180);
+		if (scaleX != 1 || scaleY != 1) m.scale(scaleX, scaleY);
+		if (x != 0 || y != 0) m.translate(x, y);
 	}
 	private static var convMatrix:Matrix;
 	private static var convPoint:Point;
@@ -178,7 +178,7 @@ class DisplayObject extends EventWrapper {
 		if (m == null) m = new Matrix();
 		var o:DisplayObject = this;
 		while (o != null) {
-			concatTransform(o, m);
+			o.concatTransform(m);
 			o = o.parent;
 		}
 		return m;
@@ -245,8 +245,10 @@ class DisplayObject extends EventWrapper {
 	 */
 	public function broadcastMouse(h:Array<DisplayObject>, e:MouseEvent,
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
-		var o:DisplayObject, m:Matrix, m2:Matrix, d:Int = h.length, l:Int, x:Float, y:Float;
-		if (hasEventListener(e.type)) {
+		var o:DisplayObject, t:String = e.type, m:Matrix, m2:Matrix, d:Int = h.length, l:Int, x:Float, y:Float;
+		if (hasEventListener(t) || (t == MouseEvent.MOUSE_MOVE && (
+		hasEventListener(t = MouseEvent.MOUSE_OVER) ||
+		hasEventListener(t = MouseEvent.MOUSE_OUT)))) {
 			h.push(this);
 			m = mc.length > 0 ? mc.pop() : new Matrix();
 			// Lazy exploration: matrices are only calculated if actually needed:
@@ -254,7 +256,7 @@ class DisplayObject extends EventWrapper {
 			while (l <= d) { // "<=" since "d" increases by 1 since it's assignment
 				o = h[l];
 				m.identity();
-				concatTransform(o, m);
+				o.concatTransform(m);
 				m.invert();
 				// Set step matrix to one of previous step + one just calculated
 				m2 = mc.length > 0 ? mc.pop() : new Matrix();
@@ -274,11 +276,15 @@ class DisplayObject extends EventWrapper {
 			h.pop();
 			// dispatch events if mouse did hit the object:
 			if (hitTestLocal(x, y)) {
-				e.localX = x;
-				e.localY = y;
-				e.relatedObject = cast this;
-				dispatchEvent(e);
-				return true;
+				if (e.relatedObject == null) {
+					e.localX = x;
+					e.localY = y;
+					e.relatedObject = cast this;
+				}
+				if (t == e.type) {
+					dispatchEvent(e);
+					return true;
+				}
 			}
 		}
 		return false;

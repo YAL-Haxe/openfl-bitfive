@@ -63,7 +63,7 @@ class Stage extends DisplayObjectContainer {
 		f.stageX = mousePos.x;
 		f.stageY = mousePos.y;
 		broadcastMouse(mouseMtxDepth, f, mouseMtxStack, mouseMtxCache);
-		q = f.target;
+		mouseOver = q = f.relatedObject;
 		if (o != q) {
 			if (o != null) o.dispatchEvent(_alterMouseEvent(f, MouseEvent.MOUSE_OUT));
 			if (q != null) q.dispatchEvent(_alterMouseEvent(f, MouseEvent.MOUSE_OVER));
@@ -128,6 +128,9 @@ class Stage extends DisplayObjectContainer {
 		if (t != null) {
 			_broadcastMouseEvent(new MouseEvent(t));
 		}
+	}
+	override public function hitTestLocal(x:Float, y:Float):Bool {
+		return true;
 	}
 	// a not-very-smart method of adding Stage listeners to Window, as opposed to it's Div.
 	override public function addEventListener(type:String, listener:Dynamic -> Void,

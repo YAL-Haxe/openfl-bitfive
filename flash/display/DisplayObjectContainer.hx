@@ -96,8 +96,21 @@ class DisplayObjectContainer extends InteractiveObject {
 	}
 	
 	override public function hitTestLocal(x:Float, y:Float):Bool {
-		var r:Bool = false, i:Int = children.length;
-		while (--i >= 0) if (children[i].hitTestLocal(x, y)) return true;
+		var r:Bool = false, i:Int = children.length,
+			m:Matrix, o:DisplayObject;
+		if (i > 0) {
+			m = Matrix.create();
+			while (--i >= 0) {
+				m.identity();
+				o = children[i];
+				o.concatTransform(m);
+				m.invert();
+				if (o.hitTestLocal(
+					x * m.a + y * m.c + m.tx,
+					x * m.b + y * m.d + m.ty)) return true;
+			}
+			m.free();
+		}
 		return false;
 	}
 	
