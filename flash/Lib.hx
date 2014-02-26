@@ -62,8 +62,8 @@ class Lib {
 		switch (o) {
 		case "canvas":
 			// Disable accidental highlights (mostly in Firefox) for imagery
-			s.setProperty("-webkit-touch-callout", "none"); // mobile webkit
-			Lib.setCSS(s, "user-select", "none", 0x2F);
+			Lib.setCSSProperty(s, "-webkit-touch-callout", "none"); // mobile webkit
+			Lib.setCSSProperties(s, "user-select", "none", 0x2F);
 		case "input", "textarea":
 			// counter Webkit focus outline
 			s.outline = "none";
@@ -146,20 +146,31 @@ class Lib {
 	}
 	
 	/**
-	 * 
+	 * Sets multiple properties in a style object with according prefixes.
 	 * @param	o	CSSStyleDeclaration node
 	 * @param	k	Property name
 	 * @param	v	Value
-	 * @param	?f	Flags (1:np, 2:webkit, 4:moz, 8:ms, 16:o, 32:khtml
+	 * @param	?f	Flags (1:np, 2:webkit, 4:moz, 8:ms, 16:o, 32:khtml)
 	 */
-	public static function setCSS(o:CSSStyleDeclaration, k:String, v:String, ?f:Int):Void {
+	public static function setCSSProperties(o:CSSStyleDeclaration, k:String, v:String, ?f:Int):Void {
 		if (!bool(f)) f = 0x1f;
-		if (bool(f & 1)) o.setProperty(k, v);
-		if (bool(f & 2)) o.setProperty(k, "-webkit-" + v);
-		if (bool(f & 4)) o.setProperty(k, "-moz-" + v);
-		if (bool(f & 8)) o.setProperty(k, "-ms-" + v);
-		if (bool(f & 16)) o.setProperty(k, "-o-" + v);
-		if (bool(f & 32)) o.setProperty(k, "-khtml-" + v);
+		if (bool(f &  1)) setCSSProperty(o, k, v);
+		if (bool(f &  2)) setCSSProperty(o, k, "-webkit-" + v);
+		if (bool(f &  4)) setCSSProperty(o, k, "-moz-" + v);
+		if (bool(f &  8)) setCSSProperty(o, k, "-ms-" + v);
+		if (bool(f & 16)) setCSSProperty(o, k, "-o-" + v);
+		if (bool(f & 32)) setCSSProperty(o, k, "-khtml-" + v);
+	}
+	
+	/**
+	 * Shortcut for a two-argument .setProperty, since third argument is actually optional.
+	 * @param	o	Style object
+	 * @param	k	Property name
+	 * @param	?v	Property value (optional)
+	 */
+	@:extern public static inline function setCSSProperty(o:CSSStyleDeclaration, k:String, ?v:String):Void {
+		inline function _(q:CSSStyleDeclaration):Dynamic return cast q;
+		untyped _(o).setProperty(k, v);
 	}
 	
 	/// Strictly JavaScript-specific cast for leaving decision to browser.

@@ -246,9 +246,9 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		if (selectable != v) {
 			var s = component.style,
 				q = (selectable = v) ? null : "none";
-			s.setProperty("-webkit-touch-callout", q); // mobile webkit
-			s.setProperty("cursor", v ? "" : "default");
-			Lib.setCSS(s, "user-select", q, 0x2F);
+			Lib.setCSSProperty(s, "-webkit-touch-callout", q); // mobile webkit
+			Lib.setCSSProperty(s, "cursor", v ? "" : "default");
+			Lib.setCSSProperties(s, "user-select", q, 0x2F);
 			// older IEs. They don't support HTML5 though, so why would this even be here...
 			// component.setAttribute("unselectable", v ? null : "on"); // older IEs
 		}
