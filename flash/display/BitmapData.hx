@@ -41,6 +41,7 @@ class ImageDataLease {
  * Only alpha channel of ColorTransform's is supported.
  * Specific BitmapData can only be bound to a one Bitmap at time.
  */
+@:autoBuild(openfl.Assets.embedBitmap())
 class BitmapData implements IBitmapDrawable {
 	public var component:CanvasElement;
 	public var qContext:CanvasRenderingContext2D;
