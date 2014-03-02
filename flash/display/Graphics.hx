@@ -286,15 +286,17 @@ class Graphics implements IBitmapDrawable {
 	 * @param	x	Point X
 	 * @param	y	Point Y
 	 */
-	public function hitTestLocal(x:Float, y:Float):Bool {
+	public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
 		if (bounds.contains(x, y)) {
-			if (!synced) regenerate();
-			try {
-				return context.getImageData(x - offsetX, y - offsetY, 1, 1).data[3] != 0;
-			} catch (_:Dynamic) {
-				// most likely canvas is tainted. assume a rectangular check
-				return true;
+			if (p) {
+				if (!synced) regenerate();
+				try {
+					return context.getImageData(x - offsetX, y - offsetY, 1, 1).data[3] != 0;
+				} catch (_:Dynamic) {
+					// most likely canvas is tainted. assume a rectangular check
+				}
 			}
+			return true;
 		}
 		return false;
 	}

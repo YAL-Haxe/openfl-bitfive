@@ -43,14 +43,14 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 		graphics.drawToSurface(cnv, ctx, mtx, ctr, blendMode, clipRect, smoothing);
 	}
 	
-	override public function hitTestLocal(x:Float, y:Float):Bool {
-		var r:Bool = super.hitTestLocal(x, y), g:Graphics = _graphics;
+	override public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
+		var r:Bool = super.hitTestLocal(x, y, p), g:Graphics = _graphics;
 		// Hitbox:
 		/*return x >= g.compX && y >= g.compY
 			&& x < g.compX + g.component.width
 			&& y < g.compY + g.component.height;//*/
 		// Hittest:
-		return r || (g != null ? g.hitTestLocal(x, y) : false);
+		return r || (g != null ? g.hitTestLocal(x, y, p) : false);
 	}
 }
 #end

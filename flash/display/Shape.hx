@@ -20,8 +20,8 @@ class Shape extends DisplayObject implements IBitmapDrawable {
 		if (z) graphics.invalidate();
 		return r;
 	}
-	override public function hitTestLocal(x:Float, y:Float):Bool {
-		return graphics.hitTestLocal(x, y);
+	override public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
+		return graphics.hitTestLocal(x, y, p);
 	}
 }
 #end

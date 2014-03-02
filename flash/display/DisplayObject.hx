@@ -214,8 +214,15 @@ class DisplayObject extends EventWrapper {
 	private function get_mouseY():Float {
 		return (convPoint = globalToLocal(Lib.current.stage.mousePos, convPoint)).y;
 	}
+	///
+	public function hitTestPoint(x:Float, y:Float, p:Bool = false):Bool {
+		convPoint.x = x;
+		convPoint.y = y;
+		globalToLocal(convPoint, convPoint);
+		return hitTestLocal(convPoint.x, convPoint.y, p);
+	}
 	/// Tests whether a local point is overlapping the object
-	public function hitTestLocal(x:Float, y:Float):Bool {
+	public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
 		return x >= 0 && y >= 0 && x <= width && y <= height;
 	}
 	//
@@ -279,7 +286,7 @@ class DisplayObject extends EventWrapper {
 			mc.push(m);
 			h.pop();
 			// dispatch events if mouse did hit the object:
-			if (hitTestLocal(x, y)) {
+			if (hitTestLocal(x, y, true)) {
 				if (e.relatedObject == null) {
 					e.localX = x;
 					e.localY = y;

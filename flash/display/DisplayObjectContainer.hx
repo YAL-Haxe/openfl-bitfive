@@ -95,7 +95,7 @@ class DisplayObjectContainer extends InteractiveObject {
 		return r;
 	}
 	
-	override public function hitTestLocal(x:Float, y:Float):Bool {
+	override public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
 		var r:Bool = false, i:Int = children.length,
 			m:Matrix, o:DisplayObject;
 		if (i > 0) {
@@ -107,7 +107,8 @@ class DisplayObjectContainer extends InteractiveObject {
 				m.invert();
 				if (o.hitTestLocal(
 					x * m.a + y * m.c + m.tx,
-					x * m.b + y * m.d + m.ty)) return true;
+					x * m.b + y * m.d + m.ty,
+					p)) return true;
 			}
 			m.free();
 		}
