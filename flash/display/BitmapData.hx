@@ -10,6 +10,7 @@ import flash.geom.ColorTransform;
 import flash.geom.Rectangle;
 import flash.geom.Matrix;
 import flash.geom.Point;
+import flash.utils.UInt;
 import js.html.Uint8ClampedArray;
 
 
