@@ -72,35 +72,38 @@ class BitmapData implements IBitmapDrawable {
 	var qTick:Int;
 	/** Single-pixel image-data. Could be static too */
 	var qPixel:ImageData;
-
-	public function new(inWidth:Int, inHeight:Int,
-			?inTransparent:Bool = true,
-			?inFillColor:Int) {
+	/**
+	 * @param	w	Width
+	 * @param	h	Height
+	 * @param	?t	Transparent background
+	 * @param	?c	Fill color
+	 */
+	public function new(w:Int, h:Int, ?t:Bool = true, ?c:Int) {
 		qSync = 1;
-		qTransparent = inTransparent;
+		qTransparent = t;
 		qTick = 0;
 		qTime = Date.now().getTime();
-		rect = new Rectangle(0, 0, inWidth, inHeight);
+		rect = new Rectangle(0, 0, w, h);
 		// create canvas:
 		component = flash.Lib.jsCanvas();
 		#if debug
 			component.setAttribute("node", Type.getClassName(Type.getClass(this)));
 		#end
-		component.width = inWidth;
-		component.height = inHeight;
+		component.width = w;
+		component.height = h;
 		qContext = component.getContext('2d');
 		setSmoothing(qContext, true);
 		qPixel = qContext.createImageData(1, 1);
 		// fill with white by default:
-		if (inFillColor == null) inFillColor = 0xFFFFFFFF;
+		if (c == null) c = 0xFFFFFFFF;
 		// make fill opaque if not transparent:
-		if (!inTransparent) inFillColor |= 0xFF000000;
+		if (!t) c |= 0xFF000000;
 		// if context must be filled:
-		if ((inFillColor & 0xFF000000) != 0) {
-			fillRect(rect, inFillColor);
+		if ((c & 0xFF000000) != 0) {
+			fillRect(rect, c);
 		}
 	}
-	public function fillRect(area:Rectangle, color:UInt):Void {
+	public function fillRect(area:Rectangle, color:Int):Void {
 		// common useless operation check:
 		if (area == null || area.width <= 0 || area.height <= 0) return;
 		// trick for clearing canvas fast:
@@ -146,19 +149,14 @@ class BitmapData implements IBitmapDrawable {
 	}
 	private inline function getTime():Float { return qTime; }
 	private inline function getTick():Int { return qTick; }
-	@:extern private inline function get_width():Int {
-		return component.width;
-	}
-	@:extern private inline function get_height():Int {
-		return component.height;
-	}
-	@:extern private inline function get_transparent():Bool {
-		return qTransparent;
-	}
 	//
-	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
-	?matrix:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
-	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
+	@:extern private inline function get_width():Int return component.width;
+	@:extern private inline function get_height():Int return component.height;
+	@:extern private inline function get_transparent():Bool return qTransparent;
+	//
+	public function drawToSurface(cnv:CanvasElement, ctx:CanvasRenderingContext2D,
+	?matrix:Matrix, ?ctr:ColorTransform, ?blendMode:BlendMode,
+	?clipRect:Rectangle, ?smoothing:Bool):Void {
 		// todo: add cliprect handling
 		ctx.save();
 		if (smoothing != null && ctx.imageSmoothingEnabled != smoothing) setSmoothing(ctx, smoothing);
@@ -401,7 +399,7 @@ class BitmapData implements IBitmapDrawable {
 		qSync |= SY_CHANGE | SY_IMDATA;
 		if (wasCanvas) unlock();
 	}
-	public function colorTransform(q:flash.geom.Rectangle, o:flash.geom.ColorTransform):Void {
+	public function colorTransform(q:Rectangle, o:ColorTransform):Void {
 		// 
 		var x:Int = untyped ~~q.x, y:Int = untyped ~~q.y,
 			w:Int = untyped ~~q.width, h:Int = untyped ~~q.height,
@@ -609,7 +607,7 @@ class BitmapData implements IBitmapDrawable {
 	}
 	/// Helper functions
 	// creates a rgba() string:
-	static /*inline*/ function makeColor(color:UInt):String {
+	static /*inline*/ function makeColor(color:Int):String {
 		untyped { return 'rgba(' + ((color >> 16) & 0xFF)
 			+ ',' + ((color >> 8) & 0xFF)
 			+ ',' + (color & 0xFF)
