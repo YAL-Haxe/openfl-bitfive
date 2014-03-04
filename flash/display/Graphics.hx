@@ -40,9 +40,19 @@ class Graphics implements IBitmapDrawable {
 	public var bounds(default, null):Rectangle;
 	/** Only left here for correct bounds expansion */
 	private var lineWidth:Float;
-	/** Sequence of drawing commands. Array is cleaned up but never trimmed. */
-	public var rec(default, null):Array<Dynamic>;
-	public var len:Int;
+	// integer list
+	public var irec:Array<Int>;
+	public var ilen:Int;
+	@:extern public inline function addInt(v:Int):Int return irec[ilen++] = v;
+	// float list
+	public var frec:Array<Float>;
+	public var flen:Int;
+	@:extern public inline function addFloat(v:Float):Float return frec[flen++] = v;
+	// object list
+	public var arec:Array<Dynamic>;
+	public var alen:Int;
+	@:extern public inline function addObject(v:Dynamic):Dynamic return arec[alen++] = v;
+	//
 	private var synced:Bool = true;
 	/** Whether a regeneration is already scheduled and no change is needed*/
 	private var rgPending:Bool = false;
@@ -61,8 +71,10 @@ class Graphics implements IBitmapDrawable {
 		bounds = new Rectangle();
 		resetBounds();
 		//
-		rec = [];
-		lineWidth = len = 0;
+		irec = [];
+		frec = [];
+		arec = [];
+		lineWidth = ilen = flen = alen = 0;
 	}
 	private function regenerate():Void {
 		var o = component, s = component.style, q = context, b = bounds,
@@ -86,7 +98,7 @@ class Graphics implements IBitmapDrawable {
 		if (bw != o.width || bh != o.height) {
 			o.width = bw;
 			o.height = bh;
-		} else q.clearRect(0, 0, o.width, o.height);
+		} else q.clearRect(0, 0, bw, bh);
 		//
 		q.save();
 		q.translate( -bx, -by);
@@ -153,8 +165,8 @@ class Graphics implements IBitmapDrawable {
 	}
 	public function clear():Void {
 		var i:Int = 0;
-		while (i < len) rec[i++] = GFX_STOP;
-		lineWidth = len = 0;
+		while (i < alen) arec[i++] = null;
+		lineWidth = ilen = flen = alen = 0;
 		resetBounds();
 		invalidate();
 	}
@@ -170,97 +182,91 @@ class Graphics implements IBitmapDrawable {
 	 */
 	public function lineStyle(?w:Float, ?c:Int, ?a:Float, ?ph:Bool, ?sm:Dynamic, ?cs:CapsStyle,
 	?js:JointStyle, ?ml:Float):Void {
-		rec[len++] = GFX_LINESTYLE;
-		rec[len++] = lineWidth = w > 0 ? w : 0;
+		addInt(GFX_LINESTYLE);
+		addFloat(lineWidth = w > 0 ? w : 0);
 		if (w > 0) {
-			rec[len++] = Lib.rgbf(Lib.nz(c, 0), Lib.nz(a, 1));
-			rec[len++] = cs == CapsStyle.NONE ? 2 : cs == CapsStyle.SQUARE ? 1 : 0;
-			rec[len++] = js == JointStyle.BEVEL ? 2 : js == JointStyle.MITER ? 1 : 0;
+			addObject(Lib.rgbf(Lib.nz(c, 0), Lib.nz(a, 1)));
+			addInt(cs == CapsStyle.NONE ? 2 : cs == CapsStyle.SQUARE ? 1 : 0);
+			addInt(js == JointStyle.BEVEL ? 2 : js == JointStyle.MITER ? 1 : 0);
 		}
 	}
 	/**
 	 * @param	c	Color (24-bit)
 	 * @param	a	Alpha (0..1)
 	 */
-	public function beginFill(c:Int = 0, a:Float = 1):Void {
-		rec[len++] = GFX_FILL_SOLID;
-		rec[len++] = Lib.rgbf(c, a);
+	public function beginFill(?c:Int, ?a:Float):Void {
+		addInt(GFX_FILL_SOLID);
+		addObject(Lib.rgbf(Lib.nz(c, 0), Lib.nz(a, 1)));
 	}
 	public function beginBitmapFill(bitmap:BitmapData, ?m:flash.geom.Matrix,
 	?repeat:Bool, ?smooth:Bool):Void {
-		rec[len++] = GFX_FILL_BITMAP;
-		rec[len++] = bitmap;
-		rec[len++] = repeat != null ? repeat : true;
-		if (Lib.bool(rec[len++] = m != null)) {
-			rec[len++] = m.a;
-			rec[len++] = m.b;
-			rec[len++] = m.c;
-			rec[len++] = m.d;
-			rec[len++] = m.tx;
-			rec[len++] = m.ty;
+		addInt(GFX_FILL_BITMAP);
+		addObject(bitmap);
+		addInt(repeat != false ? 1 : 0);
+		if (Lib.bool(addInt(m != null ? 1 : 0))) {
+			var r = frec, l = flen;
+			r[l++] = m.a; r[l++] = m.b;
+			r[l++] = m.c; r[l++] = m.d;
+			r[l++] = m.tx; r[l++] = m.ty;
+			flen = l;
 		}
 	}
 	public function endFill() {
-		rec[len++] = GFX_END_FILL;
+		addInt(GFX_END_FILL);
 		invalidate();
 	}
 	public function moveTo(x:Float, y:Float):Void {
-		rec[len++] = GFX_MOVETO;
-		rec[len++] = x;
-		rec[len++] = y;
+		addInt(GFX_MOVETO);
+		addFloat(x);
+		addFloat(y);
 		grabPen(x, y);
 	}
 	public function lineTo(x:Float, y:Float):Void {
-		rec[len++] = GFX_LINETO;
-		rec[len++] = x;
-		rec[len++] = y;
+		addInt(GFX_LINETO);
+		addFloat(x);
+		addFloat(y);
 		grabPen(x, y);
 	}
 	public function curveTo(u:Float, v:Float, x:Float, y:Float):Void {
-		rec[len++] = GFX_CURVETO;
-		rec[len++] = u;
-		rec[len++] = v;
-		rec[len++] = x;
-		rec[len++] = y;
+		addInt(GFX_CURVETO);
+		var r = frec, l = flen;
+		r[l++] = u; r[l++] = v;
+		r[l++] = x; r[l++] = y;
+		flen = l;
 		grabPen(x, y);
 	}
 	public function drawRect(x:Float, y:Float, w:Float, h:Float):Void {
-		rec[len++] = GFX_RECT;
-		rec[len++] = x;
-		rec[len++] = y;
-		rec[len++] = w;
-		rec[len++] = h;
+		addInt(GFX_RECT);
+		var r = frec, l = flen;
+		r[l++] = x; r[l++] = y;
+		r[l++] = w; r[l++] = h;
+		flen = l;
 		grabRect(x, y, w, h);
 	}
-	public function drawRoundRect(x:Float, y:Float, w:Float, h:Float, r:Float, ?q:Float):Void {
-		rec[len++] = GFX_ROUNDRECT;
-		rec[len++] = x;
-		rec[len++] = y;
-		rec[len++] = w;
-		rec[len++] = h;
-		rec[len++] = r;
-		rec[len++] = q;
+	public function drawRoundRect(x:Float, y:Float, w:Float, h:Float, p:Float, ?q:Float):Void {
+		addInt(GFX_ROUNDRECT);
+		var r = frec, l = flen;
+		r[l++] = x; r[l++] = y;
+		r[l++] = w; r[l++] = h;
+		r[l++] = p; r[l++] = q;
+		flen = l;
 		grabRect(x, y, w, h);
 	}
-	public function drawCircle(x:Float, y:Float, r:Float):Void {
-		rec[len++] = GFX_CIRCLE;
-		rec[len++] = x;
-		rec[len++] = y;
-		rec[len++] = r;
-		grabRange(x, y, r);
+	public function drawCircle(x:Float, y:Float, q:Float):Void {
+		addInt(GFX_CIRCLE);
+		var r = frec, l = flen;
+		r[l++] = x; r[l++] = y;
+		r[l++] = q;
+		flen = l;
+		grabRange(x, y, q);
 	}
 	public function drawEllipse(x:Float, y:Float, w:Float, h:Float):Void {
-		rec[len++] = GFX_ELLIPSE;
-		rec[len++] = x;
-		rec[len++] = y;
-		rec[len++] = w;
-		rec[len++] = h;
+		addInt(GFX_ELLIPSE);
+		var r = frec, l = flen;
+		r[l++] = x; r[l++] = y;
+		r[l++] = w; r[l++] = h;
+		flen = l;
 		grab(x, y, x + w, y + h);
-	}
-	//
-	function rgba(c:Int, a:Float):String {
-		return "rgba(" + ((c >> 16) & 255) + ", " + ((c >> 8) & 255)
-			+ ", " + (c & 255) + ", " + (untyped a.toFixed(4)) + ")";
 	}
 	// Tile constants:
 	@:extern public static inline var TILE_SCALE = 0x0001;
@@ -272,9 +278,9 @@ class Graphics implements IBitmapDrawable {
 	@:extern public static inline var TILE_BLEND_ADD = 0x00010000;
 	//
 	
-	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
-	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
-	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
+	public function drawToSurface(cnv:CanvasElement, ctx:CanvasRenderingContext2D,
+	?mtx:Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:BlendMode,
+	?clipRect:Rectangle, ?smoothing:Bool):Void {
 		ctx.save();
 		if (mtx != null) ctx.transform(mtx.a, mtx.b, mtx.c, mtx.d, mtx.tx, mtx.ty);
 		render(cnv, ctx);
@@ -323,20 +329,33 @@ class Graphics implements IBitmapDrawable {
 	}
 	/** Renders Graphics into given canvas-context pair */
 	public function render(cnv:CanvasElement, ctx:CanvasRenderingContext2D):Void {
-		var f:Int = 0, p:Int = -1, v:Dynamic, m:Matrix = _drawMatrix, n:Int = 0,
-		tex:ImageElement = null;
+		var f:Int = 0x0,
+			p:Int = -1,
+			m:Matrix = _drawMatrix,
+			v:Dynamic, // object
+			i:Int, // integer
+			d:Float, // float
+			n:Int = 0, // number of operations in current path
+			tex:ImageElement = null,
+			ir:Array<Int> = irec, ip:Int = -1, il:Int = ir.length - 1,
+			ar:Array<Dynamic> = arec, ap:Int = -1,
+			nr:Array<Float> = frec, np:Int = -1;
+		// helpers:
+		inline function nextInt():Int return ir[++ip];
+		inline function nextFloat():Float return nr[++np];
+		inline function nextObject():Dynamic return ar[++ap];
+		//
 		if (m == null) _drawMatrix = m = new Matrix();
-		while (++p < len) switch (v = rec[p]) {
-		case GFX_STOP:
-			break;
-		case GFX_LINESTYLE:
+		while (ip < il) switch (i = nextInt()) {
+		//case GFX_STOP: break;// ()
+		case GFX_LINESTYLE: // (width:Float, style:String[, cap:Int, join:Int])
 			if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
-			ctx.lineWidth = v = rec[++p];
-			if (v > 0) {
+			ctx.lineWidth = d = nextFloat();
+			if (d > 0) {
 				f |= GFF_STROKE;
-				ctx.strokeStyle = rec[++p];
-				ctx.lineCap = (v = rec[++p]) == 2 ? "butt" : v == 1 ? "square" : "round";
-				ctx.lineJoin = (v = rec[++p]) == 2 ? "bevel" : v == 1 ? "miter" : "round";
+				ctx.strokeStyle = nextObject();
+				ctx.lineCap = (i = nextInt()) == 2 ? "butt" : i == 1 ? "square" : "round";
+				ctx.lineJoin = (i = nextInt()) == 2 ? "bevel" : i == 1 ? "miter" : "round";
 			} else { // disable stroke if lineWidth <= 0
 				f &= ~GFF_STROKE;
 				ctx.strokeStyle = null;
@@ -344,25 +363,22 @@ class Graphics implements IBitmapDrawable {
 		case GFX_FILL_SOLID, GFX_FILL_BITMAP:
 			if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
 			f |= GFF_FILL;
-			if (v == GFX_FILL_BITMAP) {
-				tex = rec[++p].handle();
-				var r:Bool = rec[++p];
-				if (rec[++p]) { // uses matrix
-					if (r) f |= GFF_TILED; else f &= ~GFF_TILED; // repeat
+			if (i == GFX_FILL_BITMAP) {
+				tex = nextObject().handle();
+				i = nextInt();
+				if (nextInt() != 0) { // uses matrix
+					if (i != 0) f |= GFF_TILED; else f &= ~GFF_TILED; // repeat
 					// matrix:
-					m.a = rec[++p];
-					m.b = rec[++p];
-					m.c = rec[++p];
-					m.d = rec[++p];
-					m.tx = rec[++p];
-					m.ty = rec[++p];
+					m.a = nextFloat(); m.b = nextFloat();
+					m.c = nextFloat(); m.d = nextFloat();
+					m.tx = nextFloat(); m.ty = nextFloat();
 					f |= GFF_PATTERN;
 				} else {
-					ctx.fillStyle = ctx.createPattern(cast tex, r ? "repeat" : "no-repeat");
+					ctx.fillStyle = ctx.createPattern(tex, i != 0 ? "repeat" : "no-repeat");
 					f &= ~GFF_PATTERN;
 				}
 			} else { // solid fill
-				ctx.fillStyle = rec[++p];
+				ctx.fillStyle = nextObject();
 				f &= ~GFF_PATTERN;
 			}
 			n = 0;
@@ -370,21 +386,22 @@ class Graphics implements IBitmapDrawable {
 			if (n > 0) { f = _closePath(cnv, ctx, f, m, tex); n = 0; }
 			f &= ~GFF_FILL;
 		case GFX_MOVETO:
-			ctx.moveTo(rec[++p], rec[++p]); n++;
+			ctx.moveTo(nextFloat(), nextFloat()); n++;
 		case GFX_LINETO:
-			ctx.lineTo(rec[++p], rec[++p]); n++;
+			ctx.lineTo(nextFloat(), nextFloat()); n++;
 		case GFX_CURVETO:
-			ctx.quadraticCurveTo(rec[++p], rec[++p], rec[++p], rec[++p]); n++;
+			ctx.quadraticCurveTo(nextFloat(), nextFloat(), nextFloat(), nextFloat()); n++;
 		case GFX_RECT:
-			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p];
-			ctx.rect(x, y, w, h);
+			ctx.rect(nextFloat(), nextFloat(), nextFloat(), nextFloat());
 			n++;
 		case GFX_CIRCLE:
-			var x = rec[++p], y = rec[++p], r = rec[++p];
+			var x = nextFloat(), y = nextFloat(), r = nextFloat();
 			if (r < 0) r = -r;
-			if (r != 0) ctx.arc(x, y, r, 0, Math.PI * 2, true); n++;
+			ctx.moveTo(x + r, y);
+			if (r != 0) ctx.arc(x, y, r, 0, Math.PI * 2, true);
+			n++;
 		case GFX_ELLIPSE:
-			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p],
+			var x = nextFloat(), y = nextFloat(), w = nextFloat(), h = nextFloat(),
 				x1 = x + w / 2, y1 = y + h / 2, x2 = x + w, y2 = y + h,
 				m = 0.275892, xm = w * m, ym = h * m;
 			ctx.moveTo(x1, y);
@@ -394,8 +411,10 @@ class Graphics implements IBitmapDrawable {
 			ctx.bezierCurveTo(x, y1 - ym, x1 - xm, y, x1, y);
 			n++;
 		case GFX_ROUNDRECT:
-			var x = rec[++p], y = rec[++p], w = rec[++p], h = rec[++p], u = rec[++p], q = rec[++p];
-			if (q == null || ctx.quadraticCurveTo == null) { // single-radius or fallback
+			var x = nextFloat(), y = nextFloat(),
+				w = nextFloat(), h = nextFloat(),
+				u = nextFloat(), q = nextFloat();
+			if (q == null) { // single-radius or fallback
 				ctx.moveTo(x + u, y + h);
 				ctx.arcTo(x + w - u, y + h - u, x + w, y + h - u, u); // bottom right
 				ctx.arcTo(x + w, y + u, x + w - u, y, u); // top right
@@ -414,45 +433,44 @@ class Graphics implements IBitmapDrawable {
 			}
 			n++;
 		case GFX_TILES:
-			var tex:BitmapData = rec[++p],
+			var tex:BitmapData = nextObject(),
 				d:CanvasElement = tex.handle(), // element to draw
-				fx:Int = rec[++p], // flags
+				fx:Int = nextInt(), // flags
 				fs:Bool = (fx & TILE_SCALE) != 0, // scaling
 				fr:Bool = (fx & TILE_ROTATION) != 0, // rotation
 				fc:Bool = (fx & TILE_RGB) != 0, // not actually supported
 				fa:Bool = (fx & TILE_ALPHA) != 0, // alpha
 				fm:Bool = (fx & TILE_TRANS_2x2) != 0, // Transform (abcd of matrix)
-				c:Int = cast (rec[++p] - 1),
+				c:Int = nextInt(),
 				tx:Float, ty:Float, // translateXY
 				ox:Float, oy:Float, // originXY
 				rx:Float, ry:Float, rw:Float, rh:Float; // source rectangle
 			//
 			ctx.save();
 			ctx.globalCompositeOperation = ((fx & TILE_BLEND_ADD) != 0) ? "lighter" : "source-over";
-			while (p < c) {
-				tx = rec[++p]; ty = rec[++p];
-				ox = rec[++p]; oy = rec[++p];
-				rx = rec[++p]; ry = rec[++p];
-				rw = rec[++p]; rh = rec[++p];
+			while (--c >= 0) {
+				tx = nextFloat(); ty = nextFloat();
+				ox = nextFloat(); oy = nextFloat();
+				rx = nextFloat(); ry = nextFloat();
+				rw = nextFloat(); rh = nextFloat();
 				ctx.save();
 				// the extra data:
 				if (fm) {
-					ctx.transform(rec[++p], rec[++p], rec[++p], rec[++p], tx, ty);
+					ctx.transform(nextFloat(), nextFloat(), nextFloat(), nextFloat(), tx, ty);
 				} else {
 					ctx.translate(tx, ty);
-					if (fs) ctx.scale(v = rec[++p], v);
-					if (fr) ctx.rotate(rec[++p]);
+					if (fs) ctx.scale(v = nextFloat(), v);
+					if (fr) ctx.rotate(nextFloat());
 				}
 				if (fc) p += 3;
-				if (fa) ctx.globalAlpha = rec[++p];
+				if (fa) ctx.globalAlpha = nextFloat();
 				//
 				ctx.drawImage(d, rx, ry, rw, rh, -ox, -oy, rw, rh);
 				ctx.restore();
 			}
 			ctx.restore();
 		default:
-			Lib.trace("Unknown operation: " + Std.string(v));
-			break;
+			Lib.error(4000 + i, 'Unknown operation $i');
 		}
 		if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
 	}

@@ -53,8 +53,11 @@ class Tilesheet {
 	}
 	
 	
-	public function drawTiles(gfx:Graphics, d:Array<Float>, smooth:Bool = false, f:Int = 0):Void {
-		var r = gfx.rec, p:Int = gfx.len, lenOfs:Int,
+	public function drawTiles(g:Graphics, d:Array<Float>, smooth:Bool = false, f:Int = 0):Void {
+		//
+		var lenOfs:Int,
+			tc:Int = 0, // tile count
+			nr = g.frec, np = g.flen,
 			i:Int = 0, c:Int = d.length, j:Int,
 			z:Int = 0, // extra data length
 			t:Int, o:Point, q:Rectangle, // tile data
@@ -71,11 +74,12 @@ class Tilesheet {
 			ft:Bool = fs || fr || fm, // any transform
 			rl:Float = 0x7fffffff, rt:Float = 0x7fffffff,
 			rr:Float = -0x80000000, rb:Float = -0x80000000; // bounds
-		r[p++] = 16;
-		r[p++] = nmeBitmap;
-		r[p++] = f;
-		lenOfs = p;
-		r[p++] = 0; // will be changed later
+		// helpers:
+		inline function addf(v:Float):Float return nr[np++] = v;
+		//
+		g.addInt(16); // Graphics.GFX_TILES
+		g.addObject(nmeBitmap);
+		g.addInt(f);
 		// find extra data length:
 		if ((f & TILE_RGB) != 0) z += 3;
 		if ((f & TILE_ALPHA) != 0) z++;
@@ -83,28 +87,29 @@ class Tilesheet {
 		b.setVoid();
 		while (i < c) {
 			// x, y:
-			r[p++] = tx = d[i++];
-			r[p++] = ty = d[i++];
+			addf(tx = d[i++]);
+			addf(ty = d[i++]);
 			// parse tile ID into offset + rectangle list:
 			t = cast d[i++];
 			q = qRects[t];
 			o = qOffsets[t];
-			r[p++] = ox = o.x; r[p++] = oy = o.y;
-			r[p++] = qx = q.x; r[p++] = qy = q.y;
-			r[p++] = qw = q.width; r[p++] = qh = q.height;
+			// add offset & rectangle:
+			addf(ox = o.x); addf(oy = o.y);
+			addf(qx = q.x); addf(qy = q.y);
+			addf(qw = q.width); addf(qh = q.height);
 			// handle bounds:
 			u.x = -o.x; u.width = q.width;
 			u.y = -o.y; u.height = q.height;
 			if (ft) { // bounds transformations
 				m.identity();
 				if (fm) { // matrix
-					r[p++] = m.a = d[i++];
-					r[p++] = m.b = d[i++];
-					r[p++] = m.c = d[i++];
-					r[p++] = m.d = d[i++];
+					addf(m.a = d[i++]);
+					addf(m.b = d[i++]);
+					addf(m.c = d[i++]);
+					addf(m.d = d[i++]);
 				} else { // rotation/scaling
-					if (fs) m.scale(r[p++] = v = d[i++], v);
-					if (fr) m.rotate(r[p++] = d[i++]);
+					if (fs) m.scale(addf(v = d[i++]), v);
+					if (fr) m.rotate(addf(d[i++]));
 				}
 				m.translate(q.x, q.y);
 				u.transform(m);
@@ -112,11 +117,12 @@ class Tilesheet {
 			u.x += tx; u.y += ty;
 			b.join(u);
 			// push extra data:
-			j = 0; while (j++ < z) r[p++] = d[i++];
+			j = 0; while (j++ < z) addf(d[i++]);
+			tc++;
 		}
-		r[lenOfs] = p;
-		gfx.len = p;
-		gfx.grab(b.x, b.y, b.x + b.width, b.y + b.height);
+		g.addInt(tc);
+		g.flen = np;
+		g.grab(b.x, b.y, b.x + b.width, b.y + b.height);
 	}
 	
 	
