@@ -50,7 +50,8 @@ class Lib {
 		#end
 	}
 	public static function getTimer():Int {
-		return untyped ~~(__js__("Date.now()") - qTimeStamp);
+		inline function dateNow():Float return cast Date.now();
+		return untyped Std.int(dateNow() - qTimeStamp);
 	}
 	public static function getURL(url:flash.net.URLRequest, ?target:String) {
 		untyped window.open(url.url, target);
