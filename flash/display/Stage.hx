@@ -24,7 +24,6 @@ class Stage extends DisplayObjectContainer {
 	private var isTouchScreen:Bool = false;
 	private var touchCount:Int = 0;
 	//
-	private var qTimeStamp:Int;
 	public function new() {
 		super();
 		var s = component.style;
@@ -32,8 +31,7 @@ class Stage extends DisplayObjectContainer {
 		s.overflow = "hidden";
 		s.left = s.top = "0";
 		s.width = s.height = "100%";
-		qTimeStamp = Lib.getTimer();
-		Lib.requestAnimationFrame(onAnimationFrame);
+		Lib.window.setTimeout(onTimer, 0);
 		mousePos = new Point();
 		var o:js.html.DOMWindow = untyped window;
 		// right and other clicks:
@@ -164,8 +162,8 @@ class Stage extends DisplayObjectContainer {
 	override private function get_stage():Stage {
 		return this;
 	}
-	private function onAnimationFrame() {
-		var t = Lib.getTimer();
+	private function onTimer():Void {
+		var t = Lib.getTimer(), f:Float;
 		// handle scheduled executions:
 		var i:Int = -1;
 		while (++i < Lib.schLength) {
@@ -174,12 +172,12 @@ class Stage extends DisplayObjectContainer {
 		}
 		Lib.schLength = 0;
 		//
-		if (frameRate <= 0 || t - qTimeStamp >= 1000 / frameRate) {
-			qTimeStamp = t;
-			var e = new flash.events.Event(flash.events.Event.ENTER_FRAME);
-			this.broadcastEvent(e);
-		}
-		flash.Lib.requestAnimationFrame(onAnimationFrame);
+		broadcastEvent(new flash.events.Event(flash.events.Event.ENTER_FRAME));
+		// schedule next event:
+		f = frameRate;
+		if (f > 0) {
+			Lib.window.setTimeout(onTimer, Std.int(Math.max(0, t + 1000 / f - Lib.getTimer())));
+		} else Lib.requestAnimationFrame(onTimer);
 	}
 }
 #end
