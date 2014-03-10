@@ -168,11 +168,11 @@ class Lib {
 	public static function setCSSProperties(o:CSSStyleDeclaration, k:String, v:String, ?f:Int):Void {
 		if (!bool(f)) f = 0x1f;
 		if (bool(f &  1)) setCSSProperty(o, k, v);
-		if (bool(f &  2)) setCSSProperty(o, k, "-webkit-" + v);
-		if (bool(f &  4)) setCSSProperty(o, k, "-moz-" + v);
-		if (bool(f &  8)) setCSSProperty(o, k, "-ms-" + v);
-		if (bool(f & 16)) setCSSProperty(o, k, "-o-" + v);
-		if (bool(f & 32)) setCSSProperty(o, k, "-khtml-" + v);
+		if (bool(f &  2)) setCSSProperty(o, "-webkit-" + k, v);
+		if (bool(f &  4)) setCSSProperty(o, "-moz-" + k, v);
+		if (bool(f &  8)) setCSSProperty(o, "-ms-" + k, v);
+		if (bool(f & 16)) setCSSProperty(o, "-o-" + k, v);
+		if (bool(f & 32)) setCSSProperty(o, "-khtml-" + k, v);
 	}
 	
 	/**
