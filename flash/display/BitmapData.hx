@@ -12,7 +12,6 @@ import flash.geom.Matrix;
 import flash.geom.Point;
 import js.html.Uint8ClampedArray;
 
-
 typedef LoadData = {
 	var image : ImageElement;
 	var texture:CanvasElement;
@@ -272,6 +271,26 @@ class BitmapData implements IBitmapDrawable {
 			return (qImageData.data[o] << 16) | (qImageData.data[o + 1] << 8) | qImageData.data[o + 2];
 		}
 	}
+	
+	public function getPixels (rect:Rectangle):ByteArray {
+		
+		var len = Math.round (4 * rect.width * rect.height);
+		var byteArray = new ByteArray ();
+		byteArray.length = len;
+		//var byteArray = new ByteArray(len);
+		
+		if (rect == null) return byteArray;
+		
+		var imagedata = qContext.getImageData (rect.x, rect.y, rect.width, rect.height);
+			
+		for (i in 0...len) {
+			byteArray.writeByte (imagedata.data[i]);
+		}
+		
+		byteArray.position = 0;
+		return byteArray;
+	}
+	
 	public function getPixel32(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
 		if ((qSync & 3) == 1) {
