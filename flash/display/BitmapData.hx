@@ -12,7 +12,6 @@ import flash.geom.Matrix;
 import flash.geom.Point;
 import js.html.Uint8ClampedArray;
 
-
 typedef LoadData = {
 	var image : ImageElement;
 	var texture:CanvasElement;
@@ -50,7 +49,7 @@ class BitmapData implements IBitmapDrawable {
 	public var height(get, null):Int;
 	public var transparent(get, null):Bool;
 	public var rect:Rectangle;
-
+	
 	// qSync flags
 	/** 0x1 Indicates that Canvas represents current state */
 	@:extern private static inline var SY_CANVAS = 0x1;
@@ -158,16 +157,20 @@ class BitmapData implements IBitmapDrawable {
 	?matrix:Matrix, ?ctr:ColorTransform, ?blendMode:BlendMode,
 	?clipRect:Rectangle, ?smoothing:Bool):Void {
 		// todo: add cliprect handling
+		
+		if (clipRect == null)
+			clipRect = rect;
+		
 		ctx.save();
-		if (smoothing != null && ctx.imageSmoothingEnabled != smoothing) setSmoothing(ctx, smoothing);
+		//if (smoothing != null && ctx.imageSmoothingEnabled != smoothing) setSmoothing(ctx, smoothing);
 		if (matrix != null) {
 			if (matrix.a == 1 && matrix.b == 0 && matrix.c == 0 && matrix.d == 1) 
 				ctx.translate(matrix.tx, matrix.ty);
 			else
 				ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
 		}
-
-		ctx.drawImage(handle(), 0, 0);
+		ctx.drawImage(handle (), clipRect.x, clipRect.y, clipRect.width, clipRect.height, 0, 0, clipRect.width, clipRect.height);
+			
 		ctx.restore();
 	}
 	//
@@ -224,12 +227,12 @@ class BitmapData implements IBitmapDrawable {
 			colorTransform.alphaMultiplier = 1;
 			qContext.globalAlpha *= a;
 		}
-		if (clipRect != null) {
+		/*if (clipRect != null) {
 			qContext.beginPath();
 			qContext.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
 			qContext.clip();
-			qContext.beginPath();
-		}
+			qContext.closePath();
+		}*/
 		if (smoothing != null) setSmoothing(qContext, smoothing);
 		source.drawToSurface(handle(), qContext, matrix, colorTransform, blendMode, clipRect, null);
 		qContext.restore();
@@ -272,6 +275,26 @@ class BitmapData implements IBitmapDrawable {
 			return (qImageData.data[o] << 16) | (qImageData.data[o + 1] << 8) | qImageData.data[o + 2];
 		}
 	}
+	
+	public function getPixels (rect:Rectangle):ByteArray {
+		
+		var len = Math.round (4 * rect.width * rect.height);
+		var byteArray = new ByteArray ();
+		byteArray.length = len;
+		//var byteArray = new ByteArray(len);
+		
+		if (rect == null) return byteArray;
+		
+		var imagedata = qContext.getImageData (rect.x, rect.y, rect.width, rect.height);
+			
+		for (i in 0...len) {
+			byteArray.writeByte (imagedata.data[i]);
+		}
+		
+		byteArray.position = 0;
+		return byteArray;
+	}
+	
 	public function getPixel32(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
 		if ((qSync & 3) == 1) {
