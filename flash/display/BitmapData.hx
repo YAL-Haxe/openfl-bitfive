@@ -49,7 +49,7 @@ class BitmapData implements IBitmapDrawable {
 	public var height(get, null):Int;
 	public var transparent(get, null):Bool;
 	public var rect:Rectangle;
-
+	
 	// qSync flags
 	/** 0x1 Indicates that Canvas represents current state */
 	@:extern private static inline var SY_CANVAS = 0x1;
@@ -157,16 +157,20 @@ class BitmapData implements IBitmapDrawable {
 	?matrix:Matrix, ?ctr:ColorTransform, ?blendMode:BlendMode,
 	?clipRect:Rectangle, ?smoothing:Bool):Void {
 		// todo: add cliprect handling
+		
+		if (clipRect == null)
+			clipRect = rect;
+		
 		ctx.save();
-		if (smoothing != null && ctx.imageSmoothingEnabled != smoothing) setSmoothing(ctx, smoothing);
+		//if (smoothing != null && ctx.imageSmoothingEnabled != smoothing) setSmoothing(ctx, smoothing);
 		if (matrix != null) {
 			if (matrix.a == 1 && matrix.b == 0 && matrix.c == 0 && matrix.d == 1) 
 				ctx.translate(matrix.tx, matrix.ty);
 			else
 				ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
 		}
-
-		ctx.drawImage(handle(), 0, 0);
+		ctx.drawImage(handle (), clipRect.x, clipRect.y, clipRect.width, clipRect.height, 0, 0, clipRect.width, clipRect.height);
+			
 		ctx.restore();
 	}
 	//
@@ -223,12 +227,12 @@ class BitmapData implements IBitmapDrawable {
 			colorTransform.alphaMultiplier = 1;
 			qContext.globalAlpha *= a;
 		}
-		if (clipRect != null) {
+		/*if (clipRect != null) {
 			qContext.beginPath();
 			qContext.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
 			qContext.clip();
-			qContext.beginPath();
-		}
+			qContext.closePath();
+		}*/
 		if (smoothing != null) setSmoothing(qContext, smoothing);
 		source.drawToSurface(handle(), qContext, matrix, colorTransform, blendMode, clipRect, null);
 		qContext.restore();
