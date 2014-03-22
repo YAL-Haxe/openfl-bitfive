@@ -16,13 +16,16 @@ class Stage extends DisplayObjectContainer {
 	public var stageWidth(get, null):Int;
 	public var stageHeight(get, null):Int;
 	public var showDefaultContextMenu:Bool;
-	public var frameRate:Float = 0; // should be retrieved from XML instead.
+	public var frameRate(default, set):Float = 0; // should be retrieved from XML instead.
 	public var focus(get, set):InteractiveObject;
 	public var mousePos:Point;
 	/** Whether device is touch screen.
 	 * If device dispatches touch events, these are more reliable source of mouse coordinates */
 	private var isTouchScreen:Bool = false;
 	private var touchCount:Int = 0;
+	#if !OFL_SETTIMEOUT
+	private var frameInterval:Int = 0;
+	#end
 	//
 	public function new() {
 		super();
@@ -162,6 +165,19 @@ class Stage extends DisplayObjectContainer {
 	override private function get_stage():Stage {
 		return this;
 	}
+	private function set_frameRate(v:Float):Float {
+		if (frameRate != v) {
+			frameRate = v;
+			#if !OFL_SETTIMEOUT
+			if (frameInterval != 0) Lib.window.clearInterval(frameInterval);
+			if (v == 0) {
+				frameInterval = 0;
+				Lib.requestAnimationFrame(onTimer);
+			} else frameInterval = Lib.window.setInterval(onTimer, Std.int(Math.max(0, 1000 / v)));
+			#end
+		}
+		return v;
+	}
 	private function onTimer():Void {
 		var t = Lib.getTimer(), f:Float;
 		// handle scheduled executions:
@@ -175,9 +191,10 @@ class Stage extends DisplayObjectContainer {
 		broadcastEvent(new flash.events.Event(flash.events.Event.ENTER_FRAME));
 		// schedule next event:
 		f = frameRate;
-		if (f > 0) {
-			Lib.window.setTimeout(onTimer, Std.int(Math.max(0, t + 1000 / f - Lib.getTimer())));
-		} else Lib.requestAnimationFrame(onTimer);
+		if (f <= 0) Lib.requestAnimationFrame(onTimer);
+		#if OFL_SETTIMEOUT
+		else Lib.window.setTimeout(onTimer, Std.int(Math.max(0, t + 1000 / f - Lib.getTimer())));
+		#end
 	}
 }
 #end
