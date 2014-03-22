@@ -1026,119 +1026,26 @@ import haxe.Unserializer;
 
 
 class AssetLibrary {
-	public function new () { }
-	public function exists (id:String, type:AssetType):Bool {
-		
-		return false;
-		
-	}
-	
-	
-	public function getBitmapData (id:String):BitmapData {
-		
-		return null;
-		
-	}
-	
-	
-	public function getBytes (id:String):ByteArray {
-		
-		return null;
-		
-	}
-	
-	
-	public function getFont (id:String):Font {
-		
-		return null;
-		
-	}
-	
-	
-	public function getMovieClip (id:String):MovieClip {
-		
-		return null;
-		
-	}
-	
-	
-	public function getMusic (id:String):Sound {
-		
-		return getSound (id);
-		
-	}
-	
-	
-	public function getPath (id:String):String {
-		
-		return null;
-		
-	}
-	
-	
-	public function getSound (id:String):Sound {
-		
-		return null;
-		
-	}
-	
-	
-	public function isLocal (id:String, type:AssetType):Bool {
-		
-		return true;
-		
-	}
-	
-	
-	private function load (handler:AssetLibrary -> Void):Void {
-		
-		handler (this);
-		
-	}
-	
-	
-	public function loadBitmapData (id:String, handler:BitmapData -> Void):Void {
-		
-		handler (getBitmapData (id));
-		
-	}
-	
-	
-	public function loadBytes (id:String, handler:ByteArray -> Void):Void {
-		
-		handler (getBytes (id));
-		
-	}
-	
-	
-	public function loadFont (id:String, handler:Font -> Void):Void {
-		
-		handler (getFont (id));
-		
-	}
-	
-	
-	public function loadMovieClip (id:String, handler:MovieClip -> Void):Void {
-		
-		handler (getMovieClip (id));
-		
-	}
-	
-	
-	public function loadMusic (id:String, handler:Sound -> Void):Void {
-		
-		handler (getMusic (id));
-		
-	}
-	
-	
-	public function loadSound (id:String, handler:Sound -> Void):Void {
-		
-		handler (getSound (id));
-		
-	}
-	
-	
+	public function new() { }
+	public function exists(id:String, type:AssetType):Bool return false;
+	public function getBitmapData(id:String):BitmapData return null;
+	public function getBytes(id:String):ByteArray return null;
+	public function getText(id:String):String return null;
+	public function getFont(id:String):Font return null;
+	public function getMovieClip(id:String):MovieClip return null;
+	public function getMusic(id:String):Sound return getSound (id);
+	public function getPath(id:String):String return null;
+	public function getSound(id:String):Sound return null;
+	public function isLocal(id:String, type:AssetType):Bool return true;
+	//
+	private function load(h:AssetLibrary->Void):Void h(this);
+	public function loadBitmapData(id:String, h:BitmapData->Void):Void h(getBitmapData(id));
+	public function loadBytes(id:String, h:ByteArray->Void):Void h(getBytes(id));
+	public function loadText(id:String, h:String->Void):Void h(getText(id));
+	public function loadFont(id:String, h:Font->Void):Void h(getFont(id));
+	public function loadMovieClip(id:String, h:MovieClip->Void):Void h(getMovieClip(id));
+	public function loadMusic(id:String, handler:Sound->Void):Void handler(getMusic(id));
+	public function loadSound(id:String, handler:Sound->Void):Void handler(getSound(id));
 }
 
 
