@@ -23,6 +23,11 @@ class Matrix {
 		this.ty = ty == null ? 0 : ty;
 	}
 	
+	public function setTo(a:Float, b:Float, c:Float, d:Float, tx:Float, ty:Float) {
+		this.a = a; this.b = b; this.tx = tx;
+		this.c = c; this.d = d; this.ty = ty;
+	}
+	
 	public inline function clone() {
 		return new Matrix(a, b, c, d, tx, ty);
 	}
@@ -63,8 +68,6 @@ class Matrix {
 			tx = t;
 		}
 	}
-	
-	
 	
 	public function translate(x:Float, y:Float) {
 		tx += x;
