@@ -52,6 +52,8 @@ class Tilesheet {
 		return qRects.length - 1;
 	}
 	
+	public function getTileCenter(i:Int):Point return qOffsets[i];
+	public function getTileRect(i:Int):Rectangle return qRects[i];
 	
 	public function drawTiles(g:Graphics, d:Array<Float>, smooth:Bool = false, f:Int = 0):Void {
 		//
