@@ -51,7 +51,7 @@ class ApplicationMain {
 				var type = Type.resolveClass(StringTools.replace (resourceName.substring(resourcePrefix.length), "_", "."));
 				if (type != null) {
 					total++;
-					#if OFL_LOG_LOAD
+					#if bitfive_logLoading
 						flash.Lib.trace("Loading " + Std.string(type));
 					#end
 					var instance = Type.createInstance (type, [ 0, 0, true, 0x00FFFFFF, bitmapClass_onComplete ]);
@@ -73,7 +73,7 @@ class ApplicationMain {
 		if (loaderStack.length != 0) {
 			var p:String = loaderStack.shift(),
 				o:Loader = loaders.get(p);
-			#if OFL_LOG_LOAD
+			#if bitfive_logLoading
 				flash.Lib.trace("Loading " + p);
 				o.contentLoaderInfo.addEventListener("complete", function(e) {
 					flash.Lib.trace("Loaded " + p);
@@ -86,7 +86,7 @@ class ApplicationMain {
 		} else if (urlLoaderStack.length != 0) {
 			var p:String = urlLoaderStack.shift(),
 				o:URLLoader = urlLoaders.get(p);
-			#if OFL_LOG_LOAD
+			#if bitfive_logLoading
 				flash.Lib.trace("Loading " + p);
 				o.addEventListener("complete", function(e) {
 					flash.Lib.trace("Loaded " + p);
@@ -128,13 +128,13 @@ class ApplicationMain {
 		s = p.substr(0, i) + ".mp3";
 		// already loaded?
 		if (c.library.exists(s)) return;
-		#if OFL_LOG_LOAD
+		#if bitfive_logLoading
 			flash.Lib.trace("Loading " + p);
 		#end
 		total++;
 		c.library.set(s, o = untyped __js__("new Audio(p)"));
 		f = function(_) {
-			#if OFL_LOG_LOAD
+			#if bitfive_logLoading
 				flash.Lib.trace("Loaded " + p);
 			#end
 			if (!m) o.removeEventListener(q, f);
