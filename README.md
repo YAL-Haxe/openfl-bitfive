@@ -16,10 +16,12 @@ A few to mention:
 Compiling (or at least trying to) your projects with openfl-bitfive is pretty straightforward:
 Install the library. I suppose that you can figure this out on your own.
 
-Navigate to application.xml of your project and add the following after inclusion of OpenFL library:
+Navigate to application.xml of your project and add the following before inclusion of OpenFL library:
 ```xml
-<haxelib name="openfl-bitfive" if="html5" />
+<set name="html5-backend" value="openfl-bitfive" />
 ```
+(note: if you have been previously using openfl-bitfive, make sure to remove a line including the
+library after OpenFL, or you'll be getting interesting errors since openfl 1.3.0/lime-tools 1.3.1)
 
 Run the project. If everything was done right, first noticeable difference will be in stage background covering whole browser tab, as well as HTML elements forming a more common DOM tree and having "node" properties indicating their names in code (if ran in Debug mode).
 
