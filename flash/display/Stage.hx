@@ -16,15 +16,15 @@ class Stage extends DisplayObjectContainer {
 	public var stageWidth(get, null):Int;
 	public var stageHeight(get, null):Int;
 	public var showDefaultContextMenu:Bool;
-	public var frameRate(default, set):Float = 0; // should be retrieved from XML instead.
+	public var frameRate(default, set):Float = null; // should be retrieved from XML instead.
 	public var focus(get, set):InteractiveObject;
 	public var mousePos:Point;
 	/** Whether device is touch screen.
 	 * If device dispatches touch events, these are more reliable source of mouse coordinates */
 	private var isTouchScreen:Bool = false;
 	private var touchCount:Int = 0;
-	#if !OFL_SETTIMEOUT
-	private var frameInterval:Int = 0;
+	#if !bitfive_setTimeout
+	private var intervalHandle:Dynamic = null;
 	#end
 	//
 	public function new() {
@@ -34,7 +34,6 @@ class Stage extends DisplayObjectContainer {
 		s.overflow = "hidden";
 		s.left = s.top = "0";
 		s.width = s.height = "100%";
-		Lib.window.setTimeout(onTimer, 0);
 		mousePos = new Point();
 		var o:js.html.DOMWindow = untyped window;
 		// right and other clicks:
@@ -167,13 +166,15 @@ class Stage extends DisplayObjectContainer {
 	}
 	private function set_frameRate(v:Float):Float {
 		if (frameRate != v) {
+			#if !bitfive_setTimeout
+			if (intervalHandle != null)
+			if (frameRate <= 0) Lib.cancelAnimationFrame(intervalHandle);
+			else Lib.window.clearInterval(intervalHandle);
+			intervalHandle = (frameRate = v) <= 0
+			? Lib.requestAnimationFrame(onTimer)
+			: Lib.window.setInterval(onTimer, Std.int(Math.max(0, 1000 / v)));
+			#else
 			frameRate = v;
-			#if !OFL_SETTIMEOUT
-			if (frameInterval != 0) Lib.window.clearInterval(frameInterval);
-			if (v == 0) {
-				frameInterval = 0;
-				Lib.requestAnimationFrame(onTimer);
-			} else frameInterval = Lib.window.setInterval(onTimer, Std.int(Math.max(0, 1000 / v)));
 			#end
 		}
 		return v;
@@ -191,9 +192,11 @@ class Stage extends DisplayObjectContainer {
 		broadcastEvent(new flash.events.Event(flash.events.Event.ENTER_FRAME));
 		// schedule next event:
 		f = frameRate;
+		#if bitfive_setTimeout
 		if (f <= 0) Lib.requestAnimationFrame(onTimer);
-		#if OFL_SETTIMEOUT
 		else Lib.window.setTimeout(onTimer, Std.int(Math.max(0, t + 1000 / f - Lib.getTimer())));
+		#else
+		if (f <= 0) intervalHandle = Lib.requestAnimationFrame(onTimer);
 		#end
 	}
 }
