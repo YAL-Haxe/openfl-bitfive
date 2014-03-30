@@ -81,6 +81,7 @@ class DisplayObjectContainer extends InteractiveObject {
 	//
 	override public function broadcastMouse(h:Array<DisplayObject>, e:MouseEvent,
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
+		if (!visible) return false;
 		var r:Bool = false, l:Int = children.length, i:Int = children.length;
 		// loop through child nodes, front-to-back:
 		if (mouseChildren) {
@@ -95,22 +96,23 @@ class DisplayObjectContainer extends InteractiveObject {
 		return r;
 	}
 	
-	override public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
-		var r:Bool = false, i:Int = children.length,
-			m:Matrix, o:DisplayObject;
-		if (i > 0) {
-			m = Matrix.create();
-			while (--i >= 0) {
-				m.identity();
-				o = children[i];
-				o.concatTransform(m);
-				m.invert();
-				if (o.hitTestLocal(
-					x * m.a + y * m.c + m.tx,
-					x * m.b + y * m.d + m.ty,
-					p)) return true;
+	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
+		if (hitTestVisible(v)) {
+			var i:Int = children.length, m:Matrix, o:DisplayObject;
+			if (i > 0) {
+				m = Matrix.create();
+				while (--i >= 0) {
+					m.identity();
+					o = children[i];
+					o.concatTransform(m);
+					m.invert();
+					if (o.hitTestLocal(
+						x * m.a + y * m.c + m.tx,
+						x * m.b + y * m.d + m.ty,
+						p, v)) return true;
+				}
+				m.free();
 			}
-			m.free();
 		}
 		return false;
 	}

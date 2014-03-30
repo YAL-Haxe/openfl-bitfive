@@ -129,8 +129,8 @@ class Stage extends DisplayObjectContainer {
 			_broadcastMouseEvent(new MouseEvent(t));
 		}
 	}
-	override public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
-		return true;
+	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
+		return hitTestVisible(v);
 	}
 	// a not-very-smart method of adding Stage listeners to Window, as opposed to it's Div.
 	override public function addEventListener(type:String, listener:Dynamic -> Void,

@@ -221,9 +221,20 @@ class DisplayObject extends EventWrapper {
 		globalToLocal(convPoint, convPoint);
 		return hitTestLocal(convPoint.x, convPoint.y, p);
 	}
-	/// Tests whether a local point is overlapping the object
-	public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
-		return x >= 0 && y >= 0 && x <= width && y <= height;
+	/**
+	 * Tests whether a local point is overlapping the object
+	 * @param	x	Point X
+	 * @param	y	Point Y
+	 * @param	p	Whether to use precise checks
+	 * @param	v	Whether to take visibility into account
+	 * @return
+	 */
+	public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
+		return hitTestVisible(v) && x >= 0 && y >= 0 && x <= width && y <= height;
+	}
+	
+	@:extern private inline function hitTestVisible(v:Bool):Bool {
+		return (!v || visible);
 	}
 	//
 	private var eventRemap:Map<String, Dynamic->Void>;
@@ -256,6 +267,7 @@ class DisplayObject extends EventWrapper {
 	 */
 	public function broadcastMouse(h:Array<DisplayObject>, e:MouseEvent,
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
+		if (!visible) return false;
 		var o:DisplayObject, t:String = e.type, m:Matrix, m2:Matrix, d:Int = h.length, l:Int, x:Float, y:Float;
 		if (hasEventListener(t) || (t == MouseEvent.MOUSE_MOVE && (
 		hasEventListener(t = MouseEvent.MOUSE_OVER) ||
@@ -286,7 +298,7 @@ class DisplayObject extends EventWrapper {
 			mc.push(m);
 			h.pop();
 			// dispatch events if mouse did hit the object:
-			if (hitTestLocal(x, y, true)) {
+			if (hitTestLocal(x, y, true, true)) {
 				if (e.relatedObject == null) {
 					e.localX = x;
 					e.localY = y;

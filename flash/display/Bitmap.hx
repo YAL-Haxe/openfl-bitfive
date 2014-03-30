@@ -39,8 +39,8 @@ class Bitmap extends DisplayObject implements IBitmapDrawable {
 	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
 		bitmapData.drawToSurface(cnv, ctx, matrix, ctr, blendMode, clipRect, smoothing);
 	}
-	override public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
-		return bitmapData != null && x >= 0 && y >= 0 && x < bitmapData.width && y < bitmapData.height;
+	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
+		return hitTestVisible(v) && bitmapData != null && x >= 0 && y >= 0 && x < bitmapData.width && y < bitmapData.height;
 	}
 }
 #end
