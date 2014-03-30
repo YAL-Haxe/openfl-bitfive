@@ -280,8 +280,8 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		return qEditable ? qTextArea.value.substring(a, b) : null;
 	}
 	// event target overrides:
-	override public function hitTestLocal(x:Float, y:Float, p:Bool):Bool {
-		return x >= 0 && y >= 0 && x < width && y < height;
+	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
+		return hitTestVisible(v) && x >= 0 && y >= 0 && x < width && y < height;
 	}
 	override public function addEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
 		var o = component;
