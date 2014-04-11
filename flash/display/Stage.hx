@@ -5,7 +5,12 @@ import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.Lib;
 import js.Browser;
+import js.html.CSSStyleDeclaration;
+import js.html.DOMWindow;
 import js.html.Element;
+import js.html.Touch;
+import js.html.TouchList;
+import js.html.TouchEvent;
 import js.html.WheelEvent;
 //
 class Stage extends DisplayObjectContainer {
@@ -23,19 +28,19 @@ class Stage extends DisplayObjectContainer {
 	 * If device dispatches touch events, these are more reliable source of mouse coordinates */
 	private var isTouchScreen:Bool = false;
 	private var touchCount:Int = 0;
+	//
 	#if !bitfive_setTimeout
 	private var intervalHandle:Dynamic = null;
 	#end
 	//
 	public function new() {
 		super();
-		var s = component.style;
+		var s:CSSStyleDeclaration = component.style, o:DOMWindow = Lib.window, i:Int;
 		s.position = "absolute";
 		s.overflow = "hidden";
 		s.left = s.top = "0";
 		s.width = s.height = "100%";
 		mousePos = new Point();
-		var o:js.html.DOMWindow = untyped window;
 		// right and other clicks:
 		o.addEventListener("contextmenu", function(_:js.html.Event) _.preventDefault());
 		// mouse listeners:
@@ -45,19 +50,33 @@ class Stage extends DisplayObjectContainer {
 		o.addEventListener("mousemove", onMouse);
 		o.addEventListener("mousewheel", onWheel);
 		// touch events (to prevent scrolling and to track mouse position):
-		o.addEventListener("touchstart", onTouch);
-		o.addEventListener("touchend", onTouch);
-		o.addEventListener("touchmove", onTouch);
+		o.addEventListener("touchmove", getOnTouch(0));
+		o.addEventListener("touchstart", getOnTouch(1));
+		o.addEventListener("touchend", getOnTouch(2));
+		o.addEventListener("touchcancel", getOnTouch(2));
 		//
 		mouseMtxDepth = [];
 		mouseMtxStack = [];
 		mouseMtxCache = [];
+		mouseTriggered = [];
+		mouseUntrigger = [];
+		i = -1; while (++i < 3) {
+			mouseTriggered[i] = false;
+			mouseUntrigger[i] = getMouseUntrigger(i);
+		}
 	}
 	// Mouse magic
 	private var mouseMtxDepth:Array<DisplayObject>;
 	private var mouseMtxStack:Array<Matrix>;
 	private var mouseMtxCache:Array<Matrix>;
 	private var mouseOver:DisplayObject;
+	private var mouseDown:Bool;
+	private var mouseLastEvent:MouseEvent;
+	private var mouseTriggered:Array<Bool>;
+	private var mouseUntrigger:Array<Void->Void>;
+	private var mouseDownTriggered:Bool;
+	private var mouseUpTriggered:Bool;
+	//
 	private function _broadcastMouseEvent(f:MouseEvent):Void {
 		var o:DisplayObject = mouseOver, q:DisplayObject;
 		f.stageX = mousePos.x;
@@ -69,6 +88,10 @@ class Stage extends DisplayObjectContainer {
 			if (q != null) q.dispatchEvent(_alterMouseEvent(f, MouseEvent.MOUSE_OVER));
 		}
 	}
+	private function getMouseUntrigger(i:Int):Void->Void {
+		return function() mouseTriggered[i] = false;
+	}
+	/// Creates a copy of MouseEvent with new type.
 	private function _alterMouseEvent(e:MouseEvent, type:String):MouseEvent {
 		var r:MouseEvent = new MouseEvent(type, e.bubbles, e.cancelable, e.localX, e.localY,
 			e.relatedObject, e.ctrlKey, e.altKey, e.shiftKey, e.buttonDown, e.delta);
@@ -80,19 +103,58 @@ class Stage extends DisplayObjectContainer {
 	private function _translateMouseEvent(e:js.html.MouseEvent, type:String):MouseEvent {
 		return new MouseEvent(type, true, false, null, null, null, e.ctrlKey, e.altKey, e.shiftKey);
 	}
-	private function onTouch(e:js.html.TouchEvent):Void {
-		isTouchScreen = true;
+	/**
+	 * Prevents duplicate mouse+touch events from triggering.
+	 * @param	o	Event type (0: move, 1: down, 2: up)
+	 * @param	x	Page X
+	 * @param	y	Page Y
+	 * @return	Whether event is duplicate.
+	 */
+	private function mouseEventPrevent(o:Int, x:Float, y:Float):Bool {
+		var mp = mousePos, q = (mp.x == x && mp.y == y);
+		if (o < 0) return false;
+		if (q && mouseTriggered[o]) return true;
+		// switch to new position:
+		if (!q) mousePos.setTo(x, y);
+		// mark event as triggered:
+		if (!mouseTriggered[o]) {
+			mouseTriggered[o] = true;
+			Lib.window.setTimeout(mouseUntrigger[o], 0);
+		}
+		// handle forgotten events
+		if (o == 1) {
+			if (mouseDown) {
+				_broadcastMouseEvent(_alterMouseEvent(mouseLastEvent, MouseEvent.MOUSE_UP));
+			} else mouseDown = true;
+		} else if (o == 2) {
+			if (!mouseDown) _broadcastMouseEvent(new MouseEvent(MouseEvent.MOUSE_DOWN));
+			else mouseDown = false;
+		}
+		//
+		return false;
+	}
+	private function getOnTouch(i:Int):TouchEvent->Void {
+		return function(e:TouchEvent) onTouch(e, i);
+	}
+	private function onTouch(e:TouchEvent, m:Int):Void {
+		var lt:TouchList = e.targetTouches,
+			nt:Int = lt.length,
+			lc:TouchList = e.changedTouches,
+			nc:Int = lc.length,
+			qt:Touch = nt > 0 ? lt[0] : nc > 0 ? lc[0] : null;
+		//
 		e.preventDefault();
-		var l:Int = e.targetTouches.length, n:Int = touchCount, t:String, f:MouseEvent,
-			q:js.html.Touch = l > 0 ? e.targetTouches[0] : null;
-		touchCount = l;
-		// update mouse coordinates:
-		if (l > 0) mousePos.setTo(q.pageX, q.pageY);
-		// determine correct event via current-previous state difference:
-		t = (l != 0 && n == 0) ? MouseEvent.MOUSE_DOWN
-			: (l == 0 && n != 0) ? MouseEvent.MOUSE_UP
-			: MouseEvent.MOUSE_MOVE;
-		_broadcastMouseEvent(new MouseEvent(t));
+		isTouchScreen = true;
+		//
+		if (qt != null && (
+			(m == 0) || // swipes are okay
+			(m == 1 && nt == nc) || // first touch pressed
+			(m == 2 && nt == 0 && nc > 0) // last touch released
+		) && !mouseEventPrevent(m, qt.pageX, qt.pageY)) {
+			_broadcastMouseEvent(mouseLastEvent = new MouseEvent(
+				m == 1 ? MouseEvent.MOUSE_DOWN :
+				m == 2 ? MouseEvent.MOUSE_UP : MouseEvent.MOUSE_MOVE));
+		}
 	}
 	private function onWheel(e:js.html.WheelEvent):Void {
 		var f:MouseEvent = _translateMouseEvent(e, MouseEvent.MOUSE_WHEEL);
@@ -102,30 +164,35 @@ class Stage extends DisplayObjectContainer {
 		_broadcastMouseEvent(f);
 	}
 	private function onMouse(e:js.html.MouseEvent):Void {
-		if (isTouchScreen) return;
-		mousePos.setTo(e.pageX, e.pageY);
 		// Convert events accordingly:
-		var t:String = null;
-		switch (e.type) {
-		case "click": switch (e.button) {
-			case 0: t = MouseEvent.CLICK;
-			case 1: t = MouseEvent.MIDDLE_CLICK;
-			case 2: t = MouseEvent.RIGHT_CLICK;
-			}
-		case "mousemove":
+		var t:String = null, o:Int = -1, b:Int;
+		if (e.type == "mousemove") {
 			t = MouseEvent.MOUSE_MOVE;
-		case "mousedown": switch (e.button) {
-			case 0: t = MouseEvent.MOUSE_DOWN;
-			case 1: t = MouseEvent.MIDDLE_MOUSE_DOWN;
-			case 2: t = MouseEvent.RIGHT_MOUSE_DOWN;
-			}
-		case "mouseup": switch (e.button) {
-			case 0: t = MouseEvent.MOUSE_UP;
-			case 1: t = MouseEvent.MIDDLE_MOUSE_UP;
-			case 2: t = MouseEvent.RIGHT_MOUSE_UP;
+			o = 0;
+		} else {
+			b = e.button;
+			switch (e.type) {
+			case "click":
+				t = b == 0 ? MouseEvent.CLICK :
+					b == 1 ? MouseEvent.RIGHT_CLICK :
+					b == 2 ? MouseEvent.MIDDLE_CLICK :
+					t;
+			case "mousedown":
+				t = b == 0 ? MouseEvent.MOUSE_DOWN :
+					b == 1 ? MouseEvent.MIDDLE_MOUSE_DOWN :
+					b == 2 ? MouseEvent.RIGHT_MOUSE_DOWN :
+					t;
+				o = 1;
+			case "mouseup":
+				t = b == 0 ? MouseEvent.MOUSE_UP :
+					b == 1 ? MouseEvent.MIDDLE_MOUSE_UP :
+					b == 2 ? MouseEvent.RIGHT_MOUSE_UP :
+					t;
+				o = 2;
+			default: return;
 			}
 		}
-		if (t != null) {
+		if (!mouseEventPrevent(o, e.pageX, e.pageY)) {
 			_broadcastMouseEvent(new MouseEvent(t));
 		}
 	}
