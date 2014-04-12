@@ -318,10 +318,7 @@ class DisplayObject extends EventWrapper {
 		// some events will not bubble naturally, thus:
 		if (r && routedEvents.exists(event.type) && event.bubbles) {
 			var o:DisplayObjectContainer = parent;
-			while (o != null) {
-				o.dispatchEvent(event);
-				o = o.parent;
-			}
+			if (o != null) o.dispatchEvent(event);
 		}
 		return r;
 	}

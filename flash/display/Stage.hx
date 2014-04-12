@@ -223,15 +223,11 @@ class Stage extends DisplayObjectContainer {
 		else component.blur();
 		return v;
 	}
-	function get_stageWidth():Int {
-		return Browser.window.innerWidth;
-	}
-	function get_stageHeight():Int {
-		return Browser.window.innerHeight;
-	}
-	override private function get_stage():Stage {
-		return this;
-	}
+	//
+	function get_stageWidth():Int return Lib.window.innerWidth;
+	function get_stageHeight():Int return Lib.window.innerHeight;
+	override private function get_stage():Stage return this;
+	//
 	private function set_frameRate(v:Float):Float {
 		if (frameRate != v) {
 			#if !bitfive_setTimeout
