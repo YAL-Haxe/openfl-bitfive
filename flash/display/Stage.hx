@@ -26,7 +26,7 @@ class Stage extends DisplayObjectContainer {
 	public var mousePos:Point;
 	/** Whether device is touch screen.
 	 * If device dispatches touch events, these are more reliable source of mouse coordinates */
-	private var isTouchScreen:Bool = false;
+	public var isTouchScreen:Bool = false;
 	private var touchCount:Int = 0;
 	//
 	#if !bitfive_setTimeout
@@ -112,12 +112,11 @@ class Stage extends DisplayObjectContainer {
 	 */
 	private function mouseEventPrevent(o:Int, x:Float, y:Float):Bool {
 		var mp = mousePos, q = (mp.x == x && mp.y == y);
-		if (o < 0) return false;
-		if (q && mouseTriggered[o]) return true;
+		if (o >= 0 && q && mouseTriggered[o]) return true;
 		// switch to new position:
 		if (!q) mousePos.setTo(x, y);
 		// mark event as triggered:
-		if (!mouseTriggered[o]) {
+		if (o >= 0 && !mouseTriggered[o]) {
 			mouseTriggered[o] = true;
 			Lib.window.setTimeout(mouseUntrigger[o], 0);
 		}
@@ -154,6 +153,8 @@ class Stage extends DisplayObjectContainer {
 			_broadcastMouseEvent(mouseLastEvent = new MouseEvent(
 				m == 1 ? MouseEvent.MOUSE_DOWN :
 				m == 2 ? MouseEvent.MOUSE_UP : MouseEvent.MOUSE_MOVE));
+			// click events:
+			if (m == 2) _broadcastMouseEvent(new MouseEvent(MouseEvent.CLICK));
 		}
 	}
 	private function onWheel(e:js.html.WheelEvent):Void {
