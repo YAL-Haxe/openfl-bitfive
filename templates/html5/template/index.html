@@ -49,8 +49,7 @@
 		
 	</script>
 	
-	::elseif (LIB_OPENFL)::::if DEBUG::<script type="text/javascript" src="./webgl-debug.js"></script>
-	::end::<script>function winParameters () { return ::WIN_PARAMETERS::; }</script>
+	::elseif (LIB_OPENFL)::<script>function winParameters () { return ::WIN_PARAMETERS::; }</script>
 	<script type="text/javascript" src="./::APP_FILE::.js"></script>
 	::else::<script type="text/javascript" src="./::APP_FILE::.js"></script>
 	::end::</body>
