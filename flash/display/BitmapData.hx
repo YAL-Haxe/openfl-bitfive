@@ -2,6 +2,7 @@ package flash.display;
 #if js
 import flash.errors.IOError;
 import flash.utils.ByteArray;
+import js.html.DataView;
 import js.html.ImageData;
 import js.html.ImageElement;
 import js.html.CanvasElement;
@@ -264,7 +265,7 @@ class BitmapData implements IBitmapDrawable {
 	}
 	public function getPixel(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
-		if ((qSync & 3) == 1) {
+		if (!hasImData()) {
 			var d = qContext.getImageData(x, y, 1, 1).data;
 			return (d[0] << 16) | (d[1] << 8) | d[2];
 		} else {
@@ -274,7 +275,7 @@ class BitmapData implements IBitmapDrawable {
 	}
 	public function getPixel32(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
-		if ((qSync & 3) == 1) {
+		if (!hasImData()) {
 			var d = qContext.getImageData(x, y, 1, 1).data;
 			return (qTransparent ? d[3] << 24 : 0xFF000000) | (d[0] << 16) | (d[1] << 8) | d[2];
 		} else {
@@ -319,6 +320,71 @@ class BitmapData implements IBitmapDrawable {
 			qImageData.data[o+2] = color & 0xFF;
 			qImageData.data[o+3] = (color >>> 24) & 0xFF;
 			qSync |= SY_CHANGE | SY_IMDATA;
+		}
+	}
+	public function getPixels(q:Rectangle):ByteArray {
+		var d:ImageData, v:DataView, r:ByteArray = new ByteArray(),
+			u:Uint8ClampedArray,
+			qx:Int = Std.int(q.x), qy:Int = Std.int(q.y),
+			qw:Int = Std.int(q.width), qh:Int = Std.int(q.height),
+			i:Int = 0, j:Int, l:Int = qw * qh * 4;
+		r.length = l;
+		v = r.data;
+		if (!hasImData()) {
+			d = qContext.getImageData(qx, qy, qw, qh);
+			u = d.data;
+			while (i < l) {
+				r.writeUnsignedInt((u[i++] << 16) | (u[i++] << 8) | u[i++] | (u[i++] << 24));
+			}
+		} else {
+			u = qImageData.data;
+			if (qx == 0 && qy == 0 && qw == width && qh == height) {
+				while (i < l) {
+					r.writeUnsignedInt((u[i++] << 16) | (u[i++] << 8) | u[i++] | (u[i++] << 24));
+				}
+			} else {
+				while (qh-- > 0) {
+					i = (qx + (qy++) * (j = qw)) * 4;
+					while (j-- > 0) {
+						r.writeUnsignedInt((u[i++] << 16) | (u[i++] << 8) | u[i++] | (u[i++] << 24));
+					}
+				}
+			}
+		}
+		return r;
+	}
+	public function setPixels(q:Rectangle, r:ByteArray):Void {
+		var qx:Int = Std.int(q.x), qy:Int = Std.int(q.y),
+			qw:Int = Std.int(q.width), qh:Int = Std.int(q.height),
+			i:Int = 0, j:Int, l:Int = qw * qh * 4, p:Int, w:Int = width,
+			d:ImageData, u:Uint8ClampedArray;
+		if (hasCanvas()) {
+			d = qContext.createImageData(qw, qh);
+			u = d.data;
+			while (i < l) {
+				p = r.readUnsignedInt();
+				u[i + 0] = (p >> 16) & 255;
+				u[i + 1] = (p >> 8) & 255;
+				u[i + 2] = p & 255;
+				u[i + 3] = (p >>> 24) & 255;
+				i += 4;
+			}
+			qContext.putImageData(d, qx, qy);
+			trace("?");
+		} else {
+			u = qImageData.data;
+			while (qh-- > 0) {
+				i = (qx + (qy++) * w) * 4;
+				j = qw;
+				while (j-- > 0) {
+					p = r.readUnsignedInt();
+					u[i + 0] = (p >> 16) & 255;
+					u[i + 1] = (p >> 8) & 255;
+					u[i + 2] = p & 255;
+					u[i + 3] = (p >>> 24) & 255;
+					i += 4;
+				}
+			}
 		}
 	}
 	public function getColorBoundsRect(mask:Int, color:Int, findColor:Bool = true):Rectangle {
