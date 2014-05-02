@@ -26,7 +26,10 @@ class JoystickHandler
 		var isFirefox:Bool = Browser.navigator.userAgent.indexOf("Firefox") > -1;
 		
 		if (isFirefox) gamepadsList = Browser.navigator.getGamepads();
-		else gamepadsList = untyped navigator.webkitGetGamepads();
+		else {
+			var f = untyped navigator.webkitGetGamepads;
+			if (f != null) gamepadsList = untyped f.call(navigator);
+		}
 		
 		joysticksList = [for (i in 0...4) {
 			id: i,
@@ -38,7 +41,10 @@ class JoystickHandler
 		}];
 		
 		stage.addEventListener(flash.events.Event.ENTER_FRAME, function(e) {
-			if (!isFirefox) gamepadsList = untyped navigator.webkitGetGamepads();
+			if (!isFirefox) {
+				var f = untyped navigator.webkitGetGamepads;
+				if (f != null) gamepadsList = untyped f.call(navigator);
+			}
 			if (gamepadsList == null) return;
 			for (v in joysticksList) {
 				v.gamepad = (v.id > gamepadsCount - 1)?null:gamepadsList[v.id];
@@ -100,7 +106,8 @@ class JoystickHandler
 	}
 	
 	private function get_isSupported():Bool {
-		return untyped navigator.getGamepads || !!navigator.webkitGetGamepads || !!navigator.webkitGamepads;
+		var r = untyped navigator.getGamepads || !!navigator.webkitGetGamepads || !!navigator.webkitGamepads;
+		return r != null;
 	}
 	
 	inline private function get_gamepadsCount():Int {
