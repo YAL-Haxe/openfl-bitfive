@@ -24,6 +24,7 @@ class Stage extends DisplayObjectContainer {
 	public var frameRate(default, set):Float = null; // should be retrieved from XML instead.
 	public var focus(get, set):InteractiveObject;
 	public var mousePos:Point;
+	public var joystickHandler:flash.ui.JoystickHandler;
 	/** Whether device is touch screen.
 	 * If device dispatches touch events, these are more reliable source of mouse coordinates */
 	public var isTouchScreen:Bool = false;
@@ -64,6 +65,8 @@ class Stage extends DisplayObjectContainer {
 			mouseTriggered[i] = false;
 			mouseUntrigger[i] = getMouseUntrigger(i);
 		}
+		
+		joystickHandler = new flash.ui.JoystickHandler(this);
 	}
 	// Mouse magic
 	private var mouseMtxDepth:Array<DisplayObject>;
