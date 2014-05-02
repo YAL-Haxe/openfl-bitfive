@@ -39,6 +39,7 @@ class JoystickHandler
 		
 		stage.addEventListener(flash.events.Event.ENTER_FRAME, function(e) {
 			if (!isFirefox) gamepadsList = untyped navigator.webkitGetGamepads();
+			if (gamepadsList == null) return;
 			for (v in joysticksList) {
 				v.gamepad = (v.id > gamepadsCount - 1)?null:gamepadsList[v.id];
 				if (v.gamepad == null) continue;
@@ -103,6 +104,7 @@ class JoystickHandler
 	}
 	
 	inline private function get_gamepadsCount():Int {
+		if (gamepadsList == null) return 0;
 		return gamepadsList.length;
 	}
 }
