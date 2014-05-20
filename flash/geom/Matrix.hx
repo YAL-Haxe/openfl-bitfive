@@ -116,6 +116,29 @@ class Matrix {
 		return new Point(o.x * a + o.y * c + tx, o.x * b + o.y * d + ty);
 	}
 	
+	public function createBox(sx:Float, sy:Float, ?r:Float, ?x:Float, ?y:Float) {
+		a = sx;
+		d = sy;
+		b = Lib.nz(r, 0); // ?
+		tx = Lib.nz(x, 0);
+		ty = Lib.nz(y, 0);
+	}
+	
+	public function createGradientBox(w:Float, h:Float, ?r:Float, ?x:Float, ?y:Float) {
+		// ?:
+		a = w / 1638.4;
+		d = h / 1638.4;
+		if (r != null && r != 0) {
+			var rx = Math.cos(r), ry = Math.sin(r);
+			b = ry * d;
+			c = -ry * a;
+			a *= rx;
+			d *= rx; // ?
+		} else b = c = 0;
+		tx = x != null ? x + w / 2 : w / 2;
+		ty = y != null ? y + h / 2 : h / 2;
+	}
+	
 	/// toString methods
 	/** Converts to string presentation */
 	public inline function toString() {

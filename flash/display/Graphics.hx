@@ -18,6 +18,7 @@ class Graphics implements IBitmapDrawable {
 	@:extern private static inline var GFX_LINESTYLE = 1;
 	@:extern private static inline var GFX_FILL_SOLID = 2;
 	@:extern private static inline var GFX_FILL_BITMAP = 3;
+	@:extern private static inline var GFX_FILL_GRADIENT = 4;
 	@:extern private static inline var GFX_END_FILL = 9;
 	@:extern private static inline var GFX_MOVETO = 10;
 	@:extern private static inline var GFX_LINETO = 11;
@@ -210,6 +211,12 @@ class Graphics implements IBitmapDrawable {
 			r[l++] = m.tx; r[l++] = m.ty;
 			flen = l;
 		}
+	}
+	public function beginGradientFill(type:GradientType, colors:Array<UInt>,
+	alphas:Array<Dynamic>, ratios:Array<Dynamic>, ?matrix:flash.geom.Matrix,
+	?spreadMethod:SpreadMethod, ?interpolationMethod:InterpolationMethod,
+	focalPointRatio : Float = 0):Void {
+		throw "Not yet, but soon.";
 	}
 	public function endFill() {
 		addInt(GFX_END_FILL);
