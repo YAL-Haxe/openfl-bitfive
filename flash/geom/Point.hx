@@ -9,11 +9,11 @@ class Point {
 	public var x:Float;
 	public var y:Float;
 	//
-	public function new(?_x:Float, ?_y:Float) {
-		x = _x == null ? 0 : _x;
-		y = _y == null ? 0 : _y;
+	public function new(?u:Float, ?v:Float) {
+		x = Lib.nz(u, 0);
+		y = Lib.nz(v, 0);
 	}
-	/// Misc
+	// Misc & meta:
 	public function clone():Point {
 		return new Point(x, y);
 	}
@@ -34,7 +34,7 @@ class Point {
 	public function toString() {
 		return 'point(' + x + ', ' + y + ')';
 	}
-	/// Mutator methods
+	// Mutator methods:
 	public function normalize(l:Float) {
 		if (y == 0) x = x < 0 ? -l : l;
 		else if (x == 0) y = y < 0 ? -l : l;
@@ -49,7 +49,8 @@ class Point {
 		x += dx;
 		y += dy;
 	}
-	/// 'Operators'
+	
+	// 'Operators':
 	public function add(o:Point):Point {
 		return new Point(x + o.x, y + o.y);
 	}
@@ -57,7 +58,8 @@ class Point {
 	public function subtract(o:Point):Point {
 		return new Point(x - o.x, y - o.y);
 	}
-	/// Static methods
+	
+	// Static methods:
 	public static function interpolate(a:Point, b:Point, f:Float):Point {
 		return new Point(a.x + f * (b.x - a.x), a.y + f * (b.y - a.y));
 	}
