@@ -1,4 +1,6 @@
 package flash.display;
+import js.html.CanvasGradient;
+import flash.geom.Point;
 #if js
 import flash.geom.Matrix;
 import flash.geom.Rectangle;
@@ -213,10 +215,31 @@ class Graphics implements IBitmapDrawable {
 		}
 	}
 	public function beginGradientFill(type:GradientType, colors:Array<UInt>,
-	alphas:Array<Dynamic>, ratios:Array<Dynamic>, ?matrix:flash.geom.Matrix,
+	alphas:Array<Dynamic>, ratios:Array<Dynamic>, ?m:Matrix,
 	?spreadMethod:SpreadMethod, ?interpolationMethod:InterpolationMethod,
-	focalPointRatio : Float = 0):Void {
-		throw "Not yet, but soon.";
+	fpr:Float = 0):Void {
+		var g:CanvasGradient, i:Int = -1, n:Int = colors.length;
+		addInt(GFX_FILL_GRADIENT);
+		if (type == GradientType.LINEAR) {
+			g = context.createLinearGradient(
+				-819.2 * m.a + m.tx,
+				-819.2 * m.b + m.ty,
+				819.2 * m.a + m.tx,
+				819.2 * m.b + m.ty);
+		} else { // no ellipses yet
+			fpr *= 819.2;
+			g = context.createRadialGradient(
+				fpr * m.a + m.tx,
+				fpr * m.b + m.ty,
+				0, 
+				819.2 * m.c + m.tx,
+				fpr * m.b + m.ty,
+				819.2 * m.d + m.ty);
+		}
+		while (++i < n) {
+			g.addColorStop(ratios[i] / 255, Lib.rgbf(colors[i], alphas[i]));
+		}
+		addObject(g);
 	}
 	public function endFill() {
 		addInt(GFX_END_FILL);
@@ -367,7 +390,7 @@ class Graphics implements IBitmapDrawable {
 				f &= ~GFF_STROKE;
 				ctx.strokeStyle = null;
 			}
-		case GFX_FILL_SOLID, GFX_FILL_BITMAP:
+		case GFX_FILL_SOLID, GFX_FILL_BITMAP, GFX_FILL_GRADIENT:
 			if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
 			f |= GFF_FILL;
 			if (i == GFX_FILL_BITMAP) {
@@ -384,7 +407,7 @@ class Graphics implements IBitmapDrawable {
 					ctx.fillStyle = ctx.createPattern(tex, i != 0 ? "repeat" : "no-repeat");
 					f &= ~GFF_PATTERN;
 				}
-			} else { // solid fill
+			} else { // solid/gradient fill
 				ctx.fillStyle = nextObject();
 				f &= ~GFF_PATTERN;
 			}
