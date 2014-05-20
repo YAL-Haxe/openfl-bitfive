@@ -1,5 +1,24 @@
 package flash.display;
 #if js
+#if bitfive_enums
+@:fakeEnum(String) enum BlendMode {
+	ADD;
+	ALPHA;
+	DARKEN;
+	DIFFERENCE;
+	ERASE;
+	HARDLIGHT;
+	INVERT;
+	LAYER;
+	LIGHTEN;
+	MULTIPLY;
+	NORMAL;
+	OVERLAY;
+	SCREEN;
+	SHADER;
+	SUBTRACT;
+}
+#else
 abstract BlendMode(String) {
 	@:extern public static inline var ADD:BlendMode = "ADD";
 	@:extern public static inline var ALPHA:BlendMode = "ALPHA";
@@ -20,4 +39,5 @@ abstract BlendMode(String) {
 	@:extern @:to public inline function toString():String return this;
 	@:extern @:from public static inline function fromString(s:String) return new BlendMode(s);
 }
+#end
 #end

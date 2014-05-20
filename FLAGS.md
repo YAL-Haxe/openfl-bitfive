@@ -9,3 +9,5 @@ Supported flags are as following:
 *	`bitfive_setTimeout`: Use `setTimeout` (as opposed to `setInterval`) for
 	`Stage.frameRate` timing.
 *	`bitfive_logLoading`: Log asset loading process into console.
+*	`bitfive_enums`: Switches a fair of classes to use actual enums instead of abstracts.
+	(just in case you really need to use Type API)
