@@ -1151,7 +1151,16 @@ class Assets {
 					args: [],
 					ret: null,
 					expr: macro {
-						(image = untyped document.createElement("img")).src = $v{b64};
+						var o:js.html.Image = untyped document.createElement("img");
+						var f = null;
+						f = function(_) {
+							o.removeEventListener("load", f);
+							untyped ApplicationMain.completed++;
+						}
+						untyped ApplicationMain.total++;
+						o.addEventListener("load", f);
+						o.src = $v{b64};
+						image = o;
 					}, params: []
 				}), pos: mpos
 			});
