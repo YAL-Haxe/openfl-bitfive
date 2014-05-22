@@ -4,8 +4,8 @@
 	"license": "MIT",
 	"tags": ["flash", "html5", "nme", "openfl"],
 	"description": "Alternative blitting-targeted HTML5 backend for OpenFL.",
-	"version": "1.4.2",
-	"releasenote": "May 05, 2014",
+	"version": "1.4.3",
+	"releasenote": "May 22, 2014",
 	"contributors": [ "YellowAfterlife" ],
 	"dependencies": {}
 }
