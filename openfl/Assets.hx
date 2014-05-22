@@ -1152,13 +1152,7 @@ class Assets {
 					ret: null,
 					expr: macro {
 						var o:js.html.Image = untyped document.createElement("img");
-						var f = null;
-						f = function(_) {
-							o.removeEventListener("load", f);
-							untyped ApplicationMain.completed++;
-						}
-						untyped ApplicationMain.total++;
-						o.addEventListener("load", f);
+						ApplicationMain.loadEmbed(o);
 						o.src = $v{b64};
 						image = o;
 					}, params: []

@@ -10,10 +10,10 @@ import flash.net.URLLoader;
 import flash.net.URLRequest;
 import flash.net.URLLoaderDataFormat;
 import flash.Lib;
+import js.html.Element;
 import js.html.AudioElement;
 
 class ApplicationMain {
-
 	private static var completed:Int;
 	private static var preloader:::PRELOADER_NAME::;
 	private static var total:Int;
@@ -22,8 +22,23 @@ class ApplicationMain {
 	public static var urlLoaders:Map <String, URLLoader>;
 	private static var loaderStack:Array<String>;
 	private static var urlLoaderStack:Array<String>;
-
+	// Embed data preloading
+	@:noCompletion public static var embeds:Int = 0;
+	@:noCompletion public static function loadEmbed(o:Element) {
+		embeds++;
+		var f = null;
+		f = function(_) {
+			o.removeEventListener("load", f);
+			if (--embeds == 0) preload();
+		}
+		o.addEventListener("load", f);
+	}
+	
 	public static function main() {
+		if (embeds == 0) preload();
+	}
+
+	private static function preload() {
 		completed = 0;
 		loaders = new Map <String, Loader>();
 		urlLoaders = new Map <String, URLLoader>();
