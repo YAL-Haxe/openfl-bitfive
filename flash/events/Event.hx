@@ -61,6 +61,10 @@ class Event {
 		this.bubbles = bubbles;
 		this.cancelable = cancelable;
 	}
+	public function preventDefault() {
+		// Actual implementation lies in JS events, where appropriate.
+		defaultPrevented = true;
+	}
 	public function isDefaultPrevented():Bool {
 		return defaultPrevented;
 	}
