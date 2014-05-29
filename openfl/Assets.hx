@@ -579,6 +579,28 @@ import haxe.Unserializer;
 		
 	}
 	
+	public static function list (type:AssetType = null):Array<String> {
+
+		initialize ();
+
+		var items = [];
+
+		for (library in libraries) {
+
+			var libraryItems = library.list (type);
+
+			if (libraryItems != null) {
+
+				items = items.concat (libraryItems);
+
+			}
+
+		}
+
+		return items;
+
+	}
+	
 	
 	public static function loadBitmapData (id:String, handler:BitmapData -> Void, useCache:Bool = true):Void {
 		
@@ -1038,6 +1060,7 @@ class AssetLibrary {
 	public function getSound(id:String):Sound return null;
 	public function isLocal(id:String, type:AssetType):Bool return true;
 	//
+	public function list(type:AssetType):Array<String> return null;
 	private function load(h:AssetLibrary->Void):Void h(this);
 	public function loadBitmapData(id:String, h:BitmapData->Void):Void h(getBitmapData(id));
 	public function loadBytes(id:String, h:ByteArray->Void):Void h(getBytes(id));
