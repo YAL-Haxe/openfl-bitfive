@@ -24,7 +24,7 @@ class URLLoader extends EventDispatcher {
 	public var dataFormat(default, set):URLLoaderDataFormat;
 	private function set_dataFormat(v:URLLoaderDataFormat):URLLoaderDataFormat {
 		// Handle lack of ArrayBuffer support:
-		dataFormat = (v == URLLoaderDataFormat.BINARY && untyped (ArrayBuffer == null))
+		dataFormat = (v == URLLoaderDataFormat.BINARY && untyped (window.ArrayBuffer == null))
 			? URLLoaderDataFormat.TEXT : v;
 		return dataFormat;
 	}
