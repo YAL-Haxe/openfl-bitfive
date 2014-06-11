@@ -2,6 +2,7 @@ package flash.text;
 #if js
 import flash.display.IBitmapDrawable;
 import flash.Lib;
+import js.html.DivElement;
 import js.html.Element;
 import js.html.TextAreaElement;
 /**
@@ -125,7 +126,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		ctx.fillStyle = component.style.color;
 		ctx.font = qFontStyle;
 		ctx.textBaseline = "top";
-		ctx.textAlign = "left";
+		ctx.textAlign = q.align != null ? q.align : "left";
 		ctx.fillText(text, 0, 0);
 		ctx.restore();
 	}
@@ -155,14 +156,16 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		return v;
 	}
 	// Text size
-	private function _measure_pre():js.html.DivElement {
-		var o = flash.Lib.jsHelper(),
+	private function _measure_pre():DivElement {
+		// Copies style and text onto helper element
+		var o = Lib.jsHelper(),
 			s = o.style, q = component.style, i:Int;
 		i = q.length; while (--i >= 0) untyped s[q[i]] = q[q[i]];
 		o.innerHTML = component.innerHTML;
 		return o;
 	}
-	private function _measure_post(o:js.html.DivElement):Void {
+	private function _measure_post(o:DivElement):Void {
+		// Clears previously set syle and text on given element.
 		var i:Int, s = o.style;
 		i = s.length; while (--i >= 0) untyped s[s[i]] = "";
 		o.innerHTML = "";
