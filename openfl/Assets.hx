@@ -1261,12 +1261,15 @@ class Assets {
 	
 	/// Converts haxe.io.Bytes contents to URI-compliant base64 string.
 	private static function toBase64(d:Bytes):String {
-		var r:String, s:Serializer = new Serializer();
+		var r:String, s:Serializer = new Serializer(), n:Int;
 		s.serialize(d);
 		r = s.toString();
 		r = r.substring(r.indexOf(":") + 1);
 		r = StringTools.replace(r, ":", "/");
 		r = StringTools.replace(r, "%", "+");
+		// padding:
+		n = r.length;
+		if (n & 3 != 0) r = StringTools.rpad(r, "=", n + (4 - (n & 3)));
 		return r;
 	}
 	
