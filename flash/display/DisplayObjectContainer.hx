@@ -58,6 +58,12 @@ class DisplayObjectContainer extends InteractiveObject {
 		return removeChild(children[v]);
 	}
 	
+	public function removeChildren(b:Int=0, ?e:Int):Void {
+		if (e == null) e = children.length;
+		var i:Int = e-b;
+		while (--i >= 0) removeChild(children[b]);
+	}
+	
 	public function getChildAt(v:Int):DisplayObject {
 		return children[v];
 	}
