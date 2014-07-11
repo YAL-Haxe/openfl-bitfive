@@ -45,7 +45,9 @@ class Stage extends DisplayObjectContainer {
 		s.width = s.height = "100%";
 		mousePos = new Point();
 		// right and other clicks:
+		#if !bitfive_allowContextMenu
 		o.addEventListener("contextmenu", function(_:js.html.Event) _.preventDefault());
+		#end
 		// mouse listeners:
 		o.addEventListener("click", onMouse);
 		o.addEventListener("mousedown", onMouse);
