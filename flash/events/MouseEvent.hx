@@ -4,7 +4,7 @@ import flash.display.InteractiveObject;
 import flash.geom.Point;
 import flash.Lib;
 
-class MouseEvent extends Event {
+class MouseEvent extends UIEvent {
 	// Hover:
 	@:extern public static inline var MOUSE_MOVE:String = "mouseMove";
 	@:extern public static inline var MOUSE_OVER:String = "mouseOver";
@@ -28,16 +28,8 @@ class MouseEvent extends Event {
 	//@:extern public static inline var ROLL_OUT:String = "rollOut";
 	//@:extern public static inline var ROLL_OVER:String = "rollOver";
 	// Fields:
-	public var altKey(default, null):Bool;
-	public var ctrlKey(default, null):Bool;
-	public var shiftKey(default, null):Bool;
-	public var localX:Float;
-	public var localY:Float;
-	public var stageX:Float;
-	public var stageY:Float;
 	public var buttonDown:Bool;
 	public var delta:Int;
-	public var relatedObject:InteractiveObject;
 	//
 
 	/**

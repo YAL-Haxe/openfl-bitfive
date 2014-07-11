@@ -1,6 +1,7 @@
 package flash.display;
 #if js
 import flash.events.MouseEvent;
+import flash.events.TouchEvent;
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.Lib;
@@ -10,7 +11,6 @@ import js.html.DOMWindow;
 import js.html.Element;
 import js.html.Touch;
 import js.html.TouchList;
-import js.html.TouchEvent;
 import js.html.WheelEvent;
 //
 class Stage extends DisplayObjectContainer {
@@ -97,6 +97,11 @@ class Stage extends DisplayObjectContainer {
 			if (q != null) q.dispatchEvent(_alterMouseEvent(f, MouseEvent.MOUSE_OVER));
 		}
 	}
+	private function _broadcastTouchEvent(f:flash.events.TouchEvent, x:Float, y:Float):Void {
+		f.stageX = x;
+		f.stageY = y;
+		broadcastMouse(mouseMtxDepth, f, mouseMtxStack, mouseMtxCache);
+	}
 	private function getMouseUntrigger(i:Int):Void->Void {
 		return function() mouseTriggered[i] = false;
 	}
@@ -111,6 +116,11 @@ class Stage extends DisplayObjectContainer {
 	/// Translates JavaScript event into OpenFL-bitfive one:
 	private function _translateMouseEvent(e:js.html.MouseEvent, type:String):MouseEvent {
 		return new MouseEvent(type, true, false, null, null, null, e.ctrlKey, e.altKey, e.shiftKey);
+	}
+	///
+	private function _translateTouchEvent(e:js.html.TouchEvent, o:Touch, type:String):TouchEvent {
+		return new TouchEvent(type, true, false, o.identifier, false,
+			null, null, o.radiusX, o.radiusY, o.force, null, e.ctrlKey, e.altKey, e.shiftKey);
 	}
 	/**
 	 * Prevents duplicate mouse+touch events from triggering.
@@ -141,15 +151,16 @@ class Stage extends DisplayObjectContainer {
 		//
 		return false;
 	}
-	private function getOnTouch(i:Int):TouchEvent->Void {
-		return function(e:TouchEvent) onTouch(e, i);
+	private function getOnTouch(i:Int):js.html.TouchEvent->Void {
+		return function(e:js.html.TouchEvent) onTouch(e, i);
 	}
-	private function onTouch(e:TouchEvent, m:Int):Void {
+	private function onTouch(e:js.html.TouchEvent, m:Int):Void {
 		var lt:TouchList = e.targetTouches,
 			nt:Int = lt.length,
 			lc:TouchList = e.changedTouches,
 			nc:Int = lc.length,
-			qt:Touch = nt > 0 ? lt[0] : nc > 0 ? lc[0] : null;
+			qt:Touch = nt > 0 ? lt[0] : nc > 0 ? lc[0] : null,
+			i:Int, t:String, o:Touch;
 		//
 		e.preventDefault();
 		isTouchScreen = true;
@@ -164,6 +175,18 @@ class Stage extends DisplayObjectContainer {
 				m == 2 ? MouseEvent.MOUSE_UP : MouseEvent.MOUSE_MOVE));
 			// click events:
 			if (m == 2) _broadcastMouseEvent(new MouseEvent(MouseEvent.CLICK));
+		}
+		//
+		if (nc > 0) {
+			switch (m) {
+			case 0: t = TouchEvent.TOUCH_BEGIN;
+			case 2: t = TouchEvent.TOUCH_END;
+			default: t = TouchEvent.TOUCH_MOVE;
+			}
+			i = -1; while (++i < nc) {
+				o = lc[i];
+				_broadcastTouchEvent(_translateTouchEvent(e, o, t), o.pageX, o.pageY);
+			}
 		}
 	}
 	private function onWheel(e:js.html.WheelEvent):Void {

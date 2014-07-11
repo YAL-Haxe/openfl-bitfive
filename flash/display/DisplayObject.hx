@@ -265,7 +265,7 @@ class DisplayObject extends EventWrapper {
 	 * @param	mc	Matrix cache (matrices are taken from and pushed back into here)
 	 * @return	Whether an event was triggered
 	 */
-	public function broadcastMouse(h:Array<DisplayObject>, e:MouseEvent,
+	public function broadcastMouse(h:Array<DisplayObject>, e:flash.events.UIEvent,
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
 		if (!visible) return false;
 		var o:DisplayObject, t:String = e.type, m:Matrix, m2:Matrix, d:Int = h.length, l:Int, x:Float, y:Float;

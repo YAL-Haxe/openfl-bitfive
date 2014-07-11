@@ -85,7 +85,7 @@ class DisplayObjectContainer extends InteractiveObject {
 	}
 	
 	//
-	override public function broadcastMouse(h:Array<DisplayObject>, e:MouseEvent,
+	override public function broadcastMouse(h:Array<DisplayObject>, e:flash.events.UIEvent,
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
 		if (!visible) return false;
 		var r:Bool = false, l:Int = children.length, i:Int = children.length;
