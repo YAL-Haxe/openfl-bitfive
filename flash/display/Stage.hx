@@ -179,7 +179,7 @@ class Stage extends DisplayObjectContainer {
 		//
 		if (nc > 0) {
 			switch (m) {
-			case 0: t = TouchEvent.TOUCH_BEGIN;
+			case 1: t = TouchEvent.TOUCH_BEGIN;
 			case 2: t = TouchEvent.TOUCH_END;
 			default: t = TouchEvent.TOUCH_MOVE;
 			}
