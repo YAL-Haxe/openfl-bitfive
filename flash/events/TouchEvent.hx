@@ -35,9 +35,9 @@ class TouchEvent extends Event {
 	?id:Int, ?primary:Bool, ?lx:Float, ?ly:Float, ?sx:Float, ?sy:Float,
 	?ps:Float, ?obj:InteractiveObject, ?ctrl:Bool, ?alt:Bool, ?shift:Bool) {
 		super(type, bubbles, cancelable);
-		this.altKey = altKey;
-		this.shiftKey = shiftKey;
-		this.ctrlKey = ctrlKey;
+		altKey = alt;
+		shiftKey = shift;
+		ctrlKey = ctrl;
 		//
 		touchPointID = id;
 		sizeX = sx;
