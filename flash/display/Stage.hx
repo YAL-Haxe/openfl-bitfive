@@ -228,6 +228,18 @@ class Stage extends DisplayObjectContainer {
 		if (!mouseEventPrevent(o, e.pageX, e.pageY)) {
 			_broadcastMouseEvent(new MouseEvent(t));
 		}
+		#if bitfive_mouseTouches
+		if (!isTouchScreen) {
+			switch (e.type) {
+			case "mousedown": t = TouchEvent.TOUCH_BEGIN;
+			case "mouseup": t = TouchEvent.TOUCH_END;
+			default:
+				if (mouseDown) t = TouchEvent.TOUCH_MOVE; else return;
+			}
+			_broadcastTouchEvent(new TouchEvent(t, true, false, 0, false, null, null, 0, 0, 1, null,
+				e.ctrlKey, e.altKey, e.shiftKey), e.pageX, e.pageY);
+		}
+		#end
 	}
 	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
 		return hitTestVisible(v);
