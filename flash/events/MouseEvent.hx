@@ -1,8 +1,9 @@
 package flash.events;
+#if js
 import flash.display.InteractiveObject;
 import flash.geom.Point;
 import flash.Lib;
-#if js
+
 class MouseEvent extends Event {
 	// Hover:
 	@:extern public static inline var MOUSE_MOVE:String = "mouseMove";
