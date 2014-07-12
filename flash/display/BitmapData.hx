@@ -597,7 +597,7 @@ class BitmapData implements IBitmapDrawable {
 			while (--v >= y) {
 				--j;
 				c = w;
-				i = (px + tw * j) * 4 + dc; u = (x + sw * v) * 4 + sc;
+				i = (px + tw * j) * 4 + sc; u = (x + sw * v) * 4 + dc;
 				while (c-- > 0) {
 					dd[u] = ds[i];
 					i += 4; u += 4;
