@@ -1,6 +1,6 @@
 package flash.geom;
 #if js
-
+import flash.Lib;
 
 class ColorTransform {
 	public var alphaMultiplier:Float;
@@ -13,15 +13,16 @@ class ColorTransform {
 	public var redMultiplier:Float;
 	public var redOffset:Float;
 	
-	public function new(r:Float = 1, g:Float = 1, b:Float = 1, a:Float = 1, ro:Float = 0, go:Float = 0, bo:Float = 0, ao:Float = 0):Void {
-		redMultiplier = r;
-		greenMultiplier = g;
-		blueMultiplier = b;
-		alphaMultiplier = a;
-		redOffset = ro;
-		greenOffset = go;
-		blueOffset = bo;
-		alphaOffset = ao;
+	public function new(?r:Float, ?g:Float, ?b:Float, ?a:Float,
+	?ro:Float, ?go:Float, ?bo:Float, ?ao:Float):Void {
+		redMultiplier = Lib.nz(r, 1);
+		greenMultiplier = Lib.nz(g, 1);
+		blueMultiplier = Lib.nz(b, 1);
+		alphaMultiplier = Lib.nz(a, 1);
+		redOffset = Lib.nz(ro, 0);
+		greenOffset = Lib.nz(go, 0);
+		blueOffset = Lib.nz(bo, 0);
+		alphaOffset = Lib.nz(ao, 0);
 	}
 	
 	public function concat(o:ColorTransform):Void {
