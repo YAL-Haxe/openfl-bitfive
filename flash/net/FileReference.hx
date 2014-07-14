@@ -1,4 +1,5 @@
 package flash.net;
+import js.html.DOMURL;
 #if js
 import flash.events.Event;
 import flash.events.IOErrorEvent;
@@ -66,13 +67,24 @@ class FileReference extends flash.events.EventDispatcher {
 		h.removeChild(q);
 		return true;
 	}
-	public function save(d:ByteArray, ?n:String) {
-		var q:AnchorElement = fileLink, h:DivElement = Lib.jsHelper();
+	public function save(d:ByteArray, n:String = "") {
+		var q:AnchorElement = fileLink, h:DivElement = Lib.jsHelper(), b:Blob,
+			t:String = "application/octet-stream"; // handle types, maybe?
 		if (q == null) {
 			fileLink = q = untyped document.createElement("a");
 		}
-		q.download = untyped n || ""; // shows "null"/"undefined" otherwise
-		q.href = "data:application/octet-stream;base64," + d.toBase64();
+		// Blob+URL is a newer approach, but may not work 
+		try {
+			b = new Blob([d.byteView], { type: t } );
+			q.href = DOMURL.createObjectURL(b);
+		} catch (_:Dynamic) {
+			q.href = "data:" + t + ";base64," + d.toBase64();
+		}
+		// Set download attribute, with caution to avoid "null" or "undefined" as name.
+		q.target = "_blank";
+		q.download = n;
+		q.setAttribute("download", n);
+		// Insert, click, remove:
 		h.appendChild(q);
 		q.click();
 		h.removeChild(q);
