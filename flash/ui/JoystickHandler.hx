@@ -1,5 +1,5 @@
 package flash.ui;
-#if js
+#if (js && bitfive_gamepads)
 import flash.display.Stage;
 import js.Browser;
 import js.html.Gamepad;
@@ -11,6 +11,9 @@ import openfl.events.JoystickEvent;
  * HTML5 Gamepad API requires to push button on the gamepad to set it to active state.
  * If you're using Firefox, open about:config and set dom.gamepad.enabled and dom.gamepad.non_standard_events.enabled to true
  * To allow Firefox handle input from your gamepad.
+ * For Internet Explorer: requires Developer Channel to be used by now.
+ * 
+ * Needs bitfive_gamepads haxedef to be set on.
  */
 class JoystickHandler
 {
@@ -23,13 +26,7 @@ class JoystickHandler
 	public function new(stage:Stage) {
 		this.stage = stage;
 		
-		var isFirefox:Bool = Browser.navigator.userAgent.indexOf("Firefox") > -1;
-		
-		if (isFirefox) gamepadsList = Browser.navigator.getGamepads();
-		else {
-			var f = untyped navigator.webkitGetGamepads;
-			if (f != null) gamepadsList = untyped f.call(navigator);
-		}
+		gamepadsList = getList();
 		
 		joysticksList = [for (i in 0...4) {
 			id: i,
@@ -41,10 +38,7 @@ class JoystickHandler
 		}];
 		
 		stage.addEventListener(flash.events.Event.ENTER_FRAME, function(e) {
-			if (!isFirefox) {
-				var f = untyped navigator.webkitGetGamepads;
-				if (f != null) gamepadsList = untyped f.call(navigator);
-			}
+			gamepadsList = getList();
 			if (gamepadsList == null) return;
 			for (v in joysticksList) {
 				v.gamepad = (v.id > gamepadsCount - 1)?null:gamepadsList[v.id];
@@ -54,17 +48,24 @@ class JoystickHandler
 				var n = v.gamepad.buttons.length;
 				var p = v.buttons.copy();
 				for (i in 0...n) {
-					if (!isFirefox) v.buttons[i] = v.gamepad.buttons[i];
-					else v.buttons[i] = untyped v.gamepad.buttons[i].value;
+					var b:Dynamic = v.gamepad.buttons[i];
+					if (Std.is(b, Float)) {
+						v.buttons[i] = b;
+					}
+					else {
+						v.buttons[i] = b.value;
+					}
 					
 					if (v.buttons[i] == 1 && v.prevButtons[i] == 0) {
 						var event = new JoystickEvent(JoystickEvent.BUTTON_DOWN, false, false, v.gamepad.index, i);
 						event.axis = v.gamepad.axes;
+						event.name = v.gamepad.id;
 						if (stage.hasEventListener(JoystickEvent.BUTTON_DOWN)) stage.dispatchEvent(event);
 					}
 					if (v.buttons[i] == 0 && v.prevButtons[i] == 1) {
 						var event = new JoystickEvent(JoystickEvent.BUTTON_UP, false, false, v.gamepad.index, i);
 						event.axis = v.gamepad.axes;
+						event.name = v.gamepad.id;
 						if (stage.hasEventListener(JoystickEvent.BUTTON_UP)) stage.dispatchEvent(event);
 					}
 				}
@@ -79,6 +80,7 @@ class JoystickHandler
 					if (v.axes[i] != v.prevAxes[i]) {
 						var event = new JoystickEvent(JoystickEvent.AXIS_MOVE, false, false, v.gamepad.index, i);
 						event.axis = v.axes;
+						event.name = v.gamepad.id;
 						stage.dispatchEvent(event);
 					}
 				}
@@ -86,28 +88,36 @@ class JoystickHandler
 			}
 		});
 		
-		// Firefox
 		Browser.window.addEventListener("gamepadconnected", function(e) {
 			var g:Gamepad = untyped e.gamepad;
-			if (stage.hasEventListener(JoystickEvent.DEVICE_ADDED)) stage.dispatchEvent(new JoystickEvent(JoystickEvent.DEVICE_ADDED, false, false, g.index));
-			updateList(g);
+			if (stage.hasEventListener(JoystickEvent.DEVICE_ADDED)) {
+				var event = new JoystickEvent(JoystickEvent.DEVICE_ADDED, false, false, g.index);
+				event.name = g.id;
+				stage.dispatchEvent(event);
+			}
+			gamepadsList = getList();
+			joysticksList[g.index].gamepad = g;
 		});
 		
 		Browser.window.addEventListener("gamepaddisconnected", function(e) {
 			var g:Gamepad = untyped e.gamepad;
-			if (stage.hasEventListener(JoystickEvent.DEVICE_REMOVED)) stage.dispatchEvent(new JoystickEvent(JoystickEvent.DEVICE_REMOVED, false, false, g.index));
-			updateList(g);
+			if (stage.hasEventListener(JoystickEvent.DEVICE_REMOVED)) {
+				var event = new JoystickEvent(JoystickEvent.DEVICE_REMOVED, false, false, g.index);
+				event.name = g.id;
+				stage.dispatchEvent(event);
+			}
+			joysticksList[g.index].gamepad = g;
 		});
 	}
 	
-	private function updateList(g:Gamepad) {
-		gamepadsList = untyped navigator.getGamepads() || navigator.webkitGetGamepads();
-		joysticksList[g.index].gamepad = g;
+	private function getList():Dynamic {
+		var f = untyped navigator.getGamepads || !!navigator.webkitGetGamepads || !!navigator.webkitGamepads;
+		if (f != null) f = untyped f.call(navigator);
+		return f;
 	}
 	
-	private function get_isSupported():Bool {
-		var r = untyped navigator.getGamepads || !!navigator.webkitGetGamepads || !!navigator.webkitGamepads;
-		return r != null;
+	inline private function get_isSupported():Bool {
+		return getList() != null;
 	}
 	
 	inline private function get_gamepadsCount():Int {
