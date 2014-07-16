@@ -19,10 +19,13 @@ class JoystickEvent extends Event
 	public var y:Float;
 	public var z:Float;
 	
+	public var name:String; // not standardized
+	
 	public function new(type:String, bubbles:Bool = false, cancelable:Bool = false, device:Int = 0, id:Int = 0, x:Float = 0, y:Float = 0, z:Float = 0) {
 		super(type, bubbles, cancelable);
 		this.device = device; this.id = id; this.x = x; this.y = y; this.z = z;
 		axis = [x, y, z, 0, 0, 0];
+		name = "";
 	}
 	
 	override public function clone():Event {
