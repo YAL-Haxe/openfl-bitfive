@@ -13,3 +13,4 @@ Supported flags are as following:
 	(just in case you really need to use Type API)
 *	`bitfive_allowContextMenu`: Do not block right-click context menu.
 *	`bitfive_mouseTouches`: Dispatch touch events for mouse events (touch screen emulation).
+*	`bitfive_gamepads`: Allow using gamepads.
