@@ -484,7 +484,7 @@ import haxe.Unserializer;
 			
 			#if (tools && !display)
 			
-			registerLibrary ("default", new DefaultAssetLibrary ());
+			registerLibrary ("default", new openfl.AssetLibrary ());
 			
 			#end
 			
