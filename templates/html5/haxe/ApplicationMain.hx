@@ -15,11 +15,11 @@ import js.html.AudioElement;
 
 class ApplicationMain {
 	private static var completed:Int;
-	private static var preloader:::PRELOADER_NAME::;
+	private static var preloader:::if (PRELOADER_NAME != "")::::PRELOADER_NAME::::else::NMEPreloader::end::;
 	private static var total:Int;
 
-	public static var loaders:Map <String, Loader>;
-	public static var urlLoaders:Map <String, URLLoader>;
+	public static var loaders:Map<String, Loader>;
+	public static var urlLoaders:Map<String, URLLoader>;
 	private static var loaderStack:Array<String>;
 	private static var urlLoaderStack:Array<String>;
 	// Embed data preloading
@@ -49,7 +49,7 @@ class ApplicationMain {
 		::if (WIN_FPS != "0")::flash.Lib.stage.frameRate = ::WIN_FPS::;
 		::end::::if (WIN_WIDTH == "0")::::if (WIN_HEIGHT == "0")::flash.Lib.preventDefaultTouchMove();
 		::end::::end::// preloader:
-		Lib.current.addChild(preloader = new ::PRELOADER_NAME::());
+		Lib.current.addChild(preloader = new ::if (PRELOADER_NAME != "")::::PRELOADER_NAME::::else::NMEPreloader::end::());
 		preloader.onInit();
 		
 		// assets
