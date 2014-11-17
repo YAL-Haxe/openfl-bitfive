@@ -40,8 +40,8 @@ class ApplicationMain {
 
 	private static function preload() {
 		completed = 0;
-		loaders = new Map <String, Loader>();
-		urlLoaders = new Map <String, URLLoader>();
+		loaders = new Map<String, Loader>();
+		urlLoaders = new Map<String, URLLoader>();
 		total = 0;
 		
 		flash.Lib.current.loaderInfo = flash.display.LoaderInfo.create (null);
@@ -52,7 +52,7 @@ class ApplicationMain {
 		Lib.current.addChild(preloader = new ::if (PRELOADER_NAME != "")::::PRELOADER_NAME::::else::NMEPreloader::end::());
 		preloader.onInit();
 		
-		// assets
+		// assets:
 		::foreach assets::::if (type == "image")::loadFile("::resourceName::");
 		::elseif (type == "binary")::loadBinary("::resourceName::");
 		::elseif (type == "text")::loadBinary("::resourceName::");
@@ -79,7 +79,7 @@ class ApplicationMain {
 			for (p in loaders.keys()) loaderStack.push(p);
 			urlLoaderStack = [];
 			for (p in urlLoaders.keys()) urlLoaderStack.push(p);
-			//
+			// launch 8 loaders at once:
 			for (i in 0 ... 8) nextLoader();
 		} else begin();
 	}

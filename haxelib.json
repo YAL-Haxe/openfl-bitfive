@@ -4,8 +4,8 @@
 	"license": "MIT",
 	"tags": ["flash", "html5", "nme", "openfl"],
 	"description": "Alternative blitting-targeted HTML5 backend for OpenFL.",
-	"version": "2.0.1",
-	"releasenote": "July 13, 2014: Now with multitouch.",
-	"contributors": [ "YellowAfterlife" ],
+	"version": "2.1.5",
+	"releasenote": "Nov 17, 2014: OpenFL 2.1.5 compatibility.",
+	"contributors": ["YellowAfterlife"],
 	"dependencies": {}
 }
