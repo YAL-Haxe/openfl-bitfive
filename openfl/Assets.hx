@@ -37,35 +37,39 @@ import haxe.Unserializer;
 	
 	private static var initialized = false;
 	
-	
-	public static function exists (id:String, type:AssetType = null):Bool {
-		
-		initialize ();
-		
-		#if (tools && !display)
-		
-		if (type == null) {
-			
-			type = BINARY;
-			
-		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			return library.exists (symbolName, type);
-			
-		}
-		
-		#end
-		
-		return false;
-		
+	/**
+	 * Handles id "parsing" and library retrieval that is commonly used in local methods here.
+	 * @param	id	Asset ID
+	 * @param	f	function(libraryName, symbolName, libraryReference)
+	 */
+	@:extern private static inline function getInline(id:String, f:String->String->AssetLibrary->Void) {
+		// A small note on how the following 4 lines of code work (reused across the file).
+		// Asset IDs can be provided in format "library:symbol".
+		// "ln" is library name. If ID does not contain a ":", .substring call with length -1
+		// yields an empty string.
+		// "sn" is symbol name. If ID does not contain a ":", .substr call gets 0, which is the
+		// whole string.
+		// "lr" is library reference. getLibrary returns default library if given an empty string.
+		var i = id.indexOf(":");
+		var ln = id.substring(0, i);
+		var sn = id.substring(i + 1);
+		var lr = getLibrary(ln);
+		if (lr != null) {
+			f(ln, sn, lr);
+		} else Lib.trace('[openfl.Assets] There is no asset library named "$ln"');
 	}
 	
+	public static function exists (id:String, ?type:AssetType):Bool {
+		initialize();
+		var r:Bool = false;
+		#if (tools && !display)
+		if (type == null) type = BINARY;
+		getInline(id, function(ln, sn, lr) {
+			r = (lr != null && lr.exists(sn, type));
+		});
+		#end
+		return r;
+	}
 	
 	/**
 	 * Gets an instance of an embedded bitmap
@@ -75,530 +79,248 @@ import haxe.Unserializer;
 	 * @return	A new BitmapData object
 	 */
 	public static function getBitmapData (id:String, useCache:Bool = true):BitmapData {
-		initialize ();
+		initialize();
+		var r:BitmapData = null;
 		#if (tools && !display)
-		var c:AssetCache, r:BitmapData,
-			i:Int, ln:String, sn:String, lr:AssetLibrary;
+		var c:AssetCache, b:BitmapData;
 		// pick up from cache, if possible:
 		if (useCache && (c = cache).enabled && c.bitmapData.exists(id)
-		&& isValidBitmapData(r = cache.bitmapData.get(id))) return r;
-		// pick up library & symbol names:
-		i = id.indexOf(":");
-		ln = id.substring(0, i);
-		sn = id.substr(i + 1);
-		lr = getLibrary(ln);
-		// the quite so cautious approach to getting a bitmap:
-		if (lr != null) {
+		&& isValidBitmapData(b = cache.bitmapData.get(id))) return b;
+		//
+		getInline(id, function(ln, sn, lr) {
 			if (lr.exists(sn, IMAGE)) {
 				r = lr.getBitmapData(sn);
 				if (useCache) {
 					if (c.enabled) c.bitmapData.set(id, r);
 				} else r = r.clone();
-				return r;
 			} else Lib.trace('[openfl.Assets] There is no BitmapData asset with an ID of "$sn"');
-		} else Lib.trace('[openfl.Assets] There is no asset library named "$ln"');
+		});
 		#end
-		return null;
+		return r;
 	}
 	
 	
 	/**
 	 * Gets an instance of an embedded binary asset
-	 * @usage		var bytes = Assets.getBytes("file.zip");
-	 * @param	id		The ID or asset path for the file
-	 * @return		A new ByteArray object
+	 * @usage	var bytes = Assets.getBytes("file.zip");
+	 * @param	id	The ID or asset path for the file
+	 * @return	A new ByteArray object
 	 */
-	public static function getBytes (id:String):ByteArray {
-		
-		initialize ();
-		
+	public static function getBytes(id:String):ByteArray {
+		initialize();
+		var r:ByteArray = null;
 		#if (tools && !display)
-		
-		var libraryName = id.substring (0, id.indexOf(":"));
-		var symbolName = id.substr (id.indexOf(":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, BINARY)) {
-				
-				if (library.isLocal (symbolName, BINARY)) {
-					
-					return library.getBytes (symbolName);
-					
-				} else {
-					
-					trace ("[openfl.Assets] String or ByteArray asset \"" + id + "\" exists, but only asynchronously");
-					
-				}
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no String or ByteArray asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		getInline(id, function(ln, sn, lr) {
+			if (lr.exists(sn, BINARY)) {
+				if (lr.isLocal(sn, BINARY)) {
+					r = lr.getBytes(sn);
+				} else Lib.trace('[openfl.Assets] Binary asset "$id" exists, but only asynchronously');
+			} else Lib.trace('[openfl.Assets] There is no binary asset with an id of "$sn"');
+		});
 		#end
-		
-		return null;
-		
+		return r;
 	}
 	
 	
 	/**
 	 * Gets an instance of an embedded font
-	 * @usage		var fontName = Assets.getFont("font.ttf").fontName;
-	 * @param	id		The ID or asset path for the font
-	 * @return		A new Font object
+	 * @usage	var fontName = Assets.getFont("font.ttf").fontName;
+	 * @param	id	The ID or asset path for the font
+	 * @return	A new Font object
 	 */
-	public static function getFont (id:String, useCache:Bool = true):Font {
-		
-		initialize ();
-		
+	public static function getFont(id:String, useCache:Bool = true):Font {
+		initialize();
+		var r:Font = null;
 		#if (tools && !display)
-		
-		if (useCache && cache.enabled && cache.font.exists (id)) {
-			
-			return cache.font.get (id);
-			
+		if (useCache && cache.enabled && cache.font.exists(id)) {
+			return cache.font.get(id);
 		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, FONT)) {
-				
-				if (library.isLocal (symbolName, FONT)) {
-					
-					var font = library.getFont (symbolName);
-					
-					if (useCache && cache.enabled) {
-						
-						cache.font.set (id, font);
-						
-					}
-					
-					return font;
-					
-				} else {
-					
-					trace ("[openfl.Assets] Font asset \"" + id + "\" exists, but only asynchronously");
-					
-				}
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no Font asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		getInline(id, function(ln, sn, lr) {
+			if (lr.exists(sn, FONT)) {
+				if (lr.isLocal(sn, FONT)) {
+					r = lr.getFont(sn);
+					if (useCache && cache.enabled) cache.font.set(id, r);
+				} else Lib.trace('[openfl.Assets] Font asset "$id" exists, but only asynchronously');
+			} else Lib.trace('[openfl.Assets] There is no font asset with an id of "$sn"');
+		});
 		#end
-		
-		return null;
-		
+		return r;
 	}
 	
 	
-	private static function getLibrary (name:String):AssetLibrary {
-		
-		if (name == null || name == "") {
-			
-			name = "default";
-			
-		}
-		
-		return libraries.get (name);
-		
+	private static function getLibrary(name:String):AssetLibrary {
+		return libraries.get(name == null || name == "" ? "default" : name);
 	}
 	
 	
 	/**
 	 * Gets an instance of a library MovieClip
-	 * @usage		var movieClip = Assets.getMovieClip("library:BouncingBall");
-	 * @param	id		The library and ID for the MovieClip
-	 * @return		A new Sound object
+	 * @usage	var movieClip = Assets.getMovieClip("library:BouncingBall");
+	 * @param	id	The library and ID for the MovieClip
+	 * @return	A new MovieClip object
 	 */
 	public static function getMovieClip (id:String):MovieClip {
-		
-		initialize ();
-		
+		initialize();
+		var r:MovieClip = null;
 		#if (tools && !display)
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, MOVIE_CLIP)) {
-				
-				if (library.isLocal (symbolName, MOVIE_CLIP)) {
-					
-					return library.getMovieClip (symbolName);
-					
-				} else {
-					
-					trace ("[openfl.Assets] MovieClip asset \"" + id + "\" exists, but only asynchronously");
-					
-				}
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no MovieClip asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		getInline(id, function(ln, sn, lr) {
+			if (lr.exists(sn, MOVIE_CLIP)) {
+				if (lr.isLocal(sn, MOVIE_CLIP)) {
+					r = lr.getMovieClip(sn);
+				} else Lib.trace('[openfl.Assets] MovieClip asset "$id" exists, but only asynchronously');
+			} else Lib.trace('[openfl.Assets] There is no MovieClip asset with an ID of "$id"');
+		});
 		#end
-		
-		return null;
-		
+		return r;
 	}
 	
 	
 	/**
 	 * Gets an instance of an embedded streaming sound
-	 * @usage		var sound = Assets.getMusic("sound.ogg");
-	 * @param	id		The ID or asset path for the music track
-	 * @return		A new Sound object
+	 * @usage	var sound = Assets.getMusic("sound.ogg");
+	 * @param	id	The ID or asset path for the music track
+	 * @return	A new Sound object
 	 */
 	public static function getMusic (id:String, useCache:Bool = true):Sound {
-		
-		initialize ();
-		
+		initialize();
+		var r:Sound = null;
 		#if (tools && !display)
-		
 		if (useCache && cache.enabled && cache.sound.exists (id)) {
-			
-			var sound = cache.sound.get (id);
-			
-			if (isValidSound (sound)) {
-				
-				return sound;
-				
-			}
-			
+			var s:Sound = cache.sound.get(id);
+			if (isValidSound(s)) return s;
 		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, MUSIC)) {
-				
-				if (library.isLocal (symbolName, MUSIC)) {
-					
-					var sound = library.getMusic (symbolName);
-					
-					if (useCache && cache.enabled) {
-						
-						cache.sound.set (id, sound);
-						
-					}
-					
-					return sound;
-					
-				} else {
-					
-					trace ("[openfl.Assets] Sound asset \"" + id + "\" exists, but only asynchronously");
-					
-				}
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no Sound asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		getInline(id, function(ln, sn, lr) {
+			if (lr.exists(sn, MUSIC)) {
+				if (lr.isLocal(sn, MUSIC)) {
+					r = lr.getMusic(sn);
+					if (useCache && cache.enabled) cache.sound.set(id, r);
+				} else Lib.trace('[openfl.Assets] Sound asset "$id" exists, but only asynchronously');
+			} else Lib.trace('[openfl.Assets] There is no Sound asset with an ID of "$id"');
+		});
 		#end
-		
-		return null;
-		
+		return r;
 	}
 	
 	
 	/**
 	 * Gets the file path (if available) for an asset
-	 * @usage		var path = Assets.getPath("image.jpg");
-	 * @param	id		The ID or asset path for the asset
-	 * @return		The path to the asset (or null)
+	 * @usage	var path = Assets.getPath("image.jpg");
+	 * @param	id	The ID or asset path for the asset
+	 * @return	The path to the asset (or null)
 	 */
 	public static function getPath (id:String):String {
-		
-		initialize ();
-		
+		initialize();
+		var r:String = null;
 		#if (tools && !display)
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, null)) {
-				
-				return library.getPath (symbolName);
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		getInline(id, function(ln, sn, lr) {
+			if (lr.exists(sn, null)) {
+				r = lr.getPath(sn);
+			} else Lib.trace('[openfl.Assets] There is no asset with an ID of "$id"');
+		});
 		#end
-		
-		return null;
-		
+		return r;
 	}
 	
 	
 	/**
 	 * Gets an instance of an embedded sound
-	 * @usage		var sound = Assets.getSound("sound.wav");
-	 * @param	id		The ID or asset path for the sound
-	 * @return		A new Sound object
+	 * @usage	var sound = Assets.getSound("sound.wav");
+	 * @param	id	The ID or asset path for the sound
+	 * @return	A new Sound object
 	 */
 	public static function getSound (id:String, useCache:Bool = true):Sound {
-		
-		initialize ();
-		
+		initialize();
+		var r:Sound = null;
 		#if (tools && !display)
-		
 		if (useCache && cache.enabled && cache.sound.exists (id)) {
-			
-			var sound = cache.sound.get (id);
-			
-			if (isValidSound (sound)) {
-				
-				return sound;
-				
-			}
-			
+			var s:Sound = cache.sound.get(id);
+			if (isValidSound(s)) return s;
 		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, SOUND)) {
-				
-				if (library.isLocal (symbolName, SOUND)) {
-					
-					var sound = library.getSound (symbolName);
-					
-					if (useCache && cache.enabled) {
-						
-						cache.sound.set (id, sound);
-						
-					}
-					
-					return sound;
-					
-				} else {
-					
-					trace ("[openfl.Assets] Sound asset \"" + id + "\" exists, but only asynchronously");
-					
-				}
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no Sound asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		getInline(id, function(ln, sn, lr) {
+			if (lr.exists(sn, SOUND)) {
+				if (lr.isLocal(sn, SOUND)) {
+					r = lr.getMusic(sn);
+					if (useCache && cache.enabled) cache.sound.set(id, r);
+				} else Lib.trace('[openfl.Assets] Sound asset "$id" exists, but only asynchronously');
+			} else Lib.trace('[openfl.Assets] There is no Sound asset with an ID of "$id"');
+		});
 		#end
-		
-		return null;
-		
+		return r;
 	}
 	
 	
 	/**
 	 * Gets an instance of an embedded text asset
-	 * @usage		var text = Assets.getText("text.txt");
-	 * @param	id		The ID or asset path for the file
-	 * @return		A new String object
+	 * @usage	var text = Assets.getText("text.txt");
+	 * @param	id	The ID or asset path for the file
+	 * @return	A new String object
 	 */
 	public static function getText (id:String):String {
-		
-		var bytes = getBytes (id);
-		
-		if (bytes == null) {
-			
-			return null;
-			
-		} else {
-			
-			return bytes.readUTFBytes (bytes.length);
-			
-		}
-		
+		initialize();
+		var r:String = null;
+		#if (tools && !display)
+		getInline(id, function(ln, sn, lr) {
+			if (lr.exists(sn, TEXT)) {
+				if (lr.isLocal(sn, TEXT)) {
+					r = lr.getText(sn);
+				} else Lib.trace('[openfl.Assets] Text asset "$id" exists, but only asynchronously');
+			} else Lib.trace('[openfl.Assets] There is no text asset with an id of "$sn"');
+		});
+		#end
+		return r;
 	}
 	
 	
 	private static function initialize ():Void {
-		
 		if (!initialized) {
-			
 			#if (tools && !display)
-			
-			registerLibrary ("default", new DefaultAssetLibrary ());
-			
+			registerLibrary("default", new DefaultAssetLibrary());
 			#end
-			
 			initialized = true;
-			
 		}
-		
 	}
 	
 	
-	public static function isLocal (id:String, type:AssetType = null, useCache:Bool = true):Bool {
-		
+	public static function isLocal(id:String, type:AssetType = null, useCache:Bool = true):Bool {
 		initialize ();
-		
+		var r:Bool = false;
 		#if (tools && !display)
-		
 		if (useCache && cache.enabled) {
-			
 			if (type == AssetType.IMAGE || type == null) {
-				
 				if (cache.bitmapData.exists (id)) return true;
-				
 			}
-			
 			if (type == AssetType.FONT || type == null) {
-				
 				if (cache.font.exists (id)) return true;
-				
 			}
-			
 			if (type == AssetType.SOUND || type == AssetType.MUSIC || type == null) {
-				
 				if (cache.sound.exists (id)) return true;
-				
 			}
-			
 		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			return library.isLocal (symbolName, type);
-			
-		}
-		
+		getInline(id, function(ln, sn, lr) {
+			r = lr.isLocal(sn, type);
+		});
 		#end
-		
-		return false;
-		
+		return r;
 	}
 	
 	
-	private static function isValidBitmapData (bitmapData:BitmapData):Bool {
-		
-		#if (cpp || neko)
-		
-		return (bitmapData.__handle != null);
-		
-		#elseif flash
-		
-		try {
-			
-			bitmapData.width;
-			
-		} catch (e:Dynamic) {
-			
-			return false;
-			
-		}
-		
-		#end
-		
+	private static inline function isValidBitmapData(bitmapData:BitmapData):Bool {
 		return true;
-		
 	}
 	
 	
-	private static function isValidSound (sound:Sound):Bool {
-		
-		#if (cpp || neko)
-		
-		return (sound.__handle != null && sound.__handle != 0);
-		
-		#else
-		
+	private static inline function isValidSound(sound:Sound):Bool {
 		return true;
-		
-		#end
-		
 	}
 	
-	public static function list (type:AssetType = null):Array<String> {
-
+	public static function list(type:AssetType = null):Array<String> {
 		initialize ();
-
-		var items = [];
-
-		for (library in libraries) {
-
-			var libraryItems = library.list (type);
-
-			if (libraryItems != null) {
-
-				items = items.concat (libraryItems);
-
-			}
-
+		var r = [];
+		for (o in libraries) {
+			var m = o.list(type);
+			if (m != null) r = r.concat(m);
 		}
-
-		return items;
-
+		return r;
 	}
 	
 	
