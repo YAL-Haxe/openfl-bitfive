@@ -324,447 +324,219 @@ import haxe.Unserializer;
 	}
 	
 	
-	public static function loadBitmapData (id:String, handler:BitmapData -> Void, useCache:Bool = true):Void {
-		
+	public static function loadBitmapData (id:String, handler:BitmapData->Void, useCache:Bool = true):Void {
 		initialize ();
-		
 		#if (tools && !display)
-		
-		if (useCache && cache.enabled && cache.bitmapData.exists (id)) {
-			
-			var bitmapData = cache.bitmapData.get (id);
-			
-			if (isValidBitmapData (bitmapData)) {
-				
-				handler (bitmapData);
+		if (useCache && cache.enabled && cache.bitmapData.exists(id)) {
+			var b = cache.bitmapData.get(id);
+			if (isValidBitmapData(b)) {
+				handler(b);
 				return;
-				
 			}
-			
 		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, IMAGE)) {
-				
-				if (useCache && cache.enabled) {
-					
-					library.loadBitmapData (symbolName, function (bitmapData:BitmapData):Void {
-						
-						cache.bitmapData.set (id, bitmapData);
-						handler (bitmapData);
-						
-					});
-					
-				} else {
-					
-					library.loadBitmapData (symbolName, handler);
-					
-				}
-				
-				return;
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no BitmapData asset with an ID of \"" + id + "\"");
-				
+		// Not the good part, but doing things the normal way currently (Nov 2014) results
+		// in an extra inline function.
+		var r:Bool = null;
+		var sn2 = null, lr2 = null;
+		getInline(id, function(ln, sn, lr) {
+			if (r = lr.exists(sn, IMAGE)) {
+				sn2 = sn;
+				lr2 = lr;
 			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
-		#end
-		
-		handler (null);
-		
-	}
-	
-	
-	public static function loadBytes (id:String, handler:ByteArray -> Void):Void {
-		
-		initialize ();
-		
-		#if (tools && !display)
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, BINARY)) {
-				
-				library.loadBytes (symbolName, handler);
-				return;
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no String or ByteArray asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
-		#end
-		
-		handler (null);
-		
-	}
-	
-	
-	public static function loadFont (id:String, handler:Font -> Void, useCache:Bool = true):Void {
-		
-		initialize ();
-		
-		#if (tools && !display)
-		
-		if (useCache && cache.enabled && cache.font.exists (id)) {
-			
-			handler (cache.font.get (id));
+		});
+		if (r != null) if (r) {
+			if (useCache && cache.enabled) {
+				lr2.loadBitmapData(sn2, function(b:BitmapData):Void {
+					cache.bitmapData.set(id, b);
+					handler(b);
+				});
+			} else lr2.loadBitmapData(sn2, handler);
 			return;
-			
-		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, FONT)) {
-				
-				if (useCache && cache.enabled) {
-					
-					library.loadFont (symbolName, function (font:Font):Void {
-						
-						cache.font.set (id, font);
-						handler (font);
-						
-					});
-					
-				} else {
-					
-					library.loadFont (symbolName, handler);
-					
-				}
-				
-				return;
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no Font asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		} else Lib.trace('[openfl.Assets] There is no BitmapData asset with an ID of "$id"');
 		#end
-		
 		handler (null);
-		
 	}
 	
 	
-	public static function loadLibrary (name:String, handler:AssetLibrary -> Void):Void {
-		
+	public static function loadBytes (id:String, handler:ByteArray->Void):Void {
 		initialize();
-		
 		#if (tools && !display)
-		
-		var data = getText ("libraries/" + name + ".dat");
-		
+		var r:Bool = false;
+		getInline(id, function(ln, sn, lr) {
+			if (r = lr.exists(sn, BINARY)) {
+				lr.loadBytes(sn, handler);
+			} else Lib.trace('[openfl.Assets] There is no binary asset with an ID of "$id"');
+		});
+		if (r) return;
+		#end
+		handler(null);
+	}
+	
+	
+	public static function loadFont(id:String, handler:Font->Void, useCache:Bool = true):Void {
+		initialize ();
+		#if (tools && !display)
+		if (useCache && cache.enabled && cache.font.exists(id)) {
+			handler(cache.font.get(id));
+			return;
+		}
+		var lr2 = null, sn2 = null, r = null;
+		getInline(id, function(ln, sn, lr) {
+			if (r = lr.exists(sn, FONT)) {
+				lr2 = lr;
+				sn2 = sn;
+			}
+		});
+		if (r != null) if (r) {
+			if (useCache && cache.enabled) {
+				lr2.loadFont(sn2, function(o:Font):Void {
+					cache.font.set(id, o);
+					handler(o);
+				});
+			} else lr2.loadFont(sn2, handler);
+			return;
+		} else Lib.trace('[openfl.Assets] There is no font asset with an ID of "$id"');
+		#end
+		handler(null);
+	}
+	
+	
+	public static function loadLibrary(name:String, handler:AssetLibrary->Void):Void {
+		initialize();
+		#if (tools && !display)
+		var data = getText('libraries/$name.dat');
 		if (data != null && data != "") {
-			
-			var unserializer = new Unserializer (data);
+			var unserializer = new Unserializer(data);
 			unserializer.setResolver (cast { resolveEnum: resolveEnum, resolveClass: resolveClass });
 			
-			var library:AssetLibrary = unserializer.unserialize ();
-			libraries.set (name, library);
-			library.load (handler);
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + name + "\"");
-			
-		}
-		
+			var library:AssetLibrary = unserializer.unserialize();
+			libraries.set(name, library);
+			library.load(handler);
+		} else Lib.trace ("[openfl.Assets] There is no asset library named \"" + name + "\"");
 		#end
-		
 	}
 	
 	
-	public static function loadMusic (id:String, handler:Sound -> Void, useCache:Bool = true):Void {
-		
+	public static function loadMusic(id:String, handler:Sound->Void, useCache:Bool = true):Void {
 		initialize ();
-		
 		#if (tools && !display)
-		
 		if (useCache && cache.enabled && cache.sound.exists (id)) {
-			
 			var sound = cache.sound.get (id);
-			
 			if (isValidSound (sound)) {
-				
 				handler (sound);
 				return;
-				
 			}
-			
 		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, MUSIC)) {
-				
-				if (useCache && cache.enabled) {
-					
-					library.loadMusic (symbolName, function (sound:Sound):Void {
-						
-						cache.sound.set (id, sound);
-						handler (sound);
-						
-					});
-					
-				} else {
-					
-					library.loadMusic (symbolName, handler);
-					
-				}
-				
-				return;
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no Sound asset with an ID of \"" + id + "\"");
-				
+		var lr2 = null, sn2 = null, r = null;
+		getInline(id, function(ln, sn, lr) {
+			if (r = lr.exists(sn, MUSIC)) {
+				lr2 = lr;
+				sn2 = sn;
 			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		});
+		if (r != null) if (r) {
+			if (useCache && cache.enabled) {
+				lr2.loadMusic(sn2, function(s:Sound):Void {
+					cache.sound.set(id, s);
+					handler(s);
+				});
+			} else lr2.loadMusic(sn2, handler);
+			return;
+		} else Lib.trace('[openfl.Assets] There is no sound asset with an ID of "$id"');
 		#end
-		
-		handler (null);
-		
+		handler(null);
 	}
 	
 	
-	public static function loadMovieClip (id:String, handler:MovieClip -> Void):Void {
-		
+	public static function loadMovieClip(id:String, handler:MovieClip->Void):Void {
 		initialize ();
-		
 		#if (tools && !display)
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, MOVIE_CLIP)) {
-				
-				library.loadMovieClip (symbolName, handler);
-				return;
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no MovieClip asset with an ID of \"" + id + "\"");
-				
-			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		var r:Bool = false;
+		getInline(id, function(ln, sn, lr) {
+			if (r = lr.exists(sn, MOVIE_CLIP)) {
+				lr.loadMovieClip(sn, handler);
+			} else Lib.trace('[openfl.Assets] There is no MovieClip asset with an ID of "$id"');
+		});
+		if (r) return;
 		#end
-		
-		handler (null);
-		
+		handler(null);
 	}
 	
 	
-	public static function loadSound (id:String, handler:Sound -> Void, useCache:Bool = true):Void {
-		
+	public static function loadSound(id:String, handler:Sound->Void, useCache:Bool = true):Void {
 		initialize ();
-		
 		#if (tools && !display)
-		
 		if (useCache && cache.enabled && cache.sound.exists (id)) {
-			
 			var sound = cache.sound.get (id);
-			
 			if (isValidSound (sound)) {
-				
 				handler (sound);
 				return;
-				
 			}
-			
 		}
-		
-		var libraryName = id.substring (0, id.indexOf (":"));
-		var symbolName = id.substr (id.indexOf (":") + 1);
-		var library = getLibrary (libraryName);
-		
-		if (library != null) {
-			
-			if (library.exists (symbolName, SOUND)) {
-				
-				if (useCache && cache.enabled) {
-					
-					library.loadSound (symbolName, function (sound:Sound):Void {
-						
-						cache.sound.set (id, sound);
-						handler (sound);
-						
-					});
-					
-				} else {
-					
-					library.loadSound (symbolName, handler);
-					
-				}
-				
-				return;
-				
-			} else {
-				
-				trace ("[openfl.Assets] There is no Sound asset with an ID of \"" + id + "\"");
-				
+		var lr2 = null, sn2 = null, r = null;
+		getInline(id, function(ln, sn, lr) {
+			if (r = lr.exists(sn, SOUND)) {
+				lr2 = lr;
+				sn2 = sn;
 			}
-			
-		} else {
-			
-			trace ("[openfl.Assets] There is no asset library named \"" + libraryName + "\"");
-			
-		}
-		
+		});
+		if (r != null) if (r) {
+			if (useCache && cache.enabled) {
+				lr2.loadSound(sn2, function(s:Sound):Void {
+					cache.sound.set(id, s);
+					handler(s);
+				});
+			} else lr2.loadSound(sn2, handler);
+			return;
+		} else Lib.trace('[openfl.Assets] There is no sound asset with an ID of "$id"');
 		#end
-		
-		handler (null);
-		
+		handler(null);
 	}
 	
 	
-	public static function loadText (id:String, handler:String -> Void):Void {
-		
-		initialize ();
-		
-		#if (tools && !display)
-		
-		var callback = function (bytes:ByteArray):Void {
-			
-			if (bytes == null) {
-				
-				handler (null);
-				
-			} else {
-				
-				handler (bytes.readUTFBytes (bytes.length));
-				
-			}
-			
-		}
-		
-		loadBytes (id, callback);
-		
-		#else
-		
-		handler (null);
-		
-		#end
-		
-	}
-	
-	
-	public static function registerLibrary (name:String, library:AssetLibrary):Void {
-		
-		if (libraries.exists (name)) {
-			
-			unloadLibrary (name);
-			
-		}
-		
-		libraries.set (name, library);
-		
-	}
-	
-	
-	private static function resolveClass (name:String):Class <Dynamic> {
-		
-		return Type.resolveClass (name);
-		
-	}
-	
-	
-	private static function resolveEnum (name:String):Enum <Dynamic> {
-		
-		var value = Type.resolveEnum (name);
-		
-		#if flash
-		
-		if (value == null) {
-			
-			return cast Type.resolveClass (name);
-			
-		}
-		
-		#end
-		
-		return value;
-		
-	}
-	
-	
-	public static function unloadLibrary (name:String):Void {
-		
+	public static function loadText(id:String, handler:String -> Void):Void {
 		initialize();
-		
 		#if (tools && !display)
-		
-		var keys = cache.bitmapData.keys ();
-		
-		for (key in keys) {
-			
-			var libraryName = key.substring (0, key.indexOf (":"));
-			var symbolName = key.substr (key.indexOf (":") + 1);
-			
-			if (libraryName == name) {
-				
-				cache.bitmapData.remove (key);
-				
-			}
-			
-		}
-		
-		libraries.remove (name);
-		
+		var r:Bool = false;
+		getInline(id, function(ln, sn, lr) {
+			if (r = lr.exists(sn, TEXT)) {
+				lr.loadText(sn, handler);
+			} else Lib.trace('[openfl.Assets] There is no text asset with an ID of "$id"');
+		});
+		if (r) return;
 		#end
-		
+		handler(null);		
+	}
+	
+	
+	public static function registerLibrary(name:String, library:AssetLibrary):Void {
+		if (libraries.exists(name)) unloadLibrary (name);
+		libraries.set(name, library);
+	}
+	
+	
+	private static function resolveClass(name:String):Class<Dynamic> {
+		return Type.resolveClass(name);
+	}
+	
+	
+	private static function resolveEnum(name:String):Enum<Dynamic> {
+		var value = Type.resolveEnum (name);
+		return value;
+	}
+	
+	
+	public static function unloadLibrary(name:String):Void {
+		initialize();
+		#if (tools && !display)
+		for (key in cache.bitmapData.keys()) {
+			if (key.substring(0, key.indexOf(":")) == name) {
+				cache.bitmapData.remove(key);
+			}
+		}
+		// need to clean-up other cache types too?
+		libraries.remove(name);
+		#end
 	}
 }
 
@@ -795,54 +567,34 @@ class AssetLibrary {
 
 
 class AssetCache {
-	
-	
 	public var bitmapData:Map<String, BitmapData>;
 	public var enabled:Bool = true;
 	public var font:Map<String, Font>;
 	public var sound:Map<String, Sound>;
 	
-	
-	public function new () {
-		
-		bitmapData = new Map<String, BitmapData> ();
-		font = new Map<String, Font> ();
-		sound = new Map<String, Sound> ();
-		
+	public function new() {
+		bitmapData = new Map<String, BitmapData>();
+		font = new Map<String, Font>();
+		sound = new Map<String, Sound>();
 	}
 	
-	
-	public function clear ():Void {
-		
-		bitmapData = new Map<String, BitmapData> ();
-		font = new Map<String, Font> ();
-		sound = new Map<String, Sound> ();
-		
+	public function clear():Void {
+		bitmapData = new Map<String, BitmapData>();
+		font = new Map<String, Font>();
+		sound = new Map<String, Sound>();
 	}
-	
-	
 }
 
 
 class AssetData {
-	
-	
 	public var id:String;
 	public var path:String;
 	public var type:AssetType;
-	
-	public function new () {
-		
-		
-		
-	}
-	
-	
+	public function new () { }
 }
 
 
 enum AssetType {
-	
 	BINARY;
 	FONT;
 	IMAGE;
@@ -851,7 +603,6 @@ enum AssetType {
 	SOUND;
 	TEMPLATE;
 	TEXT;
-	
 }
 
 
