@@ -72,7 +72,8 @@ class DefaultAssetLibrary extends openfl.AssetLibrary {
 	
 	override public function getBytes(id:String):ByteArray {
 		var r:ByteArray = null;
-		var d = ApplicationMain.urlLoaders.get(path.get(id)).data;
+		var p = path.get(id);
+		var d = ApplicationMain.urlLoaders.get(p).data;
 		if (Std.is(d, String)) {
 			(r = new ByteArray()).writeUTFBytes(cast d);
 		} else if (Std.is(d, ByteArray)) {
@@ -86,7 +87,8 @@ class DefaultAssetLibrary extends openfl.AssetLibrary {
 	
 	override public function getText(id:String):String {
 		var r:ByteArray = null;
-		var d = ApplicationMain.urlLoaders.get(path.get(id)).data;
+		var p = path.get(id);
+		var d = ApplicationMain.urlLoaders.get(p).data;
 		if (Std.is(d, String)) {
 			return cast d;
 		} else if (Std.is(d, ByteArray)) {

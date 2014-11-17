@@ -206,7 +206,9 @@ class Graphics implements IBitmapDrawable {
 		addInt(GFX_FILL_BITMAP);
 		addObject(bitmap);
 		addInt(repeat != false ? 1 : 0);
-		if (Lib.bool(addInt(m != null ? 1 : 0))) {
+		var i = m != null ? 1 : 0;
+		addInt(i);
+		if (Lib.bool(i)) {
 			var r = frec, l = flen;
 			r[l++] = m.a; r[l++] = m.b;
 			r[l++] = m.c; r[l++] = m.d;
