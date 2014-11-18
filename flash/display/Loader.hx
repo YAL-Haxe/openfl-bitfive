@@ -1,11 +1,13 @@
 package flash.display;
 #if js
+import flash.display.DisplayObject;
+import flash.display.LoaderInfo;
 import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.net.URLRequest;
 import flash.utils.ByteArray;
 
-class Loader extends Sprite {
+class Loader extends Sprite implements ILoader {
 	//
 	public var content(default, null):DisplayObject;
 	public var contentLoaderInfo(default, null):LoaderInfo;
@@ -26,26 +28,26 @@ class Loader extends Sprite {
 		if (parts.length > 0) {
 			extension = parts[parts.length - 1].toLowerCase();
 		}
-		
-		var transparent = true;
-		
-		untyped {
-			
-			// set properties on the LoaderInfo object
-			contentLoaderInfo.url = request.url;
-			contentLoaderInfo.contentType = switch (extension) {
-				
-				case "swf": "application/x-shockwave-flash";
-				case "jpg", "jpeg": transparent = false; "image/jpeg";
-				case "png": "image/png";
-				case "gif": "image/gif";
-				default: ""; throw "Unrecognized file " + request.url;
-				
-			}
-			
+		var url = request.url;
+		//
+		var p = url.lastIndexOf(".");
+		if (p < 0) throw 'Extension must be specified, got "$url"';
+		var ct:String, bt:Bool = true;
+		//
+		var ext = url.substring(p + 1);
+		switch (ext) {
+		case "swf": ct = "application/x-shockwave-flash";
+		case "png": ct = "image/png";
+		case "gif": ct = "image/gif";
+		case "jpg", "jpeg":
+			bt = false;
+			ct = "image/jpeg";
+		default: throw 'Unrecognized extension "$ext" in "$url"';
 		}
+		untyped contentLoaderInfo.url = url;
+		untyped contentLoaderInfo.contentType = ct;
 		
-		mImage = new BitmapData(0, 0, transparent);
+		mImage = new BitmapData(0, 0, bt);
 		
 		try {
 			

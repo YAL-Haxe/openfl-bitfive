@@ -17,7 +17,7 @@ class LoaderInfo extends EventDispatcher {
 	public var contentType(default, null):String;
 	public var frameRate(default, null):Float;
 	public var height(default, null):Int;
-	public var loader(default, null):Loader;
+	public var loader(default, null):ILoader;
 	public var loaderURL(default, null):String;
 	public var parameters(default, null):Dynamic<String>;
 	public var parentAllowsChild(default, null):Bool;
@@ -33,7 +33,7 @@ class LoaderInfo extends EventDispatcher {
 		parameters = { };
 	}
 	
-	public static function create(?o:Loader):LoaderInfo {
+	public static function create(?o:ILoader):LoaderInfo {
 		var r = new LoaderInfo();
 		if (o != null) r.loader = o; else r.url = "";
 		return r;

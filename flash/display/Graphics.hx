@@ -14,7 +14,7 @@ import js.html.ImageElement;
  * Gradients and fancy lines missing.
  * Needs more research on Flash behaviour.
  */
-class Graphics implements IBitmapDrawable {
+class Graphics implements IBitmapDrawable implements IGraphics {
 	//
 	@:extern private static inline var GFX_STOP = 0;
 	@:extern private static inline var GFX_LINESTYLE = 1;
@@ -197,7 +197,7 @@ class Graphics implements IBitmapDrawable {
 	 * @param	c	Color (24-bit)
 	 * @param	a	Alpha (0..1)
 	 */
-	public function beginFill(?c:Int, ?a:Float):Void {
+	public function beginFill(c:Int, ?a:Float):Void {
 		addInt(GFX_FILL_SOLID);
 		addObject(Lib.rgbf(Lib.nz(c, 0), Lib.nz(a, 1)));
 	}
@@ -331,7 +331,7 @@ class Graphics implements IBitmapDrawable {
 				try {
 					return context.getImageData(x - offsetX, y - offsetY, 1, 1).data[3] != 0;
 				} catch (_:Dynamic) {
-					// most likely canvas is tainted. assume a rectangular check
+					// most likely the canvas is tainted. assume a rectangular check
 				}
 			}
 			return true;

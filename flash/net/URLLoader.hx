@@ -15,7 +15,7 @@ import js.Browser;
 import js.Lib;
 
 
-class URLLoader extends EventDispatcher {
+class URLLoader extends EventDispatcher implements IURLLoader {
 	
 	
 	public var bytesLoaded:Int;

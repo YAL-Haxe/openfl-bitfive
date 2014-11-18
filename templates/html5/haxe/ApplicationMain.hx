@@ -3,10 +3,10 @@ import ::APP_MAIN_PACKAGE::::APP_MAIN_CLASS::;
 import haxe.Resource;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
-import flash.display.Loader;
+import flash.display.ILoader;
 import flash.events.Event;
 import flash.media.Sound;
-import flash.net.URLLoader;
+import flash.net.IURLLoader;
 import flash.net.URLRequest;
 import flash.net.URLLoaderDataFormat;
 import flash.Lib;
@@ -18,8 +18,8 @@ class ApplicationMain {
 	private static var preloader:::if (PRELOADER_NAME != "")::::PRELOADER_NAME::::else::NMEPreloader::end::;
 	private static var total:Int;
 
-	public static var loaders:Map<String, Loader>;
-	public static var urlLoaders:Map<String, URLLoader>;
+	public static var loaders:Map<String, ILoader>;
+	public static var urlLoaders:Map<String, IURLLoader>;
 	private static var loaderStack:Array<String>;
 	private static var urlLoaderStack:Array<String>;
 	// Embed data preloading
@@ -40,8 +40,8 @@ class ApplicationMain {
 
 	private static function preload() {
 		completed = 0;
-		loaders = new Map<String, Loader>();
-		urlLoaders = new Map<String, URLLoader>();
+		loaders = new Map<String, ILoader>();
+		urlLoaders = new Map<String, IURLLoader>();
 		total = 0;
 		
 		flash.Lib.current.loaderInfo = flash.display.LoaderInfo.create (null);
@@ -86,8 +86,7 @@ class ApplicationMain {
 	
 	private static function nextLoader() {
 		if (loaderStack.length != 0) {
-			var p:String = loaderStack.shift(),
-				o:Loader = loaders.get(p);
+			var p = loaderStack.shift(), o = loaders.get(p);
 			#if bitfive_logLoading
 				flash.Lib.trace("Loading " + p);
 				o.contentLoaderInfo.addEventListener("complete", function(e) {
@@ -99,8 +98,7 @@ class ApplicationMain {
 			#end
 			o.load(new URLRequest(p));
 		} else if (urlLoaderStack.length != 0) {
-			var p:String = urlLoaderStack.shift(),
-				o:URLLoader = urlLoaders.get(p);
+			var p = urlLoaderStack.shift(), o = urlLoaders.get(p);
 			#if bitfive_logLoading
 				flash.Lib.trace("Loading " + p);
 				o.addEventListener("complete", function(e) {
@@ -115,12 +113,12 @@ class ApplicationMain {
 	}
 	
 	private static function loadFile(p:String):Void {
-		loaders.set(p, new Loader());
+		loaders.set(p, new flash.display.Loader());
 		total++;
 	}
 	
 	private static function loadBinary(p:String):Void {
-		var o:URLLoader = new URLLoader();
+		var o = new flash.net.URLLoader();
 		o.dataFormat = URLLoaderDataFormat.BINARY;
 		urlLoaders.set(p, o);
 		total++;
@@ -183,13 +181,10 @@ class ApplicationMain {
 		preloader.removeEventListener(Event.COMPLETE, preloader_onComplete);
 		Lib.current.removeChild(preloader);
 		preloader = null;
-		if (Reflect.field(::APP_MAIN::, "main") == null) {
-			var mainDisplayObj = Type.createInstance(DocumentClass, []);
-			if (Std.is(mainDisplayObj, flash.display.DisplayObject))
-				flash.Lib.current.addChild(cast mainDisplayObj);
-		} else {
-			Reflect.callMethod(::APP_MAIN::, Reflect.field (::APP_MAIN::, "main"), []);
-		}
+		if (untyped ::APP_MAIN::.main == null) {
+			var o = new DocumentClass();
+			if (Std.is(o, flash.display.DisplayObject)) Lib.current.addChild(cast o);
+		} else untyped ::APP_MAIN::.main();
 	}
 }
 

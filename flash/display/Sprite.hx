@@ -4,8 +4,8 @@ import flash.display.Graphics;
 
 class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 	//
-	public var graphics(get, null):Graphics;
-	private var _graphics:Graphics;
+	public var graphics(get, null):IGraphics;
+	private var _graphics:IGraphics;
 	public var useHandCursor(default, set):Bool;
 	public var buttonMode:Bool;
 	//
@@ -13,9 +13,9 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 		super();
 	}
 	
-	private function get_graphics():Graphics {
+	private function get_graphics():IGraphics {
 		if (_graphics == null) {
-			// This is made into a getter since it's common to use Sprite as generic container.
+			// This is made into a getter since it's common to use Sprite as a generic container.
 			var o:Graphics = new Graphics(), q = o.component;
 			o.displayObject = this;
 			if (this.children.length == 0) component.appendChild(q);
@@ -44,7 +44,7 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 	}
 	
 	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
-		var g:Graphics;
+		var g;
 		return hitTestVisible(v) && (
 			super.hitTestLocal(x, y, p, v) || (
 				((g = _graphics) != null) && g.hitTestLocal(x, y, p)

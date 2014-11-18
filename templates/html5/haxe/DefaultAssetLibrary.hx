@@ -52,7 +52,7 @@ class DefaultAssetLibrary extends openfl.AssetLibrary {
 	}
 	
 	override public function getBitmapData(id:String):BitmapData {
-		var q:Loader = ApplicationMain.loaders.get(path.get(id));
+		var q = ApplicationMain.loaders.get(path.get(id));
 		var b:Bitmap = cast q.contentLoaderInfo.content;
 		return b.bitmapData;
 	}
