@@ -55,10 +55,10 @@ class Stage extends DisplayObjectContainer {
 		o.addEventListener("mousemove", onMouse);
 		o.addEventListener("mousewheel", onWheel);
 		// touch events (to prevent scrolling and to track mouse position):
-		o.addEventListener("touchmove", getOnTouch(0));
-		o.addEventListener("touchstart", getOnTouch(1));
-		o.addEventListener("touchend", getOnTouch(2));
-		o.addEventListener("touchcancel", getOnTouch(2));
+		Lib.document.addEventListener("touchmove", getOnTouch(0));
+		Lib.document.addEventListener("touchstart", getOnTouch(1));
+		Lib.document.addEventListener("touchend", getOnTouch(2));
+		Lib.document.addEventListener("touchcancel", getOnTouch(2));
 		//
 		mouseMtxDepth = [];
 		mouseMtxStack = [];
