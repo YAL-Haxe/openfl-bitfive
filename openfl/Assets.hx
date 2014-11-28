@@ -568,9 +568,12 @@ class AssetLibrary {
 
 class AssetCache {
 	public var bitmapData:Map<String, BitmapData>;
-	public var enabled:Bool = true;
 	public var font:Map<String, Font>;
 	public var sound:Map<String, Sound>;
+	public var enabled(get, set):Bool;
+	private function get_enabled() return __enabled;
+	private function set_enabled(v) return __enabled = v;
+	private var __enabled:Bool = true;
 	
 	public function new() {
 		bitmapData = new Map<String, BitmapData>();
@@ -578,11 +581,39 @@ class AssetCache {
 		sound = new Map<String, Sound>();
 	}
 	
-	public function clear():Void {
-		bitmapData = new Map<String, BitmapData>();
-		font = new Map<String, Font>();
-		sound = new Map<String, Sound>();
+	public function clear(?prefix:String):Void {
+		if (prefix == null) {
+			bitmapData = new Map<String, BitmapData>();
+			font = new Map<String, Font>();
+			sound = new Map<String, Sound>();
+		} else {
+			for (key in bitmapData.keys()) {
+				if (StringTools.startsWith(key, prefix)) bitmapData.remove(key);
+			}
+			for (key in font.keys()) {
+				if (StringTools.startsWith(key, prefix)) font.remove(key);
+			}
+			for (key in sound.keys()) {
+				if (StringTools.startsWith(key, prefix)) sound.remove(key);
+			}
+		}
 	}
+	
+	public function getBitmapData(id:String):BitmapData return bitmapData.get(id);
+	public function getFont(id:String):Font return font.get(id);
+	public function getSound(id:String):Sound return sound.get(id);
+	
+	public function hasBitmapData(id:String):Bool return bitmapData.exists(id);
+	public function hasFont(id:String):Bool return font.exists(id);
+	public function hasSound(id:String):Bool return sound.exists(id);
+	
+	public function removeBitmapData(id:String):Bool return bitmapData.remove(id);
+	public function removeFont(id:String):Bool return font.remove(id);
+	public function removeSound(id:String):Bool return sound.remove(id);
+	
+	public function setBitmapData(id:String, v:BitmapData):Void bitmapData.set(id, v);
+	public function setFont(id:String, v:Font):Void font.set(id, v);
+	public function setSound(id:String, v:Sound):Void sound.set(id, v);
 }
 
 
