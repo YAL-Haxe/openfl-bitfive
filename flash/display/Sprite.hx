@@ -4,8 +4,8 @@ import flash.display.Graphics;
 
 class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 	//
-	public var graphics(get, null):IGraphics;
-	private var _graphics:IGraphics;
+	public var graphics(get, null):Graphics;
+	private var _graphics:Graphics;
 	public var useHandCursor(default, set):Bool;
 	public var buttonMode:Bool;
 	//
@@ -13,7 +13,7 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 		super();
 	}
 	
-	private function get_graphics():IGraphics {
+	private function get_graphics():Graphics {
 		if (_graphics == null) {
 			// This is made into a getter since it's common to use Sprite as a generic container.
 			var o:Graphics = new Graphics(), q = o.component;
