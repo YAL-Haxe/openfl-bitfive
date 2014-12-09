@@ -5,12 +5,14 @@ import flash.Lib;
 import js.html.DivElement;
 import js.html.Element;
 import js.html.TextAreaElement;
+import js.html.CSSStyleDeclaration;
 /**
  * Status: Implementation pending.
  * Included solely to avoid infinite errors.
  */
 class TextField extends flash.display.InteractiveObject implements IBitmapDrawable {
 	public var autoSize(default, set):String;
+	private var autoSizeId:Int = -1;
 	public var antiAliasType:AntiAliasType;
 	public var background(get, set):Bool;
 	public var backgroundColor(default, set):Int = 0xffffff;
@@ -41,42 +43,56 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	//
 	private var qText:String = "";
 	private var qFontStyle:String;
-	private var qLineHeight:Float;
 	private var qTextArea:TextAreaElement;
 	private var qEditable:Bool;
 	private var qBackground:Bool;
 	private var qBorder:Bool;
 	//
+	private static inline var padding:Float = 1.5;
+	private static inline var padding2:Float = 3.0;
+	//
 	public function new() {
 		super();
-		var s = component.style;
+		var s:CSSStyleDeclaration = component.style;
 		s.whiteSpace = "nowrap";
 		s.overflow = "hidden";
+		s.padding = padding + "px";
+		s.lineHeight = "1.25";
 		//
 		defaultTextFormat = new TextFormat("_serif", 16, 0);
 		textColor = 0;
 		wordWrap = qEditable = qBackground = qBorder = false;
-		width = height = 100;
+		qWidth = 100;
+		qHeight = 100;
+		updateSize(3);
 	}
 	// Apperance
-	private function get_background() return qBackground;
+	private inline function get_background() return qBackground;
 	private function set_background(v:Bool) {
 		if (qBackground != v) {
-			if (qBackground = v) this.component.style.background = Lib.rgbf(backgroundColor, 1);
+			var s = component.style;
+			if (qBackground = v) {
+				s.background = Lib.rgbf(backgroundColor, 1);
+			} else s.background = "";
 		}
 		return v;
 	}
 	private function set_backgroundColor(v:Int) {
 		if (backgroundColor != v) {
 			backgroundColor = v;
-			if (qBackground) this.component.style.background = Lib.rgbf(v, 1);
+			if (qBackground) {
+				this.component.style.background = Lib.rgbf(v, 1);
+			}
 		}
 		return v;
 	}
-	private function get_border() return qBorder;
+	private inline function get_border() return qBorder;
 	private function set_border(v:Bool) {
 		if (qBorder != v) {
-			if (qBorder = v) this.component.style.border = "1px solid " + Lib.rgbf(borderColor, 1);
+			var s = component.style;
+			if (qBorder = v) {
+				s.border = "1px solid " + Lib.rgbf(borderColor, 1);
+			} else s.border = "0";
 		}
 		return v;
 	}
@@ -96,7 +112,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	}
 	private function set_text(v:String):String {
 		if (text != v) {
-			var o, q:TextFormat = defaultTextFormat, z = qEditable;
+			var o:CSSStyleDeclaration, q:TextFormat = defaultTextFormat, z = qEditable;
 			qText = v;
 			if (z) {
 				qTextArea.value = v;
@@ -106,8 +122,12 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			// update according styles:
 			o = (z ? qTextArea : component).style;
 			qFontStyle = o.font = q.get_fontStyle();
-			untyped o.lineHeight = (qLineHeight = Std.int(q.size * 1.25)) + "px";
+			o.textAlign = q.align;
+			o.fontWeight = q.bold ? "bold" : "";
+			o.fontStyle = q.italic ? "italic" : "";
+			o.textDecoration = q.underline ? "underline" : "";
 			o.color = flash.Lib.rgbf(q.color != null ? q.color : textColor, 1);
+			autoSizeApply();
 		}
 		return v;
 	}
@@ -130,32 +150,62 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		ctx.fillText(text, 0, 0);
 		ctx.restore();
 	}
-	// Size
+	//{ Component size
 	override private function get_width():Float {
-		return qWidth != null ? qWidth : get_textWidth();
+		if (autoSizeId < 0) {
+			return qWidth;
+		} else {
+			return get_textWidth();
+		}
 	}
 	override private function get_height():Float {
-		return qHeight != null ? qHeight : get_textHeight();
+		if (autoSizeId < 0) {
+			return qHeight;
+		} else {
+			return get_textHeight();
+		}
+	}
+	/**
+	 * Updates component dimensions.
+	 * @param	m	mode flags (1: width, 2: height)
+	 */
+	private function updateSize(m:Int) {
+		var s:CSSStyleDeclaration = component.style;
+		var n:Int = 1;
+		var e:Bool = qEditable;
+		var es:CSSStyleDeclaration = e ? qTextArea.style : null;
+		while (n < 4) {
+			if ((m & n) != 0) {
+				var f:Float = (n == 1) ? qWidth : qHeight;
+				if (border) f -= 1;
+				f -= padding2;
+				if (n == 1) {
+					s.width = f + "px";
+					if (e) es.width = f + "px";
+				} else {
+					s.height = f + "px";
+					if (e) es.height = f + "px";
+				}
+			}
+			n <<= 1;
+		}
 	}
 	override private function set_width(v:Float):Float {
 		if (qWidth != v) {
-			var o = (v != null ? v + "px" : "");
-			component.style.width = o;
-			if (qEditable) qTextArea.style.width = o;
 			qWidth = v;
+			updateSize(1);
 		}
 		return v;
 	}
 	override private function set_height(v:Float):Float {
 		if (qHeight != v) {
-			var o = (v != null ? v + "px" : "");
-			component.style.height = o;
-			if (qEditable) qTextArea.style.height = o;
 			qHeight = v;
+			updateSize(2);
 		}
 		return v;
 	}
-	// Text size
+	//}
+	//{ Text measuring
 	private function _measure_pre():DivElement {
 		// Copies style and text onto helper element
 		var o = Lib.jsHelper(),
@@ -193,10 +243,29 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		while (p < l) { r++; if ((p = d.indexOf("\n", p) + 1) == 0) p = l;}
 		return r;
 	}
+	//}
 	// Meta
+	private function autoSizeApply() {
+		var f = autoSizeId;
+		var s = component.style;
+		if (f >= 0 && !qEditable) {
+			s.left = ((qWidth - get_textWidth()) * f / 2) + "px";
+			s.width = "";
+			s.height = "";
+		} else {
+			s.left = "";
+			updateSize(3);
+		}
+	}
 	private function set_autoSize(v:String):String {
 		if (autoSize != v) {
-			if ((autoSize = v) != TextFieldAutoSize.NONE) width = height = null;
+			switch (autoSize = v) {
+			case TextFieldAutoSize.NONE: autoSizeId = -1;
+			case TextFieldAutoSize.LEFT: autoSizeId = 0;
+			case TextFieldAutoSize.CENTER: autoSizeId = 1;
+			case TextFieldAutoSize.RIGHT: autoSizeId = 2;
+			}
+			autoSizeApply();
 		}
 		return v;
 	}
@@ -213,12 +282,12 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 				c.appendChild(e = cast Lib.jsNode(multiline ? "textarea" : "input"));
 				e.value = text + " ";
 				e.maxLength = (t = maxChars) > 0 ? t : 2147483647;
-				t = e.style;
-				t.border = "0";
-				t.background = "transparent";
-				if ((f = o.qWidth) != null) t.width = f + "px";
-				if ((f = o.qHeight) != null) t.height = f + "px";
-				o.qTextArea = e;
+				var es:CSSStyleDeclaration = e.style;
+				es.border = "0";
+				es.padding = "0";
+				es.background = "transparent";
+				qTextArea = e;
+				updateSize(3);
 			} else {
 				// destroy input node:
 				c.removeChild(o.qTextArea);
