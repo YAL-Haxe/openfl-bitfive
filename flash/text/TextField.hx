@@ -7,47 +7,55 @@ import js.html.Element;
 import js.html.TextAreaElement;
 import js.html.CSSStyleDeclaration;
 /**
- * Status: Implementation pending.
- * Included solely to avoid infinite errors.
+ * Things mostly work, except when they do not.
+ * @author YellowAfterlife
  */
 class TextField extends flash.display.InteractiveObject implements IBitmapDrawable {
 	public var autoSize(default, set):String;
-	private var autoSizeId:Int = -1;
 	public var antiAliasType:AntiAliasType;
-	public var background(get, set):Bool;
+	public var background(default, set):Bool;
 	public var backgroundColor(default, set):Int = 0xffffff;
-	public var border(get, set):Bool;
+	public var border(default, set):Bool = false;
 	public var borderColor(default, set):Int = 0x0;
 	public var caretIndex(default, null):Int;
-	public var defaultTextFormat:TextFormat;
+	public var defaultTextFormat(get, set):TextFormat;
 	public var displayAsPassword:Bool;
 	public var embedFonts:Bool;
 	public var htmlText:String;
-	public var length(default, null):Int;
+	public var length(get, null):Int;
 	public var maxChars(default, set):Int = 0;
-	public var multiline(default, set):Bool;
+	public var multiline(default, set):Bool = false;
+	public var scrollH:Int;
 	public var scrollV:Int;
+	public var maxScrollH:Int;
 	public var maxScrollV:Int;
 	public var numLines(get, null):Int;
-	public var selectable(default, set):Bool;
+	public var selectable(default, set):Bool = true;
 	public var selectedText(get, null):String;
 	public var selectionBeginIndex(get, set):Int;
 	public var selectionEndIndex(get, set):Int;
-	public var styleSheet:Dynamic;
 	public var text(get, set):String;
-	public var textColor:Int;
+	public var textColor(get, set):Int;
 	public var textHeight(get, null):Float;
 	public var textWidth(get, null):Float;
 	public var type(default, set):String = "DYNAMIC";
-	public var wordWrap:Bool;
-	//
-	private var qText:String = "";
-	private var qFontStyle:String;
-	private var qTextArea:TextAreaElement;
-	private var qEditable:Bool;
-	private var qBackground:Bool;
-	private var qBorder:Bool;
-	//
+	public var wordWrap(default, set):Bool = false;
+	//{ Internal
+		/// autoSize index (-1: none, 0: left, 1: center, 2: right)
+		@:noCompletion private var __autoSize:Int = -1;
+		/// Current text. If __editable is set, field value is read instead.
+		@:noCompletion private var __text:String = "";
+		/// defaultTextFormat value. Copies are returned on main field access.
+		@:noCompletion private var __textFormat:TextFormat;
+		/// Whether __textFormat is up to date.
+		@:noCompletion private var __textFormatSync:Bool;		
+		/// Cached CSS `font` property.
+		@:noCompletion private var __fontStyle:String;
+		/// Whether text field is editable.
+		@:noCompletion private var __editable:Bool = false;
+		/// Editable field element. Can be either `input` or `textarea` actually.
+		@:noCompletion private var __field:TextAreaElement;
+	//}
 	private static inline var padding:Float = 1.5;
 	private static inline var padding2:Float = 3.0;
 	//
@@ -59,121 +67,119 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		s.padding = padding + "px";
 		s.lineHeight = "1.25";
 		//
-		defaultTextFormat = new TextFormat("_serif", 16, 0);
-		textColor = 0;
-		wordWrap = qEditable = qBackground = qBorder = false;
+		//qTextFormat = new TextFormat("_serif", 16, 0);
+		__textFormat = new TextFormat(
+			"Times New Roman", 12, 0x000000,
+			false, false, false, "", "",
+			TextFormatAlign.LEFT, 0, 0, 0, 0);
 		qWidth = 100;
 		qHeight = 100;
-		updateSize(3);
+		__applySize(3);
+		__applyTextFormat();
 	}
-	// Apperance
-	private inline function get_background() return qBackground;
+	//{ Apperance
 	private function set_background(v:Bool) {
-		if (qBackground != v) {
+		if (background != v) {
 			var s = component.style;
-			if (qBackground = v) {
+			if (background = v) {
 				s.background = Lib.rgbf(backgroundColor, 1);
 			} else s.background = "";
 		}
 		return v;
 	}
-	private function set_backgroundColor(v:Int) {
-		if (backgroundColor != v) {
-			backgroundColor = v;
-			if (qBackground) {
-				this.component.style.background = Lib.rgbf(v, 1);
-			}
+	private function set_backgroundColor(c:Int) {
+		if (backgroundColor != c) {
+			backgroundColor = c;
+			if (background) component.style.background = Lib.rgbf(c, 1);
 		}
-		return v;
+		return c;
 	}
-	private inline function get_border() return qBorder;
 	private function set_border(v:Bool) {
-		if (qBorder != v) {
+		if (border != v) {
 			var s = component.style;
-			if (qBorder = v) {
+			if (border = v) {
 				s.border = "1px solid " + Lib.rgbf(borderColor, 1);
 			} else s.border = "0";
+			__applySize(3);
 		}
 		return v;
 	}
-	private function set_borderColor(v:Int) {
-		if (borderColor != v) {
-			borderColor = v;
-			if (qBorder) this.component.style.border = "1px solid " + Lib.rgbf(borderColor, 1);
+	private function set_borderColor(c:Int) {
+		if (borderColor != c) {
+			borderColor = c;
+			if (border) component.style.border = "1px solid " + Lib.rgbf(c, 1);
 		}
-		return v;
+		return c;
+	}
+	private function get_defaultTextFormat():TextFormat {
+		return __textFormat.clone();
+	}
+	private function set_defaultTextFormat(f:TextFormat):TextFormat {
+		// defaultTextFormat updates take place next time the text is changed.
+		__textFormat.merge(f);
+		__textFormatSync = false;
+		return f;
+	}
+	private function get_textColor():UInt {
+		return __textFormat.color;
+	}
+	private function set_textColor(c:UInt):UInt {
+		// Unlike defaultTextFormat changes, textColor is applied instantly by Flash.
+		__textFormat.color = c;
+		__applyTextFormat();
+		return c;
 	}
 	public function setTextFormat(v:TextFormat, ?f:Int, ?l:Int) {
-		// Soon.
+		// Soon[-ish].
 	}
-	//
-	private function get_text():String {
-		return qEditable ? qTextArea.value : qText;
-	}
-	private function set_text(v:String):String {
-		if (text != v) {
-			var o:CSSStyleDeclaration, q:TextFormat = defaultTextFormat, z = qEditable;
-			qText = v;
-			if (z) {
-				qTextArea.value = v;
-			} else if (component.innerText == null) {
-				component.innerHTML = StringTools.replace(StringTools.htmlEscape(v), "\n", "<br>");
-			} else component.innerText = v;
-			// update according styles:
-			o = (z ? qTextArea : component).style;
-			qFontStyle = o.font = q.get_fontStyle();
-			o.textAlign = q.align;
-			o.fontWeight = q.bold ? "bold" : "";
-			o.fontStyle = q.italic ? "italic" : "";
-			o.textDecoration = q.underline ? "underline" : "";
-			o.color = flash.Lib.rgbf(q.color != null ? q.color : textColor, 1);
-			autoSizeApply();
-		}
-		return v;
-	}
-	public function appendText(v:String):Void {
-		text += v;
-	}
-	public function setSelection(v:Int, o:Int):Void {
-		if (qEditable) qTextArea.setSelectionRange(v, o);
-	}
-	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
-	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
-	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
-		// Not that good at the moment.
-		var q:TextFormat = defaultTextFormat;
-		ctx.save();
-		ctx.fillStyle = component.style.color;
-		ctx.font = qFontStyle;
-		ctx.textBaseline = "top";
-		ctx.textAlign = q.align != null ? q.align : "left";
-		ctx.fillText(text, 0, 0);
-		ctx.restore();
-	}
-	//{ Component size
-	override private function get_width():Float {
-		if (autoSizeId < 0) {
-			return qWidth;
+	//}
+	//{
+	private function __applyType(v:Bool) {
+		var c:Element = component;
+		if (__editable = v) {
+			var e:TextAreaElement = cast Lib.jsNode(multiline ? "textarea" : "input");
+			e.value = text;
+			e.maxLength = maxChars > 0 ? maxChars : 2147483647;
+			var s:CSSStyleDeclaration = e.style;
+			s.border = "0";
+			s.padding = "0";
+			s.background = "transparent";
+			c.appendChild(__field = e);
 		} else {
-			return get_textWidth();
+			c.removeChild(__field);
+			__field = null;
 		}
 	}
-	override private function get_height():Float {
-		if (autoSizeId < 0) {
-			return qHeight;
-		} else {
-			return get_textHeight();
-		}
+	private function __applyTextFormat() {
+		__textFormatSync = true;
+		var f:TextFormat = __textFormat;
+		var s:CSSStyleDeclaration = (__editable ? __field : component).style;
+		__fontStyle = s.font = f.get_fontStyle();
+		s.textAlign = f.align;
+		s.fontWeight = f.bold ? "bold" : "";
+		s.fontStyle = f.italic ? "italic" : "";
+		s.textDecoration = f.underline ? "underline" : "";
+		s.color = Lib.rgbf(f.color, 1);
+	}
+	private function __applyText(s:String) {
+		__text = s;
+		if (__editable) {
+			__field.value = s;
+		} else if (component.innerText == null) {
+			component.innerHTML = StringTools.replace(StringTools.htmlEscape(s), "\n", "<br>");
+		} else component.innerText = s;
+		__applyAutoSize();
 	}
 	/**
 	 * Updates component dimensions.
 	 * @param	m	mode flags (1: width, 2: height)
 	 */
-	private function updateSize(m:Int) {
+	private function __applySize(m:Int) {
 		var s:CSSStyleDeclaration = component.style;
+		var e:Bool = __editable;
+		var fs:CSSStyleDeclaration = e ? __field.style : null;
+		// for (n in [1, 2]):
 		var n:Int = 1;
-		var e:Bool = qEditable;
-		var es:CSSStyleDeclaration = e ? qTextArea.style : null;
 		while (n < 4) {
 			if ((m & n) != 0) {
 				var f:Float = (n == 1) ? qWidth : qHeight;
@@ -181,32 +187,77 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 				f -= padding2;
 				if (n == 1) {
 					s.width = f + "px";
-					if (e) es.width = f + "px";
+					if (e) fs.width = f + "px";
 				} else {
 					s.height = f + "px";
-					if (e) es.height = f + "px";
+					if (e) fs.height = f + "px";
 				}
 			}
 			n <<= 1;
 		}
 	}
+	//}
+	private inline function get_length():Int return text.length;
+	private function get_text():String {
+		return __editable ? __field.value : __text;
+	}
+	private function set_text(s:String):String {
+		if (text != s) __applyText(s);
+		if (!__textFormatSync) __applyTextFormat();
+		return s;
+	}
+	public inline function appendText(s:String):Void {
+		text += s;
+	}
+	public function setSelection(v:Int, o:Int):Void {
+		if (__editable) {
+			__field.setSelectionRange(v, o);
+		}
+	}
+	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
+	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
+	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
+		// Not that good at the moment.
+		ctx.save();
+		ctx.fillStyle = component.style.color;
+		ctx.font = __fontStyle;
+		ctx.textBaseline = "top";
+		ctx.textAlign = __textFormat.align;
+		ctx.fillText(text, 0, 0);
+		ctx.restore();
+	}
+	//{ Component size
+	override private function get_width():Float {
+		if (__autoSize < 0) {
+			return qWidth;
+		} else {
+			return get_textWidth();
+		}
+	}
+	override private function get_height():Float {
+		if (__autoSize < 0) {
+			return qHeight;
+		} else {
+			return get_textHeight();
+		}
+	}
 	override private function set_width(v:Float):Float {
 		if (qWidth != v) {
 			qWidth = v;
-			updateSize(1);
+			__applySize(1);
 		}
 		return v;
 	}
 	override private function set_height(v:Float):Float {
 		if (qHeight != v) {
 			qHeight = v;
-			updateSize(2);
+			__applySize(2);
 		}
 		return v;
 	}
 	//}
 	//{ Text measuring
-	private function _measure_pre():DivElement {
+	private function __measurePre():DivElement {
 		// Copies style and text onto helper element
 		var o = Lib.jsHelper(),
 			s = o.style, q = component.style, i:Int;
@@ -214,7 +265,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		o.innerHTML = component.innerHTML;
 		return o;
 	}
-	private function _measure_post(o:DivElement):Void {
+	private function __measurePost(o:DivElement):Void {
 		// Clears previously set syle and text on given element.
 		var i:Int, s = o.style;
 		i = s.length; while (--i >= 0) untyped s[s[i]] = "";
@@ -222,18 +273,18 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	}
 	private function get_textWidth():Float {
 		if (stage == null) {
-			var o = _measure_pre(),
+			var o = __measurePre(),
 				r = o.clientWidth;
-			_measure_post(o);
+			__measurePost(o);
 			return r;
 		}
 		return component.clientWidth;
 	}
 	private function get_textHeight():Float {
 		if (stage == null) {
-			var o = _measure_pre(),
+			var o = __measurePre(),
 				r = o.clientHeight;
-			_measure_post(o);
+			__measurePost(o);
 			return r;
 		}
 		return component.clientHeight;
@@ -245,72 +296,50 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	}
 	//}
 	// Meta
-	private function autoSizeApply() {
-		var f = autoSizeId;
+	private function __applyAutoSize() {
+		var f = __autoSize;
 		var s = component.style;
-		if (f >= 0 && !qEditable) {
+		if (f >= 0 && !__editable) {
 			s.left = ((qWidth - get_textWidth()) * f / 2) + "px";
 			s.width = "";
 			s.height = "";
 		} else {
 			s.left = "";
-			updateSize(3);
+			__applySize(3);
 		}
 	}
 	private function set_autoSize(v:String):String {
 		if (autoSize != v) {
+			var i:Int;
 			switch (autoSize = v) {
-			case TextFieldAutoSize.NONE: autoSizeId = -1;
-			case TextFieldAutoSize.LEFT: autoSizeId = 0;
-			case TextFieldAutoSize.CENTER: autoSizeId = 1;
-			case TextFieldAutoSize.RIGHT: autoSizeId = 2;
+			case TextFieldAutoSize.LEFT: i = 0;
+			case TextFieldAutoSize.CENTER: i = 1;
+			case TextFieldAutoSize.RIGHT: i = 2;
+			default: i = -1;
 			}
-			autoSizeApply();
+			__autoSize = i;
+			__applyAutoSize();
 		}
 		return v;
 	}
-	private function set_type(v:String):String {
+	private function set_type(s:String):String {
 		// Currently will cause event listener loss.
 		// Is someone crazy enough to switch type mid-run though?
-		var z:Bool = (v == "INPUT"), o:TextField = this, c:Element, e:TextAreaElement, q:Dynamic,
-			t:Dynamic, text:String, f:Float;
-		if (z != o.qEditable) {
-			c = o.component;
-			text = o.text; o.text = text != "" ? "" : " ";
-			if (o.qEditable = z) {
-				// create input node:
-				c.appendChild(e = cast Lib.jsNode(multiline ? "textarea" : "input"));
-				e.value = text + " ";
-				e.maxLength = (t = maxChars) > 0 ? t : 2147483647;
-				var es:CSSStyleDeclaration = e.style;
-				es.border = "0";
-				es.padding = "0";
-				es.background = "transparent";
-				qTextArea = e;
-				updateSize(3);
-			} else {
-				// destroy input node:
-				c.removeChild(o.qTextArea);
-				o.qTextArea = null;
-			}
-			o.text = text;
-		}
-		return v;
+		var v:Bool = (s == TextFieldType.INPUT);
+		if (v != __editable) __applyType(v);
+		return s;
 	}
 	private function set_multiline(v:Bool):Bool {
 		if (multiline != v) {
 			multiline = v;
-			if (qEditable) {
-				type = "DYNAMIC";
-				type = "INPUT";
-			}
+			if (__editable) __applyType(true);
 		}
 		return v;
 	}
 	private function set_maxChars(v:Int):Int {
 		if (maxChars != v) {
 			maxChars = v;
-			if (qEditable) qTextArea.maxLength = v > 0 ? v : 2147483647;
+			if (__editable) __field.maxLength = v > 0 ? v : 2147483647;
 		}
 		return v;
 	}
@@ -326,30 +355,41 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		}
 		return v;
 	}
+	private function set_wordWrap(v:Bool):Bool {
+		if (wordWrap != v) {
+			var s = (wordWrap = v) ? "normal" : "nowrap";
+			component.style.whiteSpace = s;
+			if (__editable) __field.style.whiteSpace = s;
+		}
+		return v;
+	}
 	override public function giveFocus():Void {
-		(qEditable ? qTextArea : component).focus();
+		(__editable ? __field : component).focus();
 	}
 	// selection:
-	private function get_selectionBeginIndex():Int return qEditable ? qTextArea.selectionStart : 0;
-	private function get_selectionEndIndex():Int return qEditable ? qTextArea.selectionEnd : 0;
+	private function get_selectionBeginIndex():Int return __editable ? __field.selectionStart : 0;
+	private function get_selectionEndIndex():Int return __editable ? __field.selectionEnd : 0;
 	private function set_selectionBeginIndex(v:Int):Int {
-		if (qEditable && selectionBeginIndex != v) {
-			qTextArea.selectionStart = v;
+		if (__editable && __field.selectionStart != v) {
+			__field.selectionStart = v;
 		}
 		return v;
 	}
 	private function set_selectionEndIndex(v:Int):Int {
-		if (qEditable && selectionEndIndex != v) {
-			qTextArea.selectionEnd = v;
+		if (__editable && __field.selectionEnd != v) {
+			__field.selectionEnd = v;
 		}
 		return v;
 	}
 	private function get_selectedText():String {
-		var a:Int = qTextArea.selectionStart,
-			b:Int = qTextArea.selectionEnd,
-			c:Int;
-		if (b < a) { c = a; a = b; b = c; }
-		return qEditable ? qTextArea.value.substring(a, b) : null;
+		if (__editable) {
+			var a:Int = __field.selectionStart,
+				b:Int = __field.selectionEnd,
+				c:Int;
+			if (b < a) { c = a; a = b; b = c; }
+			return __field.value.substring(a, b);
+		}
+		return null;
 	}
 	// event target overrides:
 	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
@@ -357,15 +397,15 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	}
 	override public function addEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
 		var o = component;
-		if (qEditable) component = qTextArea;
+		if (__editable) component = __field;
 		super.addEventListener(type, listener, useCapture, priority, weak);
-		if (qEditable) component = o;
+		if (__editable) component = o;
 	}
 	override public function removeEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
 		var o = component;
-		if (qEditable) component = qTextArea;
+		if (__editable) component = __field;
 		super.removeEventListener(type, listener, useCapture, priority, weak);
-		if (qEditable) component = o;
+		if (__editable) component = o;
 	}
 }
 #end
