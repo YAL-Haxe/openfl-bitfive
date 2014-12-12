@@ -6,8 +6,8 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 	//
 	public var graphics(get, null):Graphics;
 	private var _graphics:Graphics;
-	public var useHandCursor(default, set):Bool;
-	public var buttonMode:Bool;
+	public var useHandCursor:Bool;
+	public var buttonMode(default, set):Bool;
 	//
 	public function new() {
 		super();
@@ -32,7 +32,7 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 		return r;
 	}
 	
-	private function set_useHandCursor(o:Bool):Bool {
+	private function set_buttonMode(o:Bool):Bool {
 		component.style.cursor = o ? 'pointer' : null;
 		return (useHandCursor = o);
 	}
