@@ -40,9 +40,9 @@ class ApplicationMain {
 	private static var loaderStack:Array<String>;
 	private static var urlLoaderStack:Array<String>;
 	// Embed data preloading
-	@:noCompletion public static var embeds:Int = 0;
+	@:noCompletion public static var embeds:Int;
 	@:noCompletion public static function loadEmbed(o:Element) {
-		embeds++;
+		embeds = (embeds != null ? embeds : 0) + 1;
 		var f = null;
 		f = function(_) {
 			o.removeEventListener("load", f);
@@ -52,7 +52,7 @@ class ApplicationMain {
 	}
 	
 	public static function main() {
-		if (embeds == 0) preload();
+		if (embeds == null || embeds == 0) preload();
 	}
 
 	private static function preload() {

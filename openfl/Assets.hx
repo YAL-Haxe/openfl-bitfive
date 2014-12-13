@@ -667,10 +667,10 @@ class Assets {
 			fields.push({
 				name: "image",
 				access: [APrivate, AStatic],
-				kind: FVar(macro:js.html.ImageElement),
+				kind: FVar(macro:js.html.Image),
 				pos: mpos
 			});
-			// private static function preload():Void (image = ..).src = "data:image/...";
+			// private static function preload():Void { ... }
 			fields.push({
 				name: "preload",
 				access: [APrivate, AStatic],
@@ -679,9 +679,8 @@ class Assets {
 					ret: null,
 					expr: macro {
 						var o:js.html.Image = untyped document.createElement("img");
-						ApplicationMain.loadEmbed(o);
+						ApplicationMain.loadEmbed(image = o);
 						o.src = $v{b64};
-						image = o;
 					}, params: []
 				}), pos: mpos
 			});

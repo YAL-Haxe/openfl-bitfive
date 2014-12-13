@@ -136,9 +136,10 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	//{
 	private function __applyType(v:Bool) {
 		var c:Element = component;
+		var s:String = text;
 		if (__editable = v) {
 			var e:TextAreaElement = cast Lib.jsNode(multiline ? "textarea" : "input");
-			e.value = text;
+			e.value = s;
 			e.maxLength = maxChars > 0 ? maxChars : 2147483647;
 			var s:CSSStyleDeclaration = e.style;
 			s.border = "0";
