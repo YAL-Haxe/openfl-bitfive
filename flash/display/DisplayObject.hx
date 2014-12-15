@@ -132,7 +132,10 @@ class DisplayObject extends EventWrapper {
 		} return v;
 	}
 	private function set_visible(v:Bool):Bool {
-		component.style.display = (visible = v) ? null : "none";
+		if (visible != v) {
+			visible = v;
+			component.style.display = v ? "" : "none";
+		}
 		return v;
 	}
 	private function set_scrollRect(v:Rectangle):Rectangle {
