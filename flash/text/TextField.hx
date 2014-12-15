@@ -259,17 +259,15 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	//}
 	//{ Text measuring
 	private function __measurePre():DivElement {
-		// Copies style and text onto helper element
-		var o = Lib.jsHelper(),
-			s = o.style, q = component.style, i:Int;
-		i = q.length; while (--i >= 0) untyped s[q[i]] = q[q[i]];
+		// Copies style and text into helper element
+		var o:DivElement = Lib.jsHelper();
+		o.setAttribute("style", component.getAttribute("style"));
 		o.innerHTML = component.innerHTML;
 		return o;
 	}
 	private function __measurePost(o:DivElement):Void {
 		// Clears previously set syle and text on given element.
-		var i:Int, s = o.style;
-		i = s.length; while (--i >= 0) untyped s[s[i]] = "";
+		o.setAttribute("style", "");
 		o.innerHTML = "";
 	}
 	private function get_textWidth():Float {
@@ -301,7 +299,9 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		var f = __autoSize;
 		var s = component.style;
 		if (f >= 0 && !__editable) {
-			s.left = ((qWidth - get_textWidth()) * f / 2) + "px";
+			if (f > 0) {
+				s.left = ((qWidth - get_textWidth()) * f / 2) + "px";
+			} else s.left = "";
 			s.width = "";
 			s.height = "";
 		} else {
