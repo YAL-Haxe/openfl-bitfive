@@ -1,4 +1,5 @@
 package flash.display;
+import openfl.events.TouchEvent;
 #if js
 import flash.events.Event;
 import flash.events.EventWrapper;
@@ -244,21 +245,6 @@ class DisplayObject extends EventWrapper {
 	static private var routedEvents:Map<String, Int>;
 	override public function addEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
 		super.addEventListener(type, listener, useCapture, priority, weak);
-		/*if (remapTouch.exists(type)) {
-			var f = function(e:js.html.TouchEvent):Void {
-				var n = new flash.events.MouseEvent(type, e.bubbles, e.cancelable, 0, 0, cast this,
-					e.ctrlKey, e.altKey, e.shiftKey, false), l = e.targetTouches;
-				if (l.length > 0) {
-					untyped n.pageX = l[0].pageX;
-					untyped n.pageY = l[0].pageY;
-				} else {
-					untyped n.pageX = stage.mousePos.x;
-					untyped n.pageY = stage.mousePos.y;
-				}
-				dispatchEvent(n);
-			};
-			super.addEventListener(remapTouch.get(type), f, useCapture, priority, weak);
-		}*/
 	}
 	/**
 	 * This method of fair complication handles routing of mouse events through the DOM tree.
@@ -272,9 +258,10 @@ class DisplayObject extends EventWrapper {
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
 		if (!visible) return false;
 		var o:DisplayObject, t:String = e.type, m:Matrix, m2:Matrix, d:Int = h.length, l:Int, x:Float, y:Float;
-		if (hasEventListener(t) || (t == MouseEvent.MOUSE_MOVE && (
+		// Note: Flash behaviour is to hit-test everything, although this is costly. 
+		if (true/*hasEventListener(t) || (t == MouseEvent.MOUSE_MOVE && (
 		hasEventListener(t = MouseEvent.MOUSE_OVER) ||
-		hasEventListener(t = MouseEvent.MOUSE_OUT)))) {
+		hasEventListener(t = MouseEvent.MOUSE_OUT)))*/) {
 			h.push(this);
 			m = mc.length > 0 ? mc.pop() : new Matrix();
 			// Lazy exploration: matrices are only calculated if actually needed:
@@ -293,10 +280,8 @@ class DisplayObject extends EventWrapper {
 			}
 			// Transform mouse coordinates from global to local:
 			m.copy(ms[d]);
-			//Lib.trace(m.toString());
 			x = e.stageX * m.a + e.stageY * m.c + m.tx;
 			y = e.stageX * m.b + e.stageY * m.d + m.ty;
-			//Lib.trace(e.stageX + ' ' + e.stageY + ' -> $x $y');
 			// clean-up:
 			mc.push(m);
 			h.pop();
@@ -307,10 +292,8 @@ class DisplayObject extends EventWrapper {
 					e.localY = y;
 					e.relatedObject = cast this;
 				}
-				if (t == e.type) {
-					dispatchEvent(e);
-					return true;
-				}
+				dispatchEvent(e);
+				return true;
 			}
 		}
 		return false;
@@ -330,15 +313,18 @@ class DisplayObject extends EventWrapper {
 		return Type.getClassName(Type.getClass(this));
 	}
 	//
-	private static function __init__():Void (function() {
+	private static function __init():Void {
 		routedEvents = new Map();
 		var m = [
 			MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_OVER, MouseEvent.MOUSE_OUT,
 			MouseEvent.CLICK, MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_UP,
 			MouseEvent.RIGHT_CLICK, MouseEvent.RIGHT_MOUSE_DOWN, MouseEvent.RIGHT_MOUSE_UP,
 			MouseEvent.MIDDLE_CLICK, MouseEvent.MIDDLE_MOUSE_DOWN, MouseEvent.MIDDLE_MOUSE_UP,
-			MouseEvent.MOUSE_WHEEL], i:Int = -1, l:Int = m.length;
+			MouseEvent.MOUSE_WHEEL,
+			TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_END,
+			], i:Int = -1, l:Int = m.length;
 		while (++i < l) routedEvents.set(m[i], 1);
-	})();
+	}
+	private static function __init__() __init();
 }
 #end

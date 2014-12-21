@@ -226,7 +226,7 @@ class Stage extends DisplayObjectContainer {
 			}
 		}
 		if (!mouseEventPrevent(o, e.pageX, e.pageY)) {
-			_broadcastMouseEvent(new MouseEvent(t));
+			_broadcastMouseEvent(mouseLastEvent = new MouseEvent(t));
 		}
 		#if bitfive_mouseTouches
 		if (!isTouchScreen) {

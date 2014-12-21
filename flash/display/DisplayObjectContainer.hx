@@ -88,11 +88,17 @@ class DisplayObjectContainer extends InteractiveObject {
 	override public function broadcastMouse(h:Array<DisplayObject>, e:flash.events.UIEvent,
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
 		if (!visible) return false;
-		var r:Bool = false, l:Int = children.length, i:Int = children.length;
+		var r:Bool = false;
 		// loop through child nodes, front-to-back:
 		if (mouseChildren) {
 			h.push(this);
-			while (--i >= 0) r = r || children[i].broadcastMouse(h, e, ms, mc);
+			var i:Int = children.length;
+			while (--i >= 0) {
+				if (children[i].broadcastMouse(h, e, ms, mc)) {
+					r = true;
+					break;
+				}
+			}
 			h.pop();
 		}
 		// execute own check if everything fails:

@@ -378,6 +378,7 @@ class Graphics implements IBitmapDrawable implements IGraphics {
 		inline function nextObject():Dynamic return ar[++ap];
 		//
 		if (m == null) _drawMatrix = m = new Matrix();
+		ctx.save();
 		while (ip < il) switch (i = nextInt()) {
 		//case GFX_STOP: break;// ()
 		case GFX_LINESTYLE: // (width:Float, style:String[, cap:Int, join:Int])
@@ -505,6 +506,7 @@ class Graphics implements IBitmapDrawable implements IGraphics {
 			Lib.error(4000 + i, 'Unknown operation $i');
 		}
 		if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
+		ctx.restore();
 	}
 }
 #end
