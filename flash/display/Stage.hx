@@ -54,6 +54,7 @@ class Stage extends DisplayObjectContainer {
 		o.addEventListener("mouseup", onMouse);
 		o.addEventListener("mousemove", onMouse);
 		o.addEventListener("mousewheel", onWheel);
+		o.addEventListener("DOMMouseScroll", onWheel);
 		// touch events (to prevent scrolling and to track mouse position):
 		o.addEventListener("touchmove", getOnTouch(0));
 		o.addEventListener("touchstart", getOnTouch(1));
@@ -192,7 +193,13 @@ class Stage extends DisplayObjectContainer {
 	private function onWheel(e:js.html.WheelEvent):Void {
 		var f:MouseEvent = _translateMouseEvent(e, MouseEvent.MOUSE_WHEEL);
 		// approximation (Flash counts lines, HTML5 counts pixels):
-		f.delta = Math.round(e.wheelDelta / 40);
+		var d:Int = e.wheelDelta;
+		if (d != null) {
+			if (Math.abs(d) > 40) {
+				d = Math.round(d / 40);
+			} else d = d < 0 ? -1 : d > 0 ? 1 : 0;
+		} else d = -e.detail;
+		f.delta = d;
 		mousePos.setTo(e.pageX, e.pageY);
 		_broadcastMouseEvent(f);
 	}
