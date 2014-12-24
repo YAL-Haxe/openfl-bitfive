@@ -370,7 +370,6 @@ class BitmapData implements IBitmapDrawable {
 				i += 4;
 			}
 			qContext.putImageData(d, qx, qy);
-			trace("?");
 		} else {
 			u = qImageData.data;
 			while (qh-- > 0) {
