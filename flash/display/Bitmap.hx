@@ -2,8 +2,10 @@ package flash.display;
 #if js
 class Bitmap extends DisplayObject implements IBitmapDrawable {
 	public var bitmapData(default, set):BitmapData;
-	public var smoothing(default, set):Bool = false;
-	//public var pixelSnapping
+	/// Cannot be properly implemented at the moment. Please use the BitmapData.draw() parameter.
+	public var smoothing:Bool = false;
+	/// Has no effect.
+	public var pixelSnapping:Bool = false;
 	public function new(?bitmapData:BitmapData, ?pixelSnapping:Dynamic, smoothing:Bool = false) {
 		super();
 		this.bitmapData = bitmapData;
@@ -17,22 +19,11 @@ class Bitmap extends DisplayObject implements IBitmapDrawable {
 		}
 		return bitmapData = v;
 	}
-	private function set_smoothing(v:Bool):Bool {
-		var o = bitmapData.qContext;
-		untyped {
-			o.imageSmoothingEnabled = 
-			o.oImageSmoothingEnabled = 
-			o.msImageSmoothingEnabled = 
-			o.webkitImageSmoothingEnabled =
-			o.mozImageSmoothingEnabled = v;
-		}
-		return v;
-	}
 	override private function get_width():Float {
-		return qWidth != null ? qWidth : bitmapData != null ? bitmapData.width : 0;
+		return __width != null ? __width : bitmapData != null ? bitmapData.width : 0;
 	}
 	override private function get_height():Float {
-		return qHeight != null ? qHeight : bitmapData != null ? bitmapData.height : 0;
+		return __height != null ? __height : bitmapData != null ? bitmapData.height : 0;
 	}
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
 	?matrix:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,

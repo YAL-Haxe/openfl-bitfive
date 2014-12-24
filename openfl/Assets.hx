@@ -699,7 +699,7 @@ class Assets {
 			/* public function new():Void {
 				 * var o:ImageElement = image;
 				 * super(o.width, o.height, true, 0);
-				 * qContext.drawImage(o, 0, 0);
+				 * __context.drawImage(o, 0, 0);
 			 * }
 			 */
 			fields.push({
@@ -715,7 +715,7 @@ class Assets {
 					expr: macro {
 						var o:js.html.ImageElement = image;
 						super(o.width, o.height, true, 0);
-						qContext.drawImage(o, 0, 0);
+						__context.drawImage(o, 0, 0);
 					}, params: []
 				}), pos: mpos
 			});	

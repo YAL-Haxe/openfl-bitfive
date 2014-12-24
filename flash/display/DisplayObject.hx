@@ -37,9 +37,9 @@ class DisplayObject extends EventWrapper {
 	public var mouseX(get, null):Float;
 	public var mouseY(get, null):Float;
 	//
-	private var _stage:Stage;
-	private var qWidth:Null<Float>;
-	private var qHeight:Null<Float>;
+	private var __stage:Stage;
+	private var __width:Null<Float>;
+	private var __height:Null<Float>;
 	//
 	public function new() {
 		super();
@@ -112,19 +112,20 @@ class DisplayObject extends EventWrapper {
 			scaleY = v; syncMtx();
 		} return v;
 	}
-	//
-	private function get_width():Float { return untyped qWidth || 0; }
-	private function get_height():Float { return untyped qHeight || 0; }
+	//{ For Flash behaviour, these two functions need to measure bounding boxes
+	private function get_width():Float { return untyped __width || 0; }
+	private function get_height():Float { return untyped __height || 0; }
+	//}
 	private function set_width(v:Float):Float {
 		var q = width;
 		scaleX = (q == 0 || q == null) ? 1 : v / q;
-		qWidth = v;
+		__width = v;
 		return v;
 	}
 	private function set_height(v:Float):Float {
 		var q = height;
 		scaleY = (q == 0 || q == null) ? 1 : v / q;
-		qHeight = v;
+		__height = v;
 		return v;
 	}
 	private function set_alpha(v:Float):Float {
@@ -145,11 +146,11 @@ class DisplayObject extends EventWrapper {
 	}
 	//
 	
-	private function get_stage():Stage { return _stage; }
+	private function get_stage():Stage { return __stage; }
 	private function set_stage(v:Stage):Stage {
-		if (_stage != v) {
-			var z = (_stage != null) != (v != null);
-			_stage = v;
+		if (__stage != v) {
+			var z = (__stage != null) != (v != null);
+			__stage = v;
 			if (z) dispatchEvent(new Event(v != null
 				? Event.ADDED_TO_STAGE : Event.REMOVED_FROM_STAGE));
 		}

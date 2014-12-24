@@ -21,21 +21,6 @@ typedef LoadData = {
 	var bitmapData:BitmapData;
 }
 
-class ImageDataLease {
-	public var seed:Float;
-	public var time:Float;
-	public function new () {}
-	public function set(s,t) { 
-		this.seed = s; 
-		this.time = t; 
-	}
-	public function clone() {
-		var leaseClone = new ImageDataLease();
-		leaseClone.seed = seed;
-		leaseClone.time = time;
-		return leaseClone;
-	}
-}
 /**
  * Status: Almost there!
  * Most functions work correctly.
@@ -45,46 +30,46 @@ class ImageDataLease {
 @:autoBuild(openfl.Assets.embedBitmap())
 class BitmapData implements IBitmapDrawable {
 	public var component:CanvasElement;
-	public var qContext:CanvasRenderingContext2D;
-
 	public var width(get, null):Int;
 	public var height(get, null):Int;
 	public var transparent(get, null):Bool;
-	public var rect:Rectangle;
-
-	// qSync flags
-	/** 0x1 Indicates that Canvas represents current state */
+	//{
+	public var rect(get, null):Rectangle;
+	inline function get_rect() return __rect.clone();
+	private var __rect:Rectangle;
+	//}
+	private var __context:CanvasRenderingContext2D;
+	private var __imageData:ImageData;
+	/// A single-pixel ImageData for setPixel/setPixel32
+	private var __pixelData:ImageData;
+	
+	//{ __sync flags:
+	/// Indicates that Canvas represents the current state
 	@:extern private static inline var SY_CANVAS = 0x1;
-	/** 0x2 Indicates that ImageData represents current state */
+	/// Indicates that ImageData represents the current state
 	@:extern private static inline var SY_IMDATA = 0x2;
-	/** 0x4 Indicates that state has changed */
+	/// Indicates that the state has changed
 	@:extern private static inline var SY_CHANGE = 0x4;
-	/** 0x3 Mask for checking current type */
+	/// A bit mask for checking for the current type (Canvas/ImageData)
 	@:extern private static inline var SM_TYPE = 0x3;
-	/** A pointer to current imageData object */
-	var qImageData:ImageData;
-	/** Modification flags (1: canvas; 2: imageData; 4: changed) */
-	var qSync:Int;
+	//}
+	private var __sync:Int;
 	/** Indicates if bitmap's background is transparent */
-	var qTransparent:Bool;
-	/** Time (Date.getTime()) of last change to canvas */
-	var qTime:Float;
-	/** Seed (not right term?) of last change to canvas */
-	var qTick:Int;
-	/** Single-pixel image-data. Could be static too */
-	var qPixel:ImageData;
+	private var __transparent:Bool;
+	/** Incremented on retrieving canvas. Not actually used anywhere. */
+	private var __revision:Int;
 	/**
+	 * Creates a new BitmapData
 	 * @param	w	Width
 	 * @param	h	Height
 	 * @param	?t	Transparent background
 	 * @param	?c	Fill color
 	 */
 	public function new(w:Int, h:Int, ?t:Bool = true, ?c:Int) {
-		qSync = 1;
-		qTransparent = t;
-		qTick = 0;
-		qTime = Date.now().getTime();
-		rect = new Rectangle(0, 0, w, h);
+		__sync = 1;
+		__transparent = t;
+		__revision = 0;
+		__rect = new Rectangle(0, 0, w, h);
 		// create canvas:
 		component = flash.Lib.jsCanvas();
 		#if debug
@@ -92,68 +77,65 @@ class BitmapData implements IBitmapDrawable {
 		#end
 		component.width = w;
 		component.height = h;
-		qContext = component.getContext('2d');
-		setSmoothing(qContext, true);
-		qPixel = qContext.createImageData(1, 1);
+		__context = component.getContext('2d');
+		setSmoothing(__context, true);
+		__pixelData = __context.createImageData(1, 1);
 		// fill with white by default:
 		if (c == null) c = 0xFFFFFFFF;
 		// make fill opaque if not transparent:
 		if (!t) c |= 0xFF000000;
 		// if context must be filled:
 		if ((c & 0xFF000000) != 0) {
-			fillRect(rect, c);
+			fillRect(__rect, c);
 		}
 	}
 	public function fillRect(area:Rectangle, color:Int):Void {
 		// common useless operation check:
 		if (area == null || area.width <= 0 || area.height <= 0) return;
 		// trick for clearing canvas fast:
-		if (area.equals(rect) && qTransparent && ((color & 0xFF000000) == 0)) {
+		if (area.equals(__rect) && __transparent && ((color & 0xFF000000) == 0)) {
 			component.width = component.width;
 			return;
 		}
-		if (!qTransparent) {
+		if (!__transparent) {
 			// rectangles are opaque on non-transparent bitmaps
 			color |= 0xFF000000;
 		} else if ((color & 0xFF000000) != 0xFF000000) {
 			// clear what was below the rectangle in transparent ones
-			qContext.clearRect(area.x, area.y, area.width, area.height);
+			__context.clearRect(area.x, area.y, area.width, area.height);
 		}
 		// now actually just draw a rectangle:
 		if ((color & 0xFF000000) != 0) {
-			qContext.fillStyle = makeColor(color);
-			qContext.fillRect(area.x, area.y, area.width, area.height);
+			__context.fillStyle = makeColor(color);
+			__context.fillRect(area.x, area.y, area.width, area.height);
 		}
-		qSync |= SY_CANVAS | SY_CHANGE;
+		__sync |= SY_CANVAS | SY_CHANGE;
 	}
 	//
 	public function clone():BitmapData {
 		syncCanvas();
-		var r:BitmapData = new BitmapData(width, height, qTransparent, 0x0);
-		r.qContext.drawImage(component, 0, 0);
-		r.qSync |= SY_CANVAS | SY_CHANGE;
+		var r:BitmapData = new BitmapData(width, height, __transparent, 0x0);
+		r.__context.drawImage(component, 0, 0);
+		r.__sync |= SY_CANVAS | SY_CHANGE;
 		return r;
 	}
 	public function dispose():Void {
 		component.width = component.height = 1;
-		qImageData = null;
-		qSync = SY_CANVAS | SY_CHANGE;
+		__imageData = null;
+		__sync = SY_CANVAS | SY_CHANGE;
 	}
 	public function handle():CanvasElement {
 		syncCanvas();
-		if ((qSync & SY_CHANGE) != 0) {
-			qTick++;
-			qTime = Date.now().getTime();
-			qSync &= ~SY_CHANGE;
+		if ((__sync & SY_CHANGE) != 0) {
+			__revision++;
+			__sync &= ~SY_CHANGE;
 		}
 		return component;
 	}
-	private inline function getTime():Float { return qTime; }
-	private inline function getTick():Int { return qTick; }
 	//
 	@:extern private inline function get_width():Int return component.width;
 	@:extern private inline function get_height():Int return component.height;
-	@:extern private inline function get_transparent():Bool return qTransparent;
+	@:extern private inline function get_transparent():Bool return __transparent;
 	//
 	public function drawToSurface(cnv:CanvasElement, ctx:CanvasRenderingContext2D,
 	?matrix:Matrix, ?ctr:ColorTransform, ?blendMode:BlendMode,
@@ -204,40 +186,40 @@ class BitmapData implements IBitmapDrawable {
 		// drawing nothing may crash some browsers:
 		if (sw <= 0 || sh <= 0) return;
 		// clear area before drawing if needed:
-		if (qTransparent && !mergeAlpha) {
-			qContext.clearRect(dx, dy, sw, sh);
+		if (__transparent && !mergeAlpha) {
+			__context.clearRect(dx, dy, sw, sh);
 		}
 		// draw:
-		qContext.drawImage(bit, sx, sy, sw, sh, dx, dy, sw, sh);
+		__context.drawImage(bit, sx, sy, sw, sh, dx, dy, sw, sh);
 		//
-		qSync |= SY_CANVAS | SY_CHANGE;
+		__sync |= SY_CANVAS | SY_CHANGE;
 	}
 	public function draw(source:IBitmapDrawable, ?matrix:Matrix,
 			?colorTransform:ColorTransform, ?blendMode:Dynamic,
 			?clipRect:Rectangle, ?smoothing):Void {
 		syncCanvas();
 		var a:Float = 0;
-		qContext.save();
+		__context.save();
 		if (colorTransform != null) {
 			// currently only alpha channel of colorTransforms is supported.
 			// use .colorTransform to "bake" colored versions.
 			a = colorTransform.alphaMultiplier;
 			colorTransform.alphaMultiplier = 1;
-			qContext.globalAlpha *= a;
+			__context.globalAlpha *= a;
 		}
 		if (clipRect != null) {
-			qContext.beginPath();
-			qContext.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
-			qContext.clip();
-			qContext.beginPath();
+			__context.beginPath();
+			__context.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
+			__context.clip();
+			__context.beginPath();
 		}
-		if (smoothing != null) setSmoothing(qContext, smoothing);
-		source.drawToSurface(handle(), qContext, matrix, colorTransform, blendMode, clipRect, null);
-		qContext.restore();
+		if (smoothing != null) setSmoothing(__context, smoothing);
+		source.drawToSurface(handle(), __context, matrix, colorTransform, blendMode, clipRect, null);
+		__context.restore();
 		if (colorTransform != null) {
 			colorTransform.alphaMultiplier = a;
 		}
-		qSync |= SY_CANVAS | SY_CHANGE;
+		__sync |= SY_CANVAS | SY_CHANGE;
 	}
 	public static function setSmoothing(o:CanvasRenderingContext2D, v:Bool):Void {
 		untyped o.imageSmoothingEnabled = 
@@ -256,7 +238,7 @@ class BitmapData implements IBitmapDrawable {
 	public function hitTestLocal(x:Float, y:Float):Bool {
 		if (x >= 0 && y >= 0 && x < width && y < height) {
 			try {
-				return qContext.getImageData(x, y, 1, 1).data[3] != 0;
+				return __context.getImageData(x, y, 1, 1).data[3] != 0;
 			} catch (_:Dynamic) {
 				return true;
 			}
@@ -266,60 +248,60 @@ class BitmapData implements IBitmapDrawable {
 	public function getPixel(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
 		if (!hasImData()) {
-			var d = qContext.getImageData(x, y, 1, 1).data;
+			var d = __context.getImageData(x, y, 1, 1).data;
 			return (d[0] << 16) | (d[1] << 8) | d[2];
 		} else {
 			var o = (y * width + x) << 2;
-			return (qImageData.data[o] << 16) | (qImageData.data[o + 1] << 8) | qImageData.data[o + 2];
+			return (__imageData.data[o] << 16) | (__imageData.data[o + 1] << 8) | __imageData.data[o + 2];
 		}
 	}
 	public function getPixel32(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
 		if (!hasImData()) {
-			var d = qContext.getImageData(x, y, 1, 1).data;
-			return (qTransparent ? d[3] << 24 : 0xFF000000) | (d[0] << 16) | (d[1] << 8) | d[2];
+			var d = __context.getImageData(x, y, 1, 1).data;
+			return (__transparent ? d[3] << 24 : 0xFF000000) | (d[0] << 16) | (d[1] << 8) | d[2];
 		} else {
 			var o = (y * width + x) << 2;
-			return (qTransparent ? qImageData.data[o + 3] << 24 : 0xFF000000)
-			| (qImageData.data[o] << 16)
-			| (qImageData.data[o + 1] << 8)
-			| qImageData.data[o + 2];
+			return (__transparent ? __imageData.data[o + 3] << 24 : 0xFF000000)
+			| (__imageData.data[o] << 16)
+			| (__imageData.data[o + 1] << 8)
+			| __imageData.data[o + 2];
 		}
 	}
 	public function setPixel(x:Int, y:Int, color:Int):Void {
 		if (x < 0 || y < 0 || x >= width || y >= height) return;
 		if (hasCanvas()) {
-			qPixel.data[0] = (color >>> 16) & 0xFF;
-			qPixel.data[1] = (color >>> 8) & 0xFF;
-			qPixel.data[2] = color & 0xFF;
-			qPixel.data[3] = 0xFF;
-			qContext.putImageData(qPixel, x, y);
-			qSync |= SY_CHANGE | SY_CANVAS;
+			__pixelData.data[0] = (color >>> 16) & 0xFF;
+			__pixelData.data[1] = (color >>> 8) & 0xFF;
+			__pixelData.data[2] = color & 0xFF;
+			__pixelData.data[3] = 0xFF;
+			__context.putImageData(__pixelData, x, y);
+			__sync |= SY_CHANGE | SY_CANVAS;
 		} else {
 			var o = (y * width + x) << 2;
-			qImageData.data[o] = (color >>> 16) & 0xFF;
-			qImageData.data[o+1] = (color >>> 8) & 0xFF;
-			qImageData.data[o+2] = color & 0xFF;
-			qImageData.data[o+3] = 0xFF;
-			qSync |= SY_CHANGE | SY_IMDATA;
+			__imageData.data[o] = (color >>> 16) & 0xFF;
+			__imageData.data[o+1] = (color >>> 8) & 0xFF;
+			__imageData.data[o+2] = color & 0xFF;
+			__imageData.data[o+3] = 0xFF;
+			__sync |= SY_CHANGE | SY_IMDATA;
 		}
 	}
 	public function setPixel32(x:Int, y:Int, color:Int):Void {
 		if (x < 0 || y < 0 || x >= width || y >= height) return;
 		if (hasCanvas()) {
-			qPixel.data[0] = (color >>> 16) & 0xFF;
-			qPixel.data[1] = (color >>> 8) & 0xFF;
-			qPixel.data[2] = color & 0xFF;
-			qPixel.data[3] = (color >>> 24) & 0xFF;
-			qContext.putImageData(qPixel, x, y);
-			qSync |= SY_CHANGE | SY_CANVAS;
+			__pixelData.data[0] = (color >>> 16) & 0xFF;
+			__pixelData.data[1] = (color >>> 8) & 0xFF;
+			__pixelData.data[2] = color & 0xFF;
+			__pixelData.data[3] = (color >>> 24) & 0xFF;
+			__context.putImageData(__pixelData, x, y);
+			__sync |= SY_CHANGE | SY_CANVAS;
 		} else {
 			var o = (y * width + x) << 2;
-			qImageData.data[o] = (color >>> 16) & 0xFF;
-			qImageData.data[o+1] = (color >>> 8) & 0xFF;
-			qImageData.data[o+2] = color & 0xFF;
-			qImageData.data[o+3] = (color >>> 24) & 0xFF;
-			qSync |= SY_CHANGE | SY_IMDATA;
+			__imageData.data[o] = (color >>> 16) & 0xFF;
+			__imageData.data[o+1] = (color >>> 8) & 0xFF;
+			__imageData.data[o+2] = color & 0xFF;
+			__imageData.data[o+3] = (color >>> 24) & 0xFF;
+			__sync |= SY_CHANGE | SY_IMDATA;
 		}
 	}
 	public function getPixels(q:Rectangle):ByteArray {
@@ -331,13 +313,13 @@ class BitmapData implements IBitmapDrawable {
 		r.length = l;
 		v = r.data;
 		if (!hasImData()) {
-			d = qContext.getImageData(qx, qy, qw, qh);
+			d = __context.getImageData(qx, qy, qw, qh);
 			u = d.data;
 			while (i < l) {
 				r.writeUnsignedInt((u[i++] << 16) | (u[i++] << 8) | u[i++] | (u[i++] << 24));
 			}
 		} else {
-			u = qImageData.data;
+			u = __imageData.data;
 			if (qx == 0 && qy == 0 && qw == width && qh == height) {
 				while (i < l) {
 					r.writeUnsignedInt((u[i++] << 16) | (u[i++] << 8) | u[i++] | (u[i++] << 24));
@@ -359,7 +341,7 @@ class BitmapData implements IBitmapDrawable {
 			i:Int = 0, j:Int, l:Int = qw * qh * 4, p:Int, w:Int = width,
 			d:ImageData, u:Uint8ClampedArray;
 		if (hasCanvas()) {
-			d = qContext.createImageData(qw, qh);
+			d = __context.createImageData(qw, qh);
 			u = d.data;
 			while (i < l) {
 				p = r.readUnsignedInt();
@@ -369,9 +351,9 @@ class BitmapData implements IBitmapDrawable {
 				u[i + 3] = (p >>> 24) & 255;
 				i += 4;
 			}
-			qContext.putImageData(d, qx, qy);
+			__context.putImageData(d, qx, qy);
 		} else {
-			u = qImageData.data;
+			u = __imageData.data;
 			while (qh-- > 0) {
 				i = (qx + (qy++) * w) * 4;
 				j = qw;
@@ -388,11 +370,11 @@ class BitmapData implements IBitmapDrawable {
 	}
 	public function getColorBoundsRect(mask:Int, color:Int, findColor:Bool = true):Rectangle {
 		syncData();
-		var data:Uint8ClampedArray = qImageData.data;
+		var data:Uint8ClampedArray = __imageData.data;
 		var minX = width, minY = height, maxX = 0, maxY = 0, len = data.length, i, px, x, y;
 		i = 0;
 		while (i < len) {
-			px = (qTransparent ? data[i + 3] << 24 : 0xFF000000)
+			px = (__transparent ? data[i + 3] << 24 : 0xFF000000)
 			| ((data[i] & 0xFF) << 16) | ((data[i + 1] & 0xFF) << 8) | (data[i + 2] & 0xFF);
 			if ((px == color) == findColor) {
 				x = Math.floor((i >> 2) % width);
@@ -415,7 +397,7 @@ class BitmapData implements IBitmapDrawable {
 		lock();
 		var q:Array<Int> = [fx | (fy << 16)], // queue
 			c:Int = 1, // length of queue
-			d:Uint8ClampedArray = qImageData.data,
+			d:Uint8ClampedArray = __imageData.data,
 			zr:Int, zg:Int, zb:Int, za:Int, // start color
 			fr:Int, fg:Int, fb:Int, fa:Int, // fill color
 			x:Int, y:Int, p:Int, // x, y, pointer/swap variable
@@ -461,7 +443,7 @@ class BitmapData implements IBitmapDrawable {
 				if (y > 0 && (((o[(p = y - 1)][x >> 5] >> (x & 31)) & 1) == 0)) q[c++] = (p << 16) | x;
 			}
 		}
-		qSync |= SY_CHANGE | SY_IMDATA;
+		__sync |= SY_CHANGE | SY_IMDATA;
 		if (wasCanvas) unlock();
 	}
 	public function colorTransform(q:Rectangle, o:ColorTransform):Void {
@@ -469,7 +451,7 @@ class BitmapData implements IBitmapDrawable {
 		var x:Int = untyped ~~q.x, y:Int = untyped ~~q.y,
 			w:Int = untyped ~~q.width, h:Int = untyped ~~q.height,
 			tw:Int = this.width, th:Int = this.height,
-			f:String = qContext.globalCompositeOperation, a:Float = qContext.globalAlpha;
+			f:String = __context.globalCompositeOperation, a:Float = __context.globalAlpha;
 		// Recoloring something outside bounds may be a bad idea:
 		if (x < 0) { w += x; x = 0; }
 		if (y < 0) { h += y; y = 0; }
@@ -482,36 +464,36 @@ class BitmapData implements IBitmapDrawable {
 			// "Oh, the easy case!"
 			syncCanvas();
 			// May need to use an extra canvas if GCO is not supported?
-			qContext.globalCompositeOperation = "copy";
-			qContext.globalAlpha *= o.alphaMultiplier;
-			qContext.drawImage(component, x, y, w, h, x, y, w, h);
+			__context.globalCompositeOperation = "copy";
+			__context.globalAlpha *= o.alphaMultiplier;
+			__context.drawImage(component, x, y, w, h, x, y, w, h);
 			//
-			qSync |= 5;
+			__sync |= 5;
 		} else if (o.isColorSetter()) {
 			// 
-			var s = qContext.fillStyle;
+			var s = __context.fillStyle;
 			if (o.alphaMultiplier != 0) {
 				// replace, multiply
-				qContext.globalCompositeOperation = "source-in";
-				qContext.fillStyle = untyped "rgb(" + ~~o.redOffset + "," + ~~o.greenOffset
+				__context.globalCompositeOperation = "source-in";
+				__context.fillStyle = untyped "rgb(" + ~~o.redOffset + "," + ~~o.greenOffset
 					+ "," + ~~o.blueOffset + ")";
-				qContext.fillRect(x, y, w, h);
-				qContext.globalCompositeOperation = "copy";
-				qContext.globalAlpha = o.alphaMultiplier;
-				qContext.drawImage(component, x, y, w, h, x, y, w, h);
+				__context.fillRect(x, y, w, h);
+				__context.globalCompositeOperation = "copy";
+				__context.globalAlpha = o.alphaMultiplier;
+				__context.drawImage(component, x, y, w, h, x, y, w, h);
 			} else {
 				// replace
-				qContext.globalCompositeOperation = "copy";
-				qContext.fillStyle = untyped "rgba(" + ~~o.redOffset + "," + ~~o.greenOffset
+				__context.globalCompositeOperation = "copy";
+				__context.fillStyle = untyped "rgba(" + ~~o.redOffset + "," + ~~o.greenOffset
 					+ "," + ~~o.blueOffset + "," + ~~o.alphaOffset + ")";
-				qContext.fillRect(x, y, w, h);
+				__context.fillRect(x, y, w, h);
 			}
-			qContext.fillStyle = s;
+			__context.fillStyle = s;
 		} else {
 			// the long way around
 			var wasCanvas = hasCanvas();
 			lock();
-			var d:Uint8ClampedArray = qImageData.data,
+			var d:Uint8ClampedArray = __imageData.data,
 				c:Int = tw * th * 4, i:Int = c, v:Int,
 				rm:Float = o.redMultiplier, gm:Float = o.greenMultiplier,
 				bm:Float = o.blueMultiplier, am:Float = o.alphaMultiplier,
@@ -538,11 +520,11 @@ class BitmapData implements IBitmapDrawable {
 					}
 				}
 			}
-			qSync |= SY_CHANGE | SY_IMDATA;
+			__sync |= SY_CHANGE | SY_IMDATA;
 			if (wasCanvas) unlock();
 		}
-		qContext.globalCompositeOperation = f;
-		qContext.globalAlpha = a;
+		__context.globalCompositeOperation = f;
+		__context.globalAlpha = a;
 	}
 	public function copyChannel(o:BitmapData, q:Rectangle, p:Point,
 	sourceChannel:Int, destChannel:Int):Void {
@@ -567,25 +549,25 @@ class BitmapData implements IBitmapDrawable {
 		//
 		if (sc == BitmapDataChannel.ALPHA && dc == BitmapDataChannel.ALPHA) {
 			// ridiculous, but still 10x faster than ImageData...
-			var f = qContext.globalCompositeOperation, s = qContext.fillStyle;
+			var f = __context.globalCompositeOperation, s = __context.fillStyle;
 			// draw image into itself 8 times to max out opacity:
-			qContext.globalCompositeOperation = "darker";
+			__context.globalCompositeOperation = "darker";
 			i = 0; while (i++ < 8)
-			qContext.drawImage(component, px, py, w, h, px, py, w, h);
+			__context.drawImage(component, px, py, w, h, px, py, w, h);
 			// replace fully transparent areas with black (flash behaviour):
-			qContext.globalCompositeOperation = "destination-over";
-			qContext.fillStyle = "black";
-			qContext.fillRect(x, y, w, h);
+			__context.globalCompositeOperation = "destination-over";
+			__context.fillStyle = "black";
+			__context.fillRect(x, y, w, h);
 			// "multiply" alpha channels of images:
-			qContext.globalCompositeOperation = "destination-atop";
-			qContext.drawImage(o.handle(), x, y, w, h, px, py, w, h);
+			__context.globalCompositeOperation = "destination-atop";
+			__context.drawImage(o.handle(), x, y, w, h, px, py, w, h);
 			// restore state:
-			qContext.globalCompositeOperation = f;
-			qContext.fillStyle = s;
+			__context.globalCompositeOperation = f;
+			__context.fillStyle = s;
 		} else {
 			var wasCanvas = hasCanvas(), ds:Uint8ClampedArray, dd:Uint8ClampedArray;
-			lock(); dd = qImageData.data;
-			o.lock(); ds = o.qImageData.data;
+			lock(); dd = __imageData.data;
+			o.lock(); ds = o.__imageData.data;
 			// find channel offsets:
 			sc = sc == 8 ? 3 : sc == 4 ? 2 : sc == 2 ? 1 : sc == 1 ? 0 : -1;
 			dc = dc == 8 ? 3 : dc == 4 ? 2 : dc == 2 ? 1 : dc == 1 ? 0 : -1;
@@ -602,7 +584,7 @@ class BitmapData implements IBitmapDrawable {
 					i += 4; u += 4;
 				}
 			}
-			qSync |= SY_CHANGE | SY_IMDATA;
+			__sync |= SY_CHANGE | SY_IMDATA;
 			if (wasCanvas) unlock();
 		}
 	}
@@ -617,7 +599,7 @@ class BitmapData implements IBitmapDrawable {
 		inline function rand():Int return z = (z * 16807) % 2147483647;
 		// Lock and process:
 		lock();
-		p = qImageData.data;
+		p = __imageData.data;
 		n = p.length;
 		while (i < n) {
 			if (m) { // grayscale/monochrome
@@ -632,7 +614,7 @@ class BitmapData implements IBitmapDrawable {
 			p[i++] = a ? l + rand() % d : 255;
 		}
 		//
-		qSync |= SY_CHANGE | SY_IMDATA;
+		__sync |= SY_CHANGE | SY_IMDATA;
 		if (wasCanvas) unlock();
 	}
 	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:flash.geom.Rectangle,
@@ -652,7 +634,7 @@ class BitmapData implements IBitmapDrawable {
 
 		data.bitmapData.width = width;
 		data.bitmapData.height = height;
-		data.bitmapData.rect = new Rectangle(0,0,width,height);
+		data.bitmapData.__rect = new Rectangle(0,0,width,height);
 
 		if (data.inLoader != null) {
 			var e = new flash.events.Event( flash.events.Event.COMPLETE );
@@ -683,48 +665,60 @@ class BitmapData implements IBitmapDrawable {
 	// ensures that Canvas element is up-to-date:
 	function syncCanvas():Void {
 		if (!hasCanvas()) {
-			qContext.putImageData(qImageData, 0, 0);
-			qSync = (qSync & 0xFFFFFFFC);
+			__context.putImageData(__imageData, 0, 0);
+			__sync = (__sync & 0xFFFFFFFC);
 		}
 	}
 	// ensures that ImageData is up-to-date:
 	function syncData():Void {
 		if (!hasImData()) {
-			qImageData = qContext.getImageData(0, 0,
+			__imageData = __context.getImageData(0, 0,
 				component.width, component.height);
-			qSync = (qSync & 0xFFFFFFFC);
+			__sync = (__sync & 0xFFFFFFFC);
 		}
 	}
 	
-	@:extern private inline function isImData():Bool { return qSync & SM_TYPE == SY_IMDATA; }
-	@:extern private inline function isCanvas():Bool { return qSync & SM_TYPE == SY_CANVAS; }
-	@:extern private inline function hasImData():Bool { return qSync & SM_TYPE != SY_CANVAS; }
-	@:extern private inline function hasCanvas():Bool { return qSync & SM_TYPE != SY_IMDATA; }
-	// All that goes below is from NME:
-	public static function loadFromBytes(bytes:ByteArray, inRawAlpha:ByteArray = null, onload:BitmapData -> Void) {
+	@:extern private inline function isImData():Bool { return __sync & SM_TYPE == SY_IMDATA; }
+	@:extern private inline function isCanvas():Bool { return __sync & SM_TYPE == SY_CANVAS; }
+	@:extern private inline function hasImData():Bool { return __sync & SM_TYPE != SY_CANVAS; }
+	@:extern private inline function hasCanvas():Bool { return __sync & SM_TYPE != SY_IMDATA; }
+	/**
+	 * 
+	 * @param	bytes	ByteArray containing image bytes (PNG/JPG)
+	 * @param	inRawAlpha	(optional) A ByteArray containing alpha values (bytes) for each pixel of image.
+	 * @param	onload	Callback for when BitmapData is fully loaded.
+	 * @return	Resulting BitmapData. Will remain 0x0 until actually loaded.
+	 */
+	public static function loadFromBytes(bytes:ByteArray, inRawAlpha:ByteArray = null, onload:BitmapData->Void) {
 		var bitmapData = new BitmapData(0, 0);
-		bitmapData.nmeLoadFromBytes(bytes, inRawAlpha, onload);
+		bitmapData.__loadFromBytes(bytes, inRawAlpha, onload);
 		return bitmapData;
 	}
 	
-	private function nmeLoadFromBytes(c:ByteArray, a:ByteArray = null, ?h:BitmapData->Void) {
-		var t:String,
-			o:ImageElement = untyped document.createElement("img"),
-			n:CanvasElement = component,
-			q:CanvasRenderingContext2D,
-			f:Dynamic->Void = null,
-			i:Int, l:Int, p:ImageData;
-		if (!flash.Lib.bool(t = nmeIsPNG(c) ? "png" : nmeIsJPG(c) ? "jpeg" : ""))
-			throw new IOError("BitmapData can only load from ByteArrays with PNG/JPEG data.");
+	private function __loadFromBytes(c:ByteArray, a:ByteArray = null, ?h:BitmapData->Void) {
+		var t:String = null; // type
+		var o:ImageElement = untyped document.createElement("img");
+		var n:CanvasElement = component;
+		var q:CanvasRenderingContext2D;
+		var f:Dynamic->Void = null;
+		var i:Int, l:Int;
+		var p:ImageData;
+		// determine type:
+		if (__isPNG(c)) {
+			t = "png";
+		} else if (__isJPG(c)) {
+			t = "jpeg";
+		} else throw new IOError("BitmapData can only load from ByteArrays with PNG/JPEG data.");
+		//
 		f = function(_) {
 			o.removeEventListener("load", f);
 			//
-			rect.width = n.width = o.width;
-			rect.height = n.height = o.height;
-			q = qContext = n.getContext("2d");
+			__rect.width = n.width = o.width;
+			__rect.height = n.height = o.height;
+			q = __context = n.getContext("2d");
 			//
 			q.drawImage(o, 0, 0);
-			//
+			// load alpha from a 8-bit collection, if provided:
 			if (a != null) {
 				i = -1; l = a.length;
 				p = q.getImageData(0, 0, o.width, o.height);
@@ -737,16 +731,18 @@ class BitmapData implements IBitmapDrawable {
 		o.addEventListener("load", f);
 		o.src = "data:image/" + t + ";base64," + c.toBase64();
 	}
-
-	private static function nmeIsPNG(bytes:ByteArray) {
-		
-		bytes.position = 0;
-		return (bytes.readByte() == 0x89 && bytes.readByte() == 0x50 && bytes.readByte() == 0x4E && bytes.readByte() == 0x47 && bytes.readByte() == 0x0D && bytes.readByte() == 0x0A && bytes.readByte() == 0x1A && bytes.readByte() == 0x0A);
-		
+	/// Returns whether given ByteArray seems to start like a PNG
+	private static function __isPNG(d:ByteArray) {
+		if (d.length < 8) return false;
+		d.position = 0;
+		return (d.readByte() == 0x89 && d.readByte() == 0x50 && d.readByte() == 0x4E && d.readByte() == 0x47
+			&& d.readByte() == 0x0D && d.readByte() == 0x0A && d.readByte() == 0x1A && d.readByte() == 0x0A);
 	}
-	private static function nmeIsJPG(bytes:ByteArray) {
-		bytes.position = 0;
-		return bytes.readByte() == 0xFF && bytes.readByte() == 0xD8;
+	/// Returns whether given ByteArray seems to start like a JPG
+	private static function __isJPG(d:ByteArray) {
+		if (d.length < 2) return false;
+		d.position = 0;
+		return (d.readByte() == 0xFF && d.readByte() == 0xD8);
 	}
 }
 #end

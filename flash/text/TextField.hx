@@ -72,8 +72,8 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			"Times New Roman", 12, 0x000000,
 			false, false, false, "", "",
 			TextFormatAlign.LEFT, 0, 0, 0, 0);
-		qWidth = 100;
-		qHeight = 100;
+		__width = 100;
+		__height = 100;
 		__applySize(3);
 		__applyTextFormat();
 	}
@@ -183,7 +183,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		var n:Int = 1;
 		while (n < 4) {
 			if ((m & n) != 0) {
-				var f:Float = (n == 1) ? qWidth : qHeight;
+				var f:Float = (n == 1) ? __width : __height;
 				if (border) f -= 1;
 				f -= padding2;
 				if (n == 1) {
@@ -230,28 +230,28 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 	//{ Component size
 	override private function get_width():Float {
 		if (__autoSize < 0) {
-			return qWidth;
+			return __width;
 		} else {
 			return get_textWidth();
 		}
 	}
 	override private function get_height():Float {
 		if (__autoSize < 0) {
-			return qHeight;
+			return __height;
 		} else {
 			return get_textHeight();
 		}
 	}
 	override private function set_width(v:Float):Float {
-		if (qWidth != v) {
-			qWidth = v;
+		if (__width != v) {
+			__width = v;
 			__applySize(1);
 		}
 		return v;
 	}
 	override private function set_height(v:Float):Float {
-		if (qHeight != v) {
-			qHeight = v;
+		if (__height != v) {
+			__height = v;
 			__applySize(2);
 		}
 		return v;
@@ -300,7 +300,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		var s = component.style;
 		if (f >= 0 && !__editable) {
 			if (f > 0) {
-				s.left = ((qWidth - get_textWidth()) * f / 2) + "px";
+				s.left = ((__width - get_textWidth()) * f / 2) + "px";
 			} else s.left = "";
 			s.width = "";
 			s.height = "";
