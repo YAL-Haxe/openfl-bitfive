@@ -270,7 +270,7 @@ class BitmapData implements IBitmapDrawable {
 	}
 	public function setPixel(x:Int, y:Int, color:Int):Void {
 		if (x < 0 || y < 0 || x >= width || y >= height) return;
-		if (hasCanvas()) {
+		if (!hasImData()) {
 			__pixelData.data[0] = (color >>> 16) & 0xFF;
 			__pixelData.data[1] = (color >>> 8) & 0xFF;
 			__pixelData.data[2] = color & 0xFF;
@@ -288,7 +288,7 @@ class BitmapData implements IBitmapDrawable {
 	}
 	public function setPixel32(x:Int, y:Int, color:Int):Void {
 		if (x < 0 || y < 0 || x >= width || y >= height) return;
-		if (hasCanvas()) {
+		if (!hasImData()) {
 			__pixelData.data[0] = (color >>> 16) & 0xFF;
 			__pixelData.data[1] = (color >>> 8) & 0xFF;
 			__pixelData.data[2] = color & 0xFF;
