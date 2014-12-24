@@ -101,6 +101,8 @@ class DisplayObjectContainer extends InteractiveObject {
 			}
 			h.pop();
 		}
+		// need to further investigate stack balancing:
+		while (ms.length > h.length) mc.push(ms.pop());
 		// execute own check if everything fails:
 		r = r || super.broadcastMouse(h, e, ms, mc);
 		// clean-up:
