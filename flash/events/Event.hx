@@ -5,6 +5,8 @@ class Event {
 	// from NativeEvent:
 	private var _target:Dynamic;
 	private var _current:Dynamic;
+	/// Original JS event object, if any.
+	public var __jsEvent:js.html.Event;
 	public var target(get, set):Dynamic;
 	private function get_target():Dynamic { return untyped __js__("this._target || this.target"); }
 	private function set_target(v:Dynamic):Dynamic { return _target = v; }
@@ -63,6 +65,7 @@ class Event {
 	}
 	public function preventDefault() {
 		// Actual implementation lies in JS events, where appropriate.
+		if (__jsEvent != null) __jsEvent.preventDefault();
 		defaultPrevented = true;
 	}
 	public function isDefaultPrevented():Bool {

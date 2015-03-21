@@ -120,8 +120,10 @@ class Stage extends DisplayObjectContainer {
 	}
 	///
 	private function _translateTouchEvent(e:js.html.TouchEvent, o:Touch, type:String):TouchEvent {
-		return new TouchEvent(type, true, false, o.identifier, false,
-			null, null, o.radiusX, o.radiusY, o.force, null, e.ctrlKey, e.altKey, e.shiftKey);
+		var r = new TouchEvent(type, true, false, o.identifier, false,
+			null, null, o.radiusX, o.radiusY, o.force, null, e.ctrlKey, e.altKey, e.shiftKey); 
+		r.__jsEvent = e;
+		return r;
 	}
 	/**
 	 * Prevents duplicate mouse+touch events from triggering.
@@ -171,11 +173,17 @@ class Stage extends DisplayObjectContainer {
 			(m == 1 && nt == nc) || // first touch pressed
 			(m == 2 && nt == 0 && nc > 0) // last touch released
 		) && !mouseEventPrevent(m, qt.pageX, qt.pageY)) {
-			_broadcastMouseEvent(mouseLastEvent = new MouseEvent(
+			mouseLastEvent = new MouseEvent(
 				m == 1 ? MouseEvent.MOUSE_DOWN :
-				m == 2 ? MouseEvent.MOUSE_UP : MouseEvent.MOUSE_MOVE));
+				m == 2 ? MouseEvent.MOUSE_UP : MouseEvent.MOUSE_MOVE);
+			mouseLastEvent.__jsEvent = e;
+			_broadcastMouseEvent(mouseLastEvent);
 			// click events:
-			if (m == 2) _broadcastMouseEvent(new MouseEvent(MouseEvent.CLICK));
+			if (m == 2) {
+				var ec = new MouseEvent(MouseEvent.CLICK);
+				ec.__jsEvent = e;
+				_broadcastMouseEvent(ec);
+			}
 		}
 		//
 		if (nc > 0) {
@@ -233,7 +241,9 @@ class Stage extends DisplayObjectContainer {
 			}
 		}
 		if (!mouseEventPrevent(o, e.pageX, e.pageY)) {
-			_broadcastMouseEvent(mouseLastEvent = new MouseEvent(t));
+			mouseLastEvent = new MouseEvent(t);
+			mouseLastEvent.__jsEvent = e;
+			_broadcastMouseEvent(mouseLastEvent);
 		}
 		#if bitfive_mouseTouches
 		if (!isTouchScreen) {
@@ -243,8 +253,10 @@ class Stage extends DisplayObjectContainer {
 			default:
 				if (mouseDown) t = TouchEvent.TOUCH_MOVE; else return;
 			}
-			_broadcastTouchEvent(new TouchEvent(t, true, false, 0, false, null, null, 0, 0, 1, null,
-				e.ctrlKey, e.altKey, e.shiftKey), e.pageX, e.pageY);
+			var et = new TouchEvent(t, true, false, 0, false, null, null, 0, 0, 1, null,
+				e.ctrlKey, e.altKey, e.shiftKey);
+			et.__jsEvent = e;
+			_broadcastTouchEvent(et, e.pageX, e.pageY);
 		}
 		#end
 	}
