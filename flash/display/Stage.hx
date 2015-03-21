@@ -40,7 +40,9 @@ class Stage extends DisplayObjectContainer {
 		super();
 		var s:CSSStyleDeclaration = component.style, o:DOMWindow = Lib.window, i:Int;
 		s.position = "absolute";
+		#if !bitfive_allowScrollBars
 		s.overflow = "hidden";
+		#end
 		s.left = s.top = "0";
 		s.width = s.height = "100%";
 		mousePos = new Point();

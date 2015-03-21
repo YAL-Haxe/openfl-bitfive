@@ -12,5 +12,6 @@ Supported flags are as following:
 *	`bitfive_enums`: Switches a fair of classes to use actual enums instead of abstracts.
 	(just in case you really need to use Type API)
 *	`bitfive_allowContextMenu`: Do not block right-click context menu.
+*	`bitfive_allowScrollBars`: Display native scrollbars if the content overflows the stage.
 *	`bitfive_mouseTouches`: Dispatch touch events for mouse events (touch screen emulation).
 *	`bitfive_gamepads`: Allow using gamepads.
