@@ -7,7 +7,6 @@ import js.html.CanvasElement;
 import js.html.Console;
 import js.html.CSSStyleDeclaration;
 import js.html.DivElement;
-import js.html.Document;
 import js.html.DOMWindow;
 import js.html.Element;
 
@@ -16,7 +15,12 @@ class Lib {
 	public static var stage(get, null):Stage;
 	//
 	public static var window(get, null):DOMWindow;
-	public static var document(get, null):Document;
+	public static var document(get, null):
+	#if (haxe_ver >= 3.2)
+		js.html.HTMLDocument
+	#else
+		js.html.Document
+	#end;
 	public static var console(get, null):Console;
 	//
 	private static var qCurrent:MovieClip;
@@ -76,7 +80,7 @@ class Lib {
 	@:extern private static inline function get_console() return untyped __js__("console");
 	//
 	public static function jsNode(o:String):Element {
-		var r:Element = document.createElement(o), s:CSSStyleDeclaration = r.style;
+		var r:Element = cast document.createElement(o), s:CSSStyleDeclaration = r.style;
 		s.position = 'absolute';
 		switch (o) {
 		case "canvas":

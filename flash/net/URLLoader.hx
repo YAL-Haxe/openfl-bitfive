@@ -120,7 +120,13 @@ class URLLoader extends EventDispatcher implements IURLLoader {
 			return;
 		}
 		// switch response type if needed:
-		if (dataFormat == URLLoaderDataFormat.BINARY) xmlHttpRequest.responseType = "arraybuffer";
+		if (dataFormat == URLLoaderDataFormat.BINARY) {
+			#if (haxe_ver >= 3.2)
+			xmlHttpRequest.responseType = js.html.XMLHttpRequestResponseType.ARRAYBUFFER;
+			#else
+			xmlHttpRequest.responseType = "arraybuffer";
+			#end
+		}
 		// set request headers:
 		for (header in requestHeaders) {
 			xmlHttpRequest.setRequestHeader(header.name, header.value);

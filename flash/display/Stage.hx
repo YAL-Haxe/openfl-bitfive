@@ -203,7 +203,7 @@ class Stage extends DisplayObjectContainer {
 	private function onWheel(e:js.html.WheelEvent):Void {
 		var f:MouseEvent = _translateMouseEvent(e, MouseEvent.MOUSE_WHEEL);
 		// approximation (Flash counts lines, HTML5 counts pixels):
-		var d:Int = e.wheelDelta;
+		var d:Int = untyped e.wheelDelta;
 		if (d != null) {
 			if (Math.abs(d) > 40) {
 				d = Math.round(d / 40);

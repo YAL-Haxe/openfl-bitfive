@@ -11,7 +11,7 @@ interface IGraphics extends IBitmapDrawable {
 	function invalidate():Void;
 	function hitTestLocal(x:Float, y:Float, p:Bool):Bool;
 	//
-	function beginBitmapFill(bitmap:BitmapData, ?matrix:Matrix, repeat:Bool = true, smooth:Bool = false):Void;
+	function beginBitmapFill(bitmap:BitmapData, ?matrix:Matrix, ?repeat:Bool, ?smooth:Bool):Void;
 	function beginFill(color:Int, ?alpha:Float = 1):Void;
 	function beginGradientFill(type:GradientType, colors:Array<UInt>, alphas:Array<Dynamic>, ratios:Array<Dynamic>, ?matrix:Matrix, ?spreadMethod:SpreadMethod, ?interpolationMethod:InterpolationMethod, focalPointRatio:Float = 0):Void;
 	function clear():Void;
@@ -21,7 +21,7 @@ interface IGraphics extends IBitmapDrawable {
 	function drawRect(x:Float, y:Float, width:Float, height:Float):Void;
 	function drawRoundRect(x:Float, y:Float, width:Float, height:Float, ellipseWidth:Float, ?ellipseHeight:Float):Void;
 	function endFill():Void;
-	function lineStyle(?thickness:Float, color:UInt = 0, alpha:Float = 1, pixelHinting:Bool = false, ?scaleMode:LineScaleMode, ?caps:CapsStyle, ?joints:JointStyle, miterLimit:Float = 3):Void;
+	function lineStyle(?thickness:Float, ?color:UInt, ?alpha:Float, ?pixelHinting:Bool, ?scaleMode:LineScaleMode, ?caps:CapsStyle, ?joints:JointStyle, ?miterLimit:Float):Void;
 	function lineTo(x:Float, y:Float):Void;
 	function moveTo(x:Float, y:Float):Void;
 }

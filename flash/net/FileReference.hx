@@ -1,5 +1,4 @@
 package flash.net;
-import js.html.DOMURL;
 #if js
 import flash.events.Event;
 import flash.events.IOErrorEvent;
@@ -76,7 +75,11 @@ class FileReference extends flash.events.EventDispatcher {
 		// Blob+URL is a newer approach, but may not work 
 		try {
 			b = new Blob([d.byteView], { type: t } );
-			q.href = DOMURL.createObjectURL(b);
+			#if (haxe_ver >= 3.2)
+			q.href = js.html.URL.createObjectURL(b);
+			#else
+			q.href = js.html.DOMURL.createObjectURL(b);
+			#end
 		} catch (_:Dynamic) {
 			q.href = "data:" + t + ";base64," + d.toBase64();
 		}

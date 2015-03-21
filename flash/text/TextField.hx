@@ -166,9 +166,9 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		__text = s;
 		if (__editable) {
 			__field.value = s;
-		} else if (component.innerText == null) {
+		} else if (untyped component.innerText == null) {
 			component.innerHTML = StringTools.replace(StringTools.htmlEscape(s), "\n", "<br>");
-		} else component.innerText = s;
+		} else untyped component.innerText = s;
 		__applyAutoSize();
 	}
 	/**
@@ -313,9 +313,16 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		if (autoSize != v) {
 			var i:Int;
 			switch (autoSize = v) {
+			#if (haxe_ver >= 3.2)
+			// todo: bugs??
+			case "LEFT": i = 0;
+			case "CENTER": i = 1;
+			case "RIGHT": i = 2;
+			#else
 			case TextFieldAutoSize.LEFT: i = 0;
 			case TextFieldAutoSize.CENTER: i = 1;
 			case TextFieldAutoSize.RIGHT: i = 2;
+			#end
 			default: i = -1;
 			}
 			__autoSize = i;
