@@ -91,15 +91,17 @@ class DisplayObjectContainer extends InteractiveObject {
 		var r:Bool = false;
 		// loop through child nodes, front-to-back:
 		if (mouseChildren) {
-			h.push(this);
 			var i:Int = children.length;
-			while (--i >= 0) {
-				if (children[i].broadcastMouse(h, e, ms, mc)) {
-					r = true;
-					break;
+			if (i > 0) {
+				h.push(this);
+				while (--i >= 0) {
+					if (children[i].broadcastMouse(h, e, ms, mc)) {
+						r = true;
+						break;
+					}
 				}
+				h.pop();
 			}
-			h.pop();
 		}
 		// need to further investigate stack balancing:
 		while (ms.length > h.length) mc.push(ms.pop());
