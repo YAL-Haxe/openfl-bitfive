@@ -44,12 +44,12 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 	}
 	
 	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
-		var g;
-		return hitTestVisible(v) && (
-			super.hitTestLocal(x, y, p, v) || (
-				((g = _graphics) != null) && g.hitTestLocal(x, y, p)
-			)
-		);
+		if (super.hitTestLocal(x, y, p, v)) return true;
+		if (hitTestVisible(v)) {
+			var g = _graphics;
+			if (g != null) return g.hitTestLocal(x, y, p);
+		}
+		return false;
 	}
 }
 #end
