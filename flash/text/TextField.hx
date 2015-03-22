@@ -409,10 +409,10 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		super.addEventListener(type, listener, useCapture, priority, weak);
 		if (__editable) component = o;
 	}
-	override public function removeEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
+	override public function removeEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false):Void {
 		var o = component;
 		if (__editable) component = __field;
-		super.removeEventListener(type, listener, useCapture, priority, weak);
+		super.removeEventListener(type, listener, useCapture);
 		if (__editable) component = o;
 	}
 }

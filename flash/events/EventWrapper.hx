@@ -23,9 +23,8 @@ class EventWrapper extends EventDispatcher {
 		if (!eventMap.exists(listener)) eventMap.set(listener, f);
 		component.addEventListener(type, f, useCapture);
 	}
-	override public function removeEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false,
-	priority:Int = 0, weak:Bool = false):Void {
-		super.removeEventListener(type, listener, useCapture, priority, weak);
+	override public function removeEventListener(type:String, listener:Dynamic->Void, useCapture:Bool = false):Void {
+		super.removeEventListener(type, listener, useCapture);
 		if (eventMap.exists(listener)) {
 			component.removeEventListener(type, eventMap.get(listener), useCapture);
 			eventMap.remove(listener);

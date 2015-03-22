@@ -272,10 +272,9 @@ class Stage extends DisplayObjectContainer {
 		super.addEventListener(type, listener, useCapture, priority, useWeakReference);
 		component = o;
 	}
-	override public function removeEventListener(type:String, listener:Dynamic -> Void,
-	useCapture:Bool = false, priority:Int = 0, useWeakReference:Bool = false):Void {
+	override public function removeEventListener(type:String, listener:Dynamic->Void, useCapture:Bool = false):Void {
 		var o = component; component = untyped window;
-		super.removeEventListener(type, listener, useCapture, priority, useWeakReference);
+		super.removeEventListener(type, listener, useCapture);
 		component = o;
 	}
 	//

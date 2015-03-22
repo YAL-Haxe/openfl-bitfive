@@ -11,8 +11,7 @@ class EventDispatcher implements IEventDispatcher {
 		if (!eventList.exists(type)) eventList.set(type, o = []); else o = eventList.get(type);
 		o.push(listener);
 	}
-	public function removeEventListener(type:String, listener:Dynamic->Void, useCapture:Bool = false,
-	priority:Int = 0, weak:Bool = false):Void {
+	public function removeEventListener(type:String, listener:Dynamic->Void, useCapture:Bool = false):Void {
 		if (eventList.exists(type)) {
 			var r = eventList.get(type);
 			for (o in r) {
