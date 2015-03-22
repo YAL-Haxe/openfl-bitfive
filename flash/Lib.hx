@@ -159,7 +159,7 @@ class Lib {
 	}
 	
 	/// For parameter and default value handling, returns value or otherwise.
-	@:extern public static inline function nz(value:Dynamic, otherwise:Dynamic):Dynamic {
+	@:extern public static inline function nz<T>(value:Null<T>, otherwise:T):T {
 		return (value != null ? value : otherwise);
 	}
 	
