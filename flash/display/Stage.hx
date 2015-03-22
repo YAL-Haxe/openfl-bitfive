@@ -1,4 +1,6 @@
 package flash.display;
+import openfl.geom.Rectangle;
+import openfl.display.DisplayObject;
 #if js
 import flash.events.MouseEvent;
 import flash.events.TouchEvent;
@@ -77,7 +79,7 @@ class Stage extends DisplayObjectContainer {
 		joystickHandler = new flash.ui.JoystickHandler(this);
 		#end
 	}
-	// Mouse magic
+	//{ Mouse magic
 	private var mouseMtxDepth:Array<DisplayObject>;
 	private var mouseMtxStack:Array<Matrix>;
 	private var mouseMtxCache:Array<Matrix>;
@@ -262,6 +264,53 @@ class Stage extends DisplayObjectContainer {
 		}
 		#end
 	}
+	//}
+	//{ Dragging
+	@:noCompletion private var __dragging:Bool;
+	@:noCompletion private var __dragObject:DisplayObject;
+	@:noCompletion private var __dragBounds:Rectangle;
+	@:noCompletion private var __dragOffsetX:Float;
+	@:noCompletion private var __dragOffsetY:Float;
+	@:noCompletion private function __onDrag(e:MouseEvent):Void {
+		var parent = __dragObject.parent;
+		// object isn't even on stage?
+		if (parent == null) return;
+		var mouse = parent.globalToLocal(mousePos);
+		var x = __dragOffsetX + mouse.x;
+		var y = __dragOffsetY + mouse.y;
+		var r = __dragBounds;
+		if (r != null) {
+			if (x < r.left) x = r.left;
+			else if (x > r.right) x = r.right;
+			if (y < r.top) y = r.top;
+			else if (y > r.bottom) y = r.bottom;
+		}
+		__dragObject.x = x;
+		__dragObject.y = y;
+	}
+	@:noCompletion public function __startDrag(o:DisplayObject, c:Bool, r:Rectangle):Void {
+		if (__dragObject == null) {
+			addEventListener(MouseEvent.MOUSE_MOVE, __onDrag);
+		}
+		__dragObject = o;
+		if (c) { // lockCenter
+			__dragOffsetX = -__dragObject.width / 2;
+			__dragOffsetY = -__dragObject.height / 2;
+		} else {
+			var mouse = __dragObject.parent.globalToLocal(mousePos);
+			__dragOffsetX = __dragObject.x - mouse.x;
+			__dragOffsetY = __dragObject.y - mouse.y;
+		}
+	}
+	@:noCompletion public function __stopDrag(o:DisplayObject):Void {
+		// quite curiously, Flash behaviour is that it doesn't matter what Sprite
+		// you have called .stopDrag() on - it'll always stop the current drag.
+		if (__dragObject != null) {
+			removeEventListener(MouseEvent.MOUSE_MOVE, __onDrag);
+			__dragObject = null;
+		}
+	}
+	//}
 	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {
 		return hitTestVisible(v);
 	}

@@ -37,6 +37,14 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 		return (useHandCursor = o);
 	}
 	
+	public function startDrag(?c:Bool, ?r:flash.geom.Rectangle) {
+		if (stage != null) stage.__startDrag(this, c, r);
+	}
+	
+	public function stopDrag() {
+		if (stage != null) stage.__stopDrag(this);
+	}
+	
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
 	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
 	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
