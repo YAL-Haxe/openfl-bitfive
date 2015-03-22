@@ -1,4 +1,5 @@
 package flash.display;
+import flash.filters.BitmapFilter;
 import openfl.events.TouchEvent;
 #if js
 import flash.events.Event;
@@ -30,7 +31,8 @@ class DisplayObject extends EventWrapper {
 	public var scrollRect(default, set):Rectangle;
 	public var mask:DisplayObject;
 	public var transform:Transform;
-	public var filters:Array<Dynamic>;
+	private var __filters:Array<BitmapFilter>;
+	public var filters(get, set):Array<BitmapFilter>;
 	//
 	public var loaderInfo:LoaderInfo;
 	//
@@ -132,6 +134,14 @@ class DisplayObject extends EventWrapper {
 		if (v != alpha) {
 			component.style.opacity = untyped (alpha = v).toFixed(4);
 		} return v;
+	}
+	private function get_filters():Array<BitmapFilter> {
+		if (__filters == null) return [];
+		return __filters.copy();
+	}
+	private function set_filters(v:Array<BitmapFilter>):Array<BitmapFilter> {
+		__filters = v;
+		return v;
 	}
 	private function set_visible(v:Bool):Bool {
 		if (visible != v) {
