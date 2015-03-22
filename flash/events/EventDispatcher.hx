@@ -28,8 +28,13 @@ class EventDispatcher implements IEventDispatcher {
 	}
 	public function dispatchEvent(event:Event):Bool {
 		if (event.target == null) event.target = this;
+		event.currentTarget = this;
 		var t = event.type;
-		if (eventList.exists(t)) for (o in eventList.get(t)) o(event);
+		if (eventList.exists(t)) {
+			var list = eventList.get(t);
+			var i = 0, n = list.length;
+			while (i < n) list[i++](event);
+		}
 		return true;
 	}
 }
