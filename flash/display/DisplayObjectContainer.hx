@@ -33,13 +33,15 @@ class DisplayObjectContainer extends InteractiveObject {
 	}
 	
 	public function removeChild(o:DisplayObject):DisplayObject {
-		o.parent = null;
-		o.stage = null;
-		children.remove(o);
-		component.removeChild(o.component);
-		var e:Event = new Event(Event.REMOVED);
-		o.dispatchEvent(e);
-		this.dispatchEvent(e);
+		if (o.parent == this) {
+			o.parent = null;
+			o.stage = null;
+			children.remove(o);
+			component.removeChild(o.component);
+			var e:Event = new Event(Event.REMOVED);
+			o.dispatchEvent(e);
+			this.dispatchEvent(e);
+		}
 		return o;
 	}
 	
@@ -72,6 +74,13 @@ class DisplayObjectContainer extends InteractiveObject {
 		var i:Int = -1, l:Int = children.length;
 		while (++i < l) if (children[i] == v) return i;
 		return -1;
+	}
+	
+	public function setChildIndex(v:DisplayObject, i:Int) {
+		if (v.parent == this && i >= 0 && i <= children.length) {
+			removeChild(v);
+			addChildAt(v, i);
+		}
 	}
 	
 	public function contains(v:DisplayObject):Bool {
