@@ -184,14 +184,22 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		while (n < 4) {
 			if ((m & n) != 0) {
 				var f:Float = (n == 1) ? __width : __height;
-				if (border) f -= 1;
-				f -= padding2;
+				// use textfield's width for single-line autosized field:
+				if (n == 1 && __autoSize >= 0 && !wordWrap) f = null;
+				// determine CSS value:
+				var v:String;
+				if (f != null) {
+					if (border) f -= 1;
+					f -= padding2;
+					v = f + "px";
+				} else v = "";
+				// set:
 				if (n == 1) {
-					s.width = f + "px";
-					if (e) fs.width = f + "px";
+					s.width = v;
+					if (e) fs.width = v;
 				} else {
-					s.height = f + "px";
-					if (e) fs.height = f + "px";
+					s.height = v;
+					if (e) fs.height = v;
 				}
 			}
 			n <<= 1;
