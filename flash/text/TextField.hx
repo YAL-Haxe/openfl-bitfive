@@ -318,7 +318,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 			if (f > 0) {
 				s.left = ((__width - get_textWidth()) * f / 2) + "px";
 			} else s.left = "";
-			s.width = "";
+			if (!wordWrap) s.width = "";
 			s.height = "";
 		} else {
 			s.left = "";
