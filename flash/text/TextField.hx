@@ -65,7 +65,6 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		s.whiteSpace = "nowrap";
 		s.overflow = "hidden";
 		s.padding = padding + "px";
-		s.lineHeight = "1.25";
 		//
 		//qTextFormat = new TextFormat("_serif", 16, 0);
 		__textFormat = new TextFormat(
@@ -156,6 +155,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		var f:TextFormat = __textFormat;
 		var s:CSSStyleDeclaration = (__editable ? __field : component).style;
 		__fontStyle = s.font = f.get_fontStyle();
+		s.lineHeight = "1.25";
 		s.textAlign = f.align;
 		s.fontWeight = f.bold ? "bold" : "";
 		s.fontStyle = f.italic ? "italic" : "";
@@ -270,6 +270,15 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		// Copies style and text into helper element
 		var o:DivElement = Lib.jsHelper();
 		o.setAttribute("style", component.getAttribute("style"));
+		// strip styles that interfere:
+		var s = o.style;
+		if (!wordWrap) s.width = "";
+		s.height = "";
+		s.paddingTop = "";
+		s.paddingBottom = "";
+		s.borderTop = "";
+		s.borderBottom = "";
+		//
 		o.innerHTML = component.innerHTML;
 		return o;
 	}
@@ -297,9 +306,8 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		return component.clientHeight;
 	}
 	private function get_numLines():Int {
-		var r:Int = 0, p:Int = 0, d:String = text, l:Int = d.length;
-		while (p < l) { r++; if ((p = d.indexOf("\n", p) + 1) == 0) p = l;}
-		return r;
+		var n = Math.round(textHeight / (defaultTextFormat.size * 1.25));
+		return n < 1 ? 1 : n;
 	}
 	//}
 	// Meta
