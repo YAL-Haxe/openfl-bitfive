@@ -32,8 +32,14 @@ class EventDispatcher implements IEventDispatcher {
 		var t = event.type;
 		if (eventList.exists(t)) {
 			var list = eventList.get(t);
-			var i = 0, n = list.length;
-			while (i < n) list[i++](event);
+			var i:Int = 0;
+			while (i < list.length) {
+				var func = list[i];
+				func(event);
+				// increment the index only if the list position did not change
+				// (workaround for cases when listener removes itself):
+				if (list[i] == func) i++;
+			}
 		}
 		return true;
 	}
