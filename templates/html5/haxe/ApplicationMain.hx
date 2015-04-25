@@ -12,7 +12,9 @@ import flash.net.URLLoaderDataFormat;
 import flash.Lib;
 import js.html.Element;
 import js.html.AudioElement;
+import js.html.ProgressEvent;
 
+@:build(ApplicationMain.build())
 class ApplicationMain {
 	#if (openfl >= "2.1")
 	public static var config:lime.app.Config = {
@@ -34,6 +36,8 @@ class ApplicationMain {
 	private static var completed:Int;
 	private static var preloader:::if (PRELOADER_NAME != "")::::PRELOADER_NAME::::else::NMEPreloader::end::;
 	private static var total:Int;
+	private static var bytesLoaded:Int;
+	private static var totalBytes:Int;
 
 	public static var loaders:Map<String, ILoader>;
 	public static var urlLoaders:Map<String, IURLLoader>;
@@ -56,6 +60,8 @@ class ApplicationMain {
 	}
 
 	private static function preload() {
+		bytesLoaded = totalBytes = 0;
+		for (bytes in AssetBytes) totalBytes += bytes;
 		completed = 0;
 		loaders = new Map<String, ILoader>();
 		urlLoaders = new Map<String, IURLLoader>();
@@ -189,7 +195,8 @@ class ApplicationMain {
 
 	private static function loader_onComplete(event:Event):Void {
 		completed ++;
-		preloader.onUpdate (completed, total);
+		bytesLoaded += AssetBytes[AssetNames.indexOf(untyped event._target.url)];
+		preloader.onUpdate (bytesLoaded, totalBytes);
 		if (completed == total) begin();
 		else nextLoader();
 	}
@@ -215,6 +222,41 @@ class DocumentClass extends ::APP_MAIN:: {
 #else // macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
+import sys.FileSystem;
+
+class ApplicationMain {
+	macro public static function build():Array<Field> {
+		var assetNames:Array<String> = new Array<String>();
+		var assetBytes:Array<Int> = new Array<Int>();
+		::foreach assets::
+		assetNames.push("::resourceName::");
+		assetBytes.push(FileSystem.stat("::resourceName::").size);
+		::end::
+		var fields = Context.getBuildFields();
+		
+		var typeArrayString = TPath({ pack : [], name : "Array", params : [TPType(TPath({ name : "String", pack : [], params : [] }))], sub : null });
+		var newField = {
+			name: "AssetNames",
+			doc: null,
+			meta: [],
+			access: [AStatic, APublic],
+			kind: FVar( typeArrayString, macro $v{assetNames}),
+			pos: Context.currentPos()
+		};
+		fields.push(newField);
+		var typeArrayInt = TPath({ pack : [], name : "Array", params : [TPType(TPath({ name : "Int", pack : [], params : [] }))], sub : null });
+		var newField = {
+			name: "AssetBytes",
+			doc: null,
+			meta: [],
+			access: [AStatic, APublic],
+			kind: FVar( typeArrayInt, macro $v{assetBytes}),
+			pos: Context.currentPos()
+		};
+		fields.push(newField);
+		return fields;
+	}
+}
 
 class DocumentClass {
 	
