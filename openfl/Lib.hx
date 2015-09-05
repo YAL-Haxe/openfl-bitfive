@@ -1,8 +1,8 @@
 package openfl;
 #if js
-import flash.display.MovieClip;
-import flash.display.Sprite;
-import flash.display.Stage;
+import openfl.display.MovieClip;
+import openfl.display.Sprite;
+import openfl.display.Stage;
 import js.html.CanvasElement;
 import js.html.Console;
 import js.html.CSSStyleDeclaration;
@@ -71,7 +71,7 @@ class Lib {
 		inline function dateNow():Float return cast Date.now();
 		return Std.int(dateNow() - qTimeStamp);
 	}
-	public static function getURL(url:flash.net.URLRequest, ?target:String) {
+	public static function getURL(url:openfl.net.URLRequest, ?target:String) {
 		window.open(url.url, target);
 	}
 	//
@@ -106,7 +106,7 @@ class Lib {
 			get_stage().component.appendChild(o);
 			o.style.visibility = "hidden";
 			#if debug
-				o.setAttribute("node", "flash.Lib.jsHelper");
+				o.setAttribute("node", "openfl.Lib.jsHelper");
 			#end
 			o.appendChild(qHelper = jsDiv());
 		}
@@ -130,7 +130,7 @@ class Lib {
 	/// Gives you a new error! Yay! ... kind of.
 	@:extern public static inline function error(id:Int, msg:String):Void {
 		#if debug
-		throw new flash.errors.Error(msg, id);
+		throw new openfl.errors.Error(msg, id);
 		#else
 		throw id;
 		#end

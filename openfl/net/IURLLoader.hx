@@ -1,6 +1,6 @@
 package openfl.net;
 #if (js && !display)
-interface IURLLoader extends flash.events.IEventDispatcher {
+interface IURLLoader extends openfl.events.IEventDispatcher {
 	var bytesLoaded:Int;
 	var bytesTotal:Int;
 	var data:Dynamic;

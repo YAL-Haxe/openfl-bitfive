@@ -1,11 +1,11 @@
 package openfl.display;
 #if js
-import flash.display.DisplayObject;
-import flash.display.LoaderInfo;
-import flash.events.Event;
-import flash.events.IOErrorEvent;
-import flash.net.URLRequest;
-import flash.utils.ByteArray;
+import openfl.display.DisplayObject;
+import openfl.display.LoaderInfo;
+import openfl.events.Event;
+import openfl.events.IOErrorEvent;
+import openfl.net.URLRequest;
+import openfl.utils.ByteArray;
 
 class Loader extends Sprite implements ILoader {
 	//

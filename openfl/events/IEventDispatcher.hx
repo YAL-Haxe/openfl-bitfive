@@ -1,6 +1,6 @@
 package openfl.events;
 #if js
-import flash.events.Event;
+import openfl.events.Event;
 
 /** Smaller functionality, since we'll be mapping this to EventTarget */
 interface IEventDispatcher {

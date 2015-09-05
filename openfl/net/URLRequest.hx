@@ -2,7 +2,7 @@ package openfl.net;
 
 #if js
 
-import flash.utils.ByteArray;
+import openfl.utils.ByteArray;
 
 class URLRequest {
 	//

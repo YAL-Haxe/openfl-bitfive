@@ -1,8 +1,8 @@
 package openfl.display;
-import flash.geom.Matrix;
-import flash.display.Stage;
-import flash.events.Event;
-import flash.events.MouseEvent;
+import openfl.geom.Matrix;
+import openfl.display.Stage;
+import openfl.events.Event;
+import openfl.events.MouseEvent;
 #if js
 
 class DisplayObjectContainer extends InteractiveObject {
@@ -94,7 +94,7 @@ class DisplayObjectContainer extends InteractiveObject {
 	}
 	
 	//
-	override public function broadcastMouse(h:Array<DisplayObject>, e:flash.events.UIEvent,
+	override public function broadcastMouse(h:Array<DisplayObject>, e:openfl.events.UIEvent,
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
 		if (!visible) return false;
 		var r:Bool = false;

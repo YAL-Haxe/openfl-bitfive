@@ -1,9 +1,9 @@
 package openfl.display;
 #if js
-import flash.events.EventDispatcher;
-import flash.events.EventWrapper;
-import flash.events.IEventDispatcher;
-import flash.utils.ByteArray;
+import openfl.events.EventDispatcher;
+import openfl.events.EventWrapper;
+import openfl.events.IEventDispatcher;
+import openfl.utils.ByteArray;
 /**
  * 
  * @author YellowAfterlife

@@ -2,11 +2,12 @@ package openfl.display;
 import openfl.geom.Rectangle;
 import openfl.display.DisplayObject;
 #if js
-import flash.events.MouseEvent;
-import flash.events.TouchEvent;
-import flash.geom.Matrix;
-import flash.geom.Point;
-import flash.Lib;
+import openfl.events.Event;
+import openfl.events.MouseEvent;
+import openfl.events.TouchEvent;
+import openfl.geom.Matrix;
+import openfl.geom.Point;
+import openfl.Lib;
 import js.Browser;
 import js.html.CSSStyleDeclaration;
 import js.html.DOMWindow;
@@ -27,7 +28,7 @@ class Stage extends DisplayObjectContainer {
 	public var focus(get, set):InteractiveObject;
 	public var mousePos:Point;
 	#if bitfive_gamepads
-	public var joystickHandler:flash.ui.JoystickHandler;
+	public var joystickHandler:openfl.ui.JoystickHandler;
 	#end
 	/** Whether device is touch screen.
 	 * If device dispatches touch events, these are more reliable source of mouse coordinates */
@@ -76,7 +77,7 @@ class Stage extends DisplayObjectContainer {
 		}
 		
 		#if bitfive_gamepads
-		joystickHandler = new flash.ui.JoystickHandler(this);
+		joystickHandler = new openfl.ui.JoystickHandler(this);
 		#end
 	}
 	//{ Mouse magic
@@ -102,7 +103,7 @@ class Stage extends DisplayObjectContainer {
 			if (q != null) q.dispatchEvent(_alterMouseEvent(f, MouseEvent.MOUSE_OVER));
 		}
 	}
-	private function _broadcastTouchEvent(f:flash.events.TouchEvent, x:Float, y:Float):Void {
+	private function _broadcastTouchEvent(f:openfl.events.TouchEvent, x:Float, y:Float):Void {
 		f.stageX = x;
 		f.stageY = y;
 		broadcastMouse(mouseMtxDepth, f, mouseMtxStack, mouseMtxCache);
@@ -366,7 +367,7 @@ class Stage extends DisplayObjectContainer {
 		}
 		Lib.schLength = 0;
 		//
-		broadcastEvent(new flash.events.Event(flash.events.Event.ENTER_FRAME));
+		broadcastEvent(new Event(Event.ENTER_FRAME));
 		// schedule next event:
 		f = frameRate;
 		#if bitfive_setTimeout

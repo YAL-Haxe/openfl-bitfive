@@ -49,7 +49,7 @@ class Event {
 	//
 	static function __init__() {
 		untyped (function() {
-			var a = js.html.Event.prototype, b = flash.events.Event.prototype;
+			var a = js.html.Event.prototype, b = openfl.events.Event.prototype;
 			a.clone = b.clone;
 			a.isDefaultPrevented = b.isDefaultPrevented;
 			a.get_target = b.get_target;

@@ -1,6 +1,6 @@
 package openfl.events;
 #if js
-import flash.events.Event;
+import openfl.events.Event;
 
 class JoystickEvent extends Event
 {

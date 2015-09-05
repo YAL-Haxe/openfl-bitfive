@@ -2,11 +2,11 @@ package openfl.display;
 #if js
 
 
-import flash.display.BitmapData;
-import flash.display.Graphics;
-import flash.geom.Matrix;
-import flash.geom.Point;
-import flash.geom.Rectangle;
+import openfl.display.BitmapData;
+import openfl.display.Graphics;
+import openfl.geom.Matrix;
+import openfl.geom.Point;
+import openfl.geom.Rectangle;
 
 
 class Tilesheet {

@@ -1,6 +1,6 @@
 package openfl.display;
 #if js
-import flash.display.Graphics;
+import openfl.display.Graphics;
 
 class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 	//
@@ -37,7 +37,7 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 		return (useHandCursor = o);
 	}
 	
-	public function startDrag(?c:Bool, ?r:flash.geom.Rectangle) {
+	public function startDrag(?c:Bool, ?r:openfl.geom.Rectangle) {
 		if (stage != null) stage.__startDrag(this, c, r);
 	}
 	
@@ -46,8 +46,8 @@ class Sprite extends DisplayObjectContainer implements IBitmapDrawable {
 	}
 	
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
-	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
-	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
+	?mtx:openfl.geom.Matrix, ?ctr:openfl.geom.ColorTransform, ?blendMode:openfl.display.BlendMode,
+	?clipRect:openfl.geom.Rectangle, ?smoothing:Bool):Void {
 		graphics.drawToSurface(cnv, ctx, mtx, ctr, blendMode, clipRect, smoothing);
 	}
 	

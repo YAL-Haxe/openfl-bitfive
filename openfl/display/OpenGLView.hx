@@ -2,8 +2,8 @@ package openfl.display;
 #if js
 
 
-import flash.geom.Matrix3D;
-import flash.Lib;
+import openfl.geom.Matrix3D;
+import openfl.Lib;
 import openfl.gl.GL;
 //import native.gl.GLInstance;
 

@@ -2,14 +2,14 @@ package openfl;
 #if !macro
 
 
-import flash.display.Bitmap;
-import flash.display.BitmapData;
-import flash.display.MovieClip;
-import flash.Lib;
-import flash.media.Sound;
-import flash.net.URLRequest;
-import flash.text.Font;
-import flash.utils.ByteArray;
+import openfl.display.Bitmap;
+import openfl.display.BitmapData;
+import openfl.display.MovieClip;
+import openfl.Lib;
+import openfl.media.Sound;
+import openfl.net.URLRequest;
+import openfl.text.Font;
+import openfl.utils.ByteArray;
 import haxe.Unserializer;
 
 
@@ -649,7 +649,7 @@ import sys.io.File;
 
 
 class Assets {
-	/// handles flash.display.BitmapData metadata
+	/// handles openfl.display.BitmapData metadata
 	macro public static function embedBitmap ():Array<Field> {
 		var fields:Array<Field> = Context.getBuildFields(),
 			path:String = getMeta(":bitmap"),
@@ -864,12 +864,12 @@ class Assets {
 				
 				super();
 				
-				var byteArray = flash.utils.ByteArray.fromBytes (haxe.Resource.getBytes(resourceName));
+				var byteArray = openfl.utils.ByteArray.fromBytes (haxe.Resource.getBytes(resourceName));
 				loadCompressedDataFromByteArray(byteArray, byteArray.length, forcePlayAsMusic);
 				
 			};
 			
-			var args = [ { name: "stream", opt: true, type: macro :flash.net.URLRequest, value: null }, { name: "context", opt: true, type: macro :flash.media.SoundLoaderContext, value: null }, { name: "forcePlayAsMusic", opt: true, type: macro :Bool, value: macro false } ];
+			var args = [ { name: "stream", opt: true, type: macro :openfl.net.URLRequest, value: null }, { name: "context", opt: true, type: macro :openfl.media.SoundLoaderContext, value: null }, { name: "forcePlayAsMusic", opt: true, type: macro :Bool, value: macro false } ];
 			fields.push ({ name: "new", access: [ APublic ], kind: FFun({ args: args, expr: constructor, params: [], ret: null }), pos: Context.currentPos() });
 			
 			#end

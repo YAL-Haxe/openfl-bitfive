@@ -2,11 +2,11 @@ package openfl.display;
 #if js
 
 
-import flash.display.DisplayObject;
-import flash.display.Graphics;
-import flash.geom.Rectangle;
-import flash.geom.Matrix;
-import flash.Lib;
+import openfl.display.DisplayObject;
+import openfl.display.Graphics;
+import openfl.geom.Rectangle;
+import openfl.geom.Matrix;
+import openfl.Lib;
 import js.html.CanvasElement;
 import js.html.webgl.RenderingContext;
 import openfl.gl.GL;

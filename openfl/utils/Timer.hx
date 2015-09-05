@@ -1,7 +1,7 @@
 package openfl.utils;
 #if js
-import flash.events.EventDispatcher;
-import flash.events.TimerEvent;
+import openfl.events.EventDispatcher;
+import openfl.events.TimerEvent;
 import js.Browser;
 
 class Timer extends EventDispatcher {

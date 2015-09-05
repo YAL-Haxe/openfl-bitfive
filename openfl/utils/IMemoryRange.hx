@@ -2,7 +2,7 @@ package openfl.utils;
 #if js
 
 
-import flash.utils.ByteArray;
+import openfl.utils.ByteArray;
 
 
 interface IMemoryRange {

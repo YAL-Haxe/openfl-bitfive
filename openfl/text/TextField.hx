@@ -1,7 +1,7 @@
 package openfl.text;
 #if js
-import flash.display.IBitmapDrawable;
-import flash.Lib;
+import openfl.display.IBitmapDrawable;
+import openfl.Lib;
 import js.html.DivElement;
 import js.html.Element;
 import js.html.TextAreaElement;
@@ -10,7 +10,7 @@ import js.html.CSSStyleDeclaration;
  * Things mostly work, except when they do not.
  * @author YellowAfterlife
  */
-class TextField extends flash.display.InteractiveObject implements IBitmapDrawable {
+class TextField extends openfl.display.InteractiveObject implements IBitmapDrawable {
 	public var autoSize(default, set):String;
 	public var antiAliasType:AntiAliasType;
 	public var background(default, set):Bool;
@@ -123,7 +123,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		return __textFormat.color;
 	}
 	private function set_textColor(c:UInt):UInt {
-		// Unlike defaultTextFormat changes, textColor is applied instantly by Flash.
+		// Unlike defaultTextFormat changes, textColor is applied instantly by openfl.
 		__textFormat.color = c;
 		__applyTextFormat();
 		return c;
@@ -224,8 +224,8 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		}
 	}
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
-	?mtx:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
-	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
+	?mtx:openfl.geom.Matrix, ?ctr:openfl.geom.ColorTransform, ?blendMode:openfl.display.BlendMode,
+	?clipRect:openfl.geom.Rectangle, ?smoothing:Bool):Void {
 		// Not that good at the moment.
 		ctx.save();
 		ctx.fillStyle = component.style.color;

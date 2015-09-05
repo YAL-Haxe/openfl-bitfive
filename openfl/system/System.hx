@@ -1,6 +1,6 @@
 package openfl.system;
 #if js
-import flash.Lib;
+import openfl.Lib;
 //
 class System {
 	public static var totalMemory(get, null):Int;

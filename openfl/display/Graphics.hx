@@ -1,10 +1,10 @@
 package openfl.display;
 import js.html.CanvasGradient;
-import flash.geom.Point;
+import openfl.geom.Point;
 #if js
-import flash.geom.Matrix;
-import flash.geom.Rectangle;
-import flash.Lib;
+import openfl.geom.Matrix;
+import openfl.geom.Rectangle;
+import openfl.Lib;
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
 import js.html.ImageElement;
@@ -201,7 +201,7 @@ class Graphics implements IBitmapDrawable implements IGraphics {
 		addInt(GFX_FILL_SOLID);
 		addObject(Lib.rgbf(Lib.nz(c, 0), Lib.nz(a, 1)));
 	}
-	public function beginBitmapFill(bitmap:BitmapData, ?m:flash.geom.Matrix,
+	public function beginBitmapFill(bitmap:BitmapData, ?m:openfl.geom.Matrix,
 	?repeat:Bool, ?smooth:Bool):Void {
 		addInt(GFX_FILL_BITMAP);
 		addObject(bitmap);
@@ -311,7 +311,7 @@ class Graphics implements IBitmapDrawable implements IGraphics {
 	//
 	
 	public function drawToSurface(cnv:CanvasElement, ctx:CanvasRenderingContext2D,
-	?mtx:Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:BlendMode,
+	?mtx:Matrix, ?ctr:openfl.geom.ColorTransform, ?blendMode:BlendMode,
 	?clipRect:Rectangle, ?smoothing:Bool):Void {
 		ctx.save();
 		if (mtx != null) ctx.transform(mtx.a, mtx.b, mtx.c, mtx.d, mtx.tx, mtx.ty);

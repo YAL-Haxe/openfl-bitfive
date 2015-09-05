@@ -1,6 +1,6 @@
 package openfl.events;
 #if js
-import flash.display.InteractiveObject;
+import openfl.display.InteractiveObject;
 /**
  * Will need some bridge to properly support multi-touch.
  */

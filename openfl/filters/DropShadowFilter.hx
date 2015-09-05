@@ -1,6 +1,6 @@
 package openfl.filters;
 #if js
-import flash.Lib;
+import openfl.Lib;
 class DropShadowFilter extends BitmapFilter {
 	public var distance:Float;
 	public var angle:Float;

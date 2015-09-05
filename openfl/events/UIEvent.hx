@@ -1,6 +1,6 @@
 package openfl.events;
 #if js
-import flash.display.InteractiveObject;
+import openfl.display.InteractiveObject;
 /// Non-standard. Mouse and touch events are based on this.
 class UIEvent extends Event {
 	public var altKey(default, null):Bool;

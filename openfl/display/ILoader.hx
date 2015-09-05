@@ -1,7 +1,7 @@
 package openfl.display;
 #if (js && !display)
-import flash.net.URLRequest;
-import flash.utils.ByteArray;
+import openfl.net.URLRequest;
+import openfl.utils.ByteArray;
 
 interface ILoader {
 	var content(default, null):DisplayObject;

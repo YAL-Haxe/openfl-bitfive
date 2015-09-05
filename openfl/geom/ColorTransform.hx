@@ -1,6 +1,6 @@
 package openfl.geom;
 #if js
-import flash.Lib;
+import openfl.Lib;
 
 class ColorTransform {
 	public var alphaMultiplier:Float;

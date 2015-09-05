@@ -1,6 +1,6 @@
 package openfl.ui;
 #if (js && bitfive_gamepads)
-import flash.display.Stage;
+import openfl.display.Stage;
 import js.Browser;
 import js.html.Gamepad;
 import js.html.GamepadList;
@@ -37,7 +37,7 @@ class JoystickHandler
 			axes: [for(j in 0...7) 0]
 		}];
 		
-		stage.addEventListener(flash.events.Event.ENTER_FRAME, function(e) {
+		stage.addEventListener(openfl.events.Event.ENTER_FRAME, function(e) {
 			gamepadsList = getList();
 			if (gamepadsList == null) return;
 			for (v in joysticksList) {

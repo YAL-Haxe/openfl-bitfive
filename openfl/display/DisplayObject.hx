@@ -1,15 +1,15 @@
 package openfl.display;
-import flash.filters.BitmapFilter;
+import openfl.filters.BitmapFilter;
 import openfl.events.TouchEvent;
 #if js
-import flash.events.Event;
-import flash.events.EventWrapper;
-import flash.events.MouseEvent;
-import flash.geom.Matrix;
-import flash.geom.Point;
-import flash.geom.Rectangle;
-import flash.geom.Transform;
-import flash.Lib;
+import openfl.events.Event;
+import openfl.events.EventWrapper;
+import openfl.events.MouseEvent;
+import openfl.geom.Matrix;
+import openfl.geom.Point;
+import openfl.geom.Rectangle;
+import openfl.geom.Transform;
+import openfl.Lib;
 /**
  * Supports a couple of things. No filters or clipping yet.
  * @author YellowAfterlife
@@ -265,7 +265,7 @@ class DisplayObject extends EventWrapper {
 	 * @param	mc	Matrix cache (matrices are taken from and pushed back into here)
 	 * @return	Whether an event was triggered
 	 */
-	public function broadcastMouse(h:Array<DisplayObject>, e:flash.events.UIEvent,
+	public function broadcastMouse(h:Array<DisplayObject>, e:openfl.events.UIEvent,
 	ms:Array<Matrix>, mc:Array<Matrix>):Bool {
 		if (!visible) return false;
 		var o:DisplayObject, t:String = e.type, m:Matrix, m2:Matrix, d:Int = h.length, l:Int, x:Float, y:Float;

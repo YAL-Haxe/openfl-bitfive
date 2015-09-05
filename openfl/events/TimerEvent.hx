@@ -1,6 +1,6 @@
 package openfl.events;
 #if js
-import flash.events.Event;
+import openfl.events.Event;
 
 class TimerEvent extends Event {
 	@:extern public static inline var TIMER:String = "timer";

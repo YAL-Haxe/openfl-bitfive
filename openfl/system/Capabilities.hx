@@ -1,8 +1,8 @@
 package openfl.system;
 #if js
-import flash.Lib;
+import openfl.Lib;
 //
-import flash.media.Sound;
+import openfl.media.Sound;
 //
 import js.html.Navigator;
 

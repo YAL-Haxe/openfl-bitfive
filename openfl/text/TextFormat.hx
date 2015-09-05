@@ -1,6 +1,6 @@
 package openfl.text;
 #if js
-import flash.utils.UInt;
+import openfl.utils.UInt;
 
 class TextFormat {
 	

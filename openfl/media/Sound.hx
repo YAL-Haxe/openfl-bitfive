@@ -1,11 +1,11 @@
 package openfl.media;
 #if js
-import flash.net.URLRequest;
+import openfl.net.URLRequest;
 import js.html.AudioElement;
 /**
  * 
  */
-class Sound extends flash.events.EventDispatcher {
+class Sound extends openfl.events.EventDispatcher {
 	//
 	public var id3:ID3Info;
 	private var component:AudioElement;
@@ -23,7 +23,7 @@ class Sound extends flash.events.EventDispatcher {
 	public function close():Void {
 		if (component != null) {
 			component = null;
-		} else throw new flash.errors.IOError("Attempt to close unexisting stream.");
+		} else throw new openfl.errors.IOError("Attempt to close unexisting stream.");
 	}
 	
 	public function load(?stream:URLRequest, ?ctx:SoundLoaderContext):Void {
@@ -33,7 +33,7 @@ class Sound extends flash.events.EventDispatcher {
 			library.set(s, cast component.cloneNode(true));
 		} else {
 			#if OFL_LOG_LOAD
-				flash.Lib.trace("Loading " + s);
+				openfl.Lib.trace("Loading " + s);
 			#end
 			component = untyped __js__("new Audio(s)");
 		}
@@ -42,7 +42,7 @@ class Sound extends flash.events.EventDispatcher {
 	
 	public function play(ofs:Float = 0, loops:Int = 0, ?stf:SoundTransform):SoundChannel {
 		var o:SoundChannel, i:Int;
-		//flash.Lib.trace(component.src + ":play[" + qCache.length + "]");
+		//openfl.Lib.trace(component.src + ":play[" + qCache.length + "]");
 		if (qCache.length == 0) {
 			(o = new SoundChannel()).init(this, component, loops);
 			component = cast component.cloneNode(true);
@@ -57,7 +57,7 @@ class Sound extends flash.events.EventDispatcher {
 			o._loops = loops;
 			o.play(ofs);
 		} catch (e:Dynamic) {
-			flash.Lib.trace(e);
+			openfl.Lib.trace(e);
 			/*var f = null;
 			f = function(e) {
 				o.component.removeEventListener("canplaythrough", f);

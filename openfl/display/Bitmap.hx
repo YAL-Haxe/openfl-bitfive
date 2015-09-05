@@ -26,8 +26,8 @@ class Bitmap extends DisplayObject implements IBitmapDrawable {
 		return __height != null ? __height : bitmapData != null ? bitmapData.height : 0;
 	}
 	public function drawToSurface(cnv:js.html.CanvasElement, ctx:js.html.CanvasRenderingContext2D,
-	?matrix:flash.geom.Matrix, ?ctr:flash.geom.ColorTransform, ?blendMode:flash.display.BlendMode,
-	?clipRect:flash.geom.Rectangle, ?smoothing:Bool):Void {
+	?matrix:openfl.geom.Matrix, ?ctr:openfl.geom.ColorTransform, ?blendMode:openfl.display.BlendMode,
+	?clipRect:openfl.geom.Rectangle, ?smoothing:Bool):Void {
 		bitmapData.drawToSurface(cnv, ctx, matrix, ctr, blendMode, clipRect, smoothing);
 	}
 	override public function hitTestLocal(x:Float, y:Float, p:Bool, ?v:Bool):Bool {

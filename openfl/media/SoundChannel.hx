@@ -1,10 +1,11 @@
 package openfl.media;
 #if js
-import flash.events.Event;
-import flash.Lib;
+import openfl.events.Event;
+import openfl.events.EventDispatcher;
+import openfl.Lib;
 import js.html.AudioElement;
 
-class SoundChannel extends flash.events.EventDispatcher {
+class SoundChannel extends EventDispatcher {
 	public var leftPeak(default, null):Float = 1;
 	public var rightPeak(default, null):Float = 1;
 	public var soundTransform(default, set):SoundTransform;

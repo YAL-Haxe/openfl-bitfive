@@ -1,9 +1,9 @@
 package openfl.net;
 #if js
-import flash.events.Event;
-import flash.events.IOErrorEvent;
-import flash.Lib;
-import flash.utils.ByteArray;
+import openfl.events.Event;
+import openfl.events.IOErrorEvent;
+import openfl.Lib;
+import openfl.utils.ByteArray;
 import js.html.AnchorElement;
 import js.html.Blob;
 import js.html.DivElement;
@@ -12,7 +12,7 @@ import js.html.FileReader;
 import js.html.FormElement;
 import js.html.InputElement;
 
-class FileReference extends flash.events.EventDispatcher {
+class FileReference extends openfl.events.EventDispatcher {
 	private var fileInput:InputElement;
 	private var fileForm:FormElement; // form wrapper (to be able to reset file selection)
 	private var fileLink:AnchorElement;

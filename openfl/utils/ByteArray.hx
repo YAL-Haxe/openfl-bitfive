@@ -1,8 +1,8 @@
 package openfl.utils;
 #if js
 
-import flash.errors.IOError;
-import flash.utils.UInt;
+import openfl.errors.IOError;
+import openfl.utils.UInt;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 import haxe.io.BytesData;

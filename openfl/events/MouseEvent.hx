@@ -1,8 +1,8 @@
 package openfl.events;
 #if js
-import flash.display.InteractiveObject;
-import flash.geom.Point;
-import flash.Lib;
+import openfl.display.InteractiveObject;
+import openfl.geom.Point;
+import openfl.Lib;
 
 class MouseEvent extends UIEvent {
 	// Hover:

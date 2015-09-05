@@ -2,7 +2,7 @@ package openfl.display;
 #if (js && !display)
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
-import flash.geom.Matrix;
+import openfl.geom.Matrix;
 
 interface IGraphics extends IBitmapDrawable {
 	// bitfive-specific

@@ -1,18 +1,18 @@
 package openfl.display;
 #if js
-import flash.errors.IOError;
-import flash.utils.ByteArray;
 import js.html.DataView;
 import js.html.ImageData;
 import js.html.ImageElement;
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
-import flash.geom.ColorTransform;
-import flash.geom.Rectangle;
-import flash.geom.Matrix;
-import flash.geom.Point;
 import js.html.Uint8ClampedArray;
-
+import openfl.events.Event;
+import openfl.errors.IOError;
+import openfl.utils.ByteArray;
+import openfl.geom.ColorTransform;
+import openfl.geom.Rectangle;
+import openfl.geom.Matrix;
+import openfl.geom.Point;
 
 typedef LoadData = {
 	var image : ImageElement;
@@ -71,7 +71,7 @@ class BitmapData implements IBitmapDrawable {
 		__revision = 0;
 		__rect = new Rectangle(0, 0, w, h);
 		// create canvas:
-		component = flash.Lib.jsCanvas();
+		component = openfl.Lib.jsCanvas();
 		#if debug
 			component.setAttribute("node", Type.getClassName(Type.getClass(this)));
 		#end
@@ -617,8 +617,8 @@ class BitmapData implements IBitmapDrawable {
 		__sync |= SY_CHANGE | SY_IMDATA;
 		if (wasCanvas) unlock();
 	}
-	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:flash.geom.Rectangle,
-	destPoint:flash.geom.Point, filter:flash.filters.BitmapFilter):Void {
+	public function applyFilter(sourceBitmapData:BitmapData, sourceRect:openfl.geom.Rectangle,
+	destPoint:openfl.geom.Point, filter:openfl.filters.BitmapFilter):Void {
 		
 	}
 	/// Jeash/NME-specific:
@@ -637,7 +637,7 @@ class BitmapData implements IBitmapDrawable {
 		data.bitmapData.__rect = new Rectangle(0,0,width,height);
 
 		if (data.inLoader != null) {
-			var e = new flash.events.Event( flash.events.Event.COMPLETE );
+			var e = new Event(Event.COMPLETE);
 			e.target = data.inLoader;
 			data.inLoader.dispatchEvent( e );
 		}

@@ -2,7 +2,7 @@ package openfl.geom;
 #if js
 
 
-import flash.display.DisplayObject;
+import openfl.display.DisplayObject;
 
 
 class Transform {

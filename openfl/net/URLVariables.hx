@@ -1,5 +1,5 @@
 package openfl.net;
-import flash.Lib;
+import openfl.Lib;
 #if js
 class URLVariables implements Dynamic {
 	//

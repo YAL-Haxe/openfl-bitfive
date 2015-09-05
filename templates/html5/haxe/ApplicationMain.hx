@@ -1,15 +1,15 @@
 #if !macro
 import ::APP_MAIN_PACKAGE::::APP_MAIN_CLASS::;
 import haxe.Resource;
-import flash.display.Bitmap;
-import flash.display.BitmapData;
-import flash.display.ILoader;
-import flash.events.Event;
-import flash.media.Sound;
-import flash.net.IURLLoader;
-import flash.net.URLRequest;
-import flash.net.URLLoaderDataFormat;
-import flash.Lib;
+import openfl.display.Bitmap;
+import openfl.display.BitmapData;
+import openfl.display.ILoader;
+import openfl.events.Event;
+import openfl.media.Sound;
+import openfl.net.IURLLoader;
+import openfl.net.URLRequest;
+import openfl.net.URLLoaderDataFormat;
+import openfl.Lib;
 import js.html.Element;
 import js.html.AudioElement;
 import js.html.ProgressEvent;
@@ -67,10 +67,10 @@ class ApplicationMain {
 		urlLoaders = new Map<String, IURLLoader>();
 		total = 0;
 		
-		flash.Lib.current.loaderInfo = flash.display.LoaderInfo.create (null);
+		Lib.current.loaderInfo = openfl.display.LoaderInfo.create (null);
 		
-		::if (WIN_FPS != "0")::flash.Lib.stage.frameRate = ::WIN_FPS::;
-		::end::::if (WIN_WIDTH == "0")::::if (WIN_HEIGHT == "0")::flash.Lib.preventDefaultTouchMove();
+		::if (WIN_FPS != "0")::Lib.stage.frameRate = ::WIN_FPS::;
+		::end::::if (WIN_WIDTH == "0")::::if (WIN_HEIGHT == "0")::Lib.preventDefaultTouchMove();
 		::end::::end::// preloader:
 		Lib.current.addChild(preloader = new ::if (PRELOADER_NAME != "")::::PRELOADER_NAME::::else::NMEPreloader::end::());
 		preloader.onInit();
@@ -90,7 +90,7 @@ class ApplicationMain {
 				if (type != null) {
 					total++;
 					#if bitfive_logLoading
-						flash.Lib.trace("Loading " + Std.string(type));
+						Lib.trace("Loading " + Std.string(type));
 					#end
 					var instance = Type.createInstance (type, [ 0, 0, true, 0x00FFFFFF, bitmapClass_onComplete ]);
 				}
@@ -111,9 +111,9 @@ class ApplicationMain {
 		if (loaderStack.length != 0) {
 			var p = loaderStack.shift(), o = loaders.get(p);
 			#if bitfive_logLoading
-				flash.Lib.trace("Loading " + p);
+				Lib.trace("Loading " + p);
 				o.contentLoaderInfo.addEventListener("complete", function(e) {
-					flash.Lib.trace("Loaded " + p);
+					Lib.trace("Loaded " + p);
 					loader_onComplete(e);
 				});
 			#else
@@ -123,9 +123,9 @@ class ApplicationMain {
 		} else if (urlLoaderStack.length != 0) {
 			var p = urlLoaderStack.shift(), o = urlLoaders.get(p);
 			#if bitfive_logLoading
-				flash.Lib.trace("Loading " + p);
+				Lib.trace("Loading " + p);
 				o.addEventListener("complete", function(e) {
-					flash.Lib.trace("Loaded " + p);
+					Lib.trace("Loaded " + p);
 					loader_onComplete(e);
 				});
 			#else
@@ -136,12 +136,12 @@ class ApplicationMain {
 	}
 	
 	private static function loadFile(p:String):Void {
-		loaders.set(p, new flash.display.Loader());
+		loaders.set(p, new openfl.display.Loader());
 		total++;
 	}
 	
 	private static function loadBinary(p:String):Void {
-		var o = new flash.net.URLLoader();
+		var o = new openfl.net.URLLoader();
 		o.dataFormat = URLLoaderDataFormat.BINARY;
 		urlLoaders.set(p, o);
 		total++;
@@ -150,7 +150,7 @@ class ApplicationMain {
 	private static function loadSound(p:String):Void {
 		return;
 		var i:Int = p.lastIndexOf("."), // extension separator location
-			c:Dynamic = untyped flash.media.Sound, // sound class
+			c:Dynamic = untyped openfl.media.Sound, // sound class
 			s:String, // perceived sound filename (*.mp3)
 			o:AudioElement, // audio node
 			m:Bool = Lib.mobile,
@@ -165,13 +165,13 @@ class ApplicationMain {
 		// already loaded?
 		if (c.library.exists(s)) return;
 		#if bitfive_logLoading
-			flash.Lib.trace("Loading " + p);
+			Lib.trace("Loading " + p);
 		#end
 		total++;
 		c.library.set(s, o = untyped __js__("new Audio(p)"));
 		f = function(_) {
 			#if bitfive_logLoading
-				flash.Lib.trace("Loaded " + p);
+				Lib.trace("Loaded " + p);
 			#end
 			if (!m) o.removeEventListener(q, f);
 			preloader.onUpdate(++completed, total);
@@ -207,7 +207,7 @@ class ApplicationMain {
 		preloader = null;
 		if (untyped ::APP_MAIN::.main == null) {
 			var o = new DocumentClass();
-			if (Std.is(o, flash.display.DisplayObject)) Lib.current.addChild(cast o);
+			if (Std.is(o, openfl.display.DisplayObject)) Lib.current.addChild(cast o);
 		} else untyped ::APP_MAIN::.main();
 	}
 }
@@ -277,7 +277,7 @@ class DocumentClass {
 			&& searchTypes.name == "DisplayObject") {
 				var fields = Context.getBuildFields();
 				var method = macro {
-					return flash.Lib.current.stage;
+					return Lib.current.stage;
 				}
 				fields.push( {
 					name: "get_stage",
@@ -286,7 +286,7 @@ class DocumentClass {
 						args: [],
 						expr: method,
 						params: [],
-						ret: macro :flash.display.Stage
+						ret: macro :openfl.display.Stage
 					}), pos: Context.currentPos() });
 				return fields;
 			}

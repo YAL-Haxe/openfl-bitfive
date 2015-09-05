@@ -2,10 +2,10 @@ package openfl.net;
 #if js
 
 
-import flash.errors.Error;
-import flash.events.EventDispatcher;
-import flash.net.SharedObjectFlushStatus;
-import flash.Lib;
+import openfl.errors.Error;
+import openfl.events.EventDispatcher;
+import openfl.net.SharedObjectFlushStatus;
+import openfl.Lib;
 import haxe.io.Bytes;
 import haxe.Serializer;
 import haxe.Unserializer;
@@ -118,7 +118,7 @@ class SharedObject extends EventDispatcher {
 		
 		if (name != null) {
 			
-			return Type.resolveClass(StringTools.replace (StringTools.replace(name, "jeash.", "flash."), "browser.", "flash."));
+			return Type.resolveClass(StringTools.replace (StringTools.replace(name, "jeash.", "openfl."), "browser.", "openfl."));
 			
 		}
 		
