@@ -228,9 +228,17 @@ class ApplicationMain {
 	macro public static function build():Array<Field> {
 		var assetNames:Array<String> = new Array<String>();
 		var assetBytes:Array<Int> = new Array<Int>();
-		::foreach assets::
-		assetNames.push("::resourceName::");
-		assetBytes.push(FileSystem.stat("::resourceName::").size);
+		inline function addAsset(name:String, path:String) {
+			assetNames.push(name);
+			var size = 0;
+			try {
+				size = FileSystem.stat(path).size;
+			} catch (_:Dynamic) {
+				//trace("Can't stat() " + path);
+			}
+			assetBytes.push(size);
+		}
+		::foreach assets::addAsset("::resourceName::", "::sourcePath::");
 		::end::
 		var fields = Context.getBuildFields();
 		
