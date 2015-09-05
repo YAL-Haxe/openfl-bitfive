@@ -77,8 +77,8 @@ class FileReference extends flash.events.EventDispatcher {
 			b = new Blob([d.byteView], { type: t } );
 			// Current versions of IE/Edge:
 			var nav:Dynamic = js.Browser.navigator;
-			if (nav["msSaveBlob"] != null) {
-				nav["msSaveBlob"](b, n);
+			if (nav.msSaveBlob != null) {
+				nav.msSaveBlob(b, n);
 				return;
 			}
 			// Regular browsers:
