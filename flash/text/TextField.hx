@@ -247,6 +247,7 @@ class TextField extends flash.display.InteractiveObject implements IBitmapDrawab
 		if (__autoSize < 0) {
 			return __height;
 		} else {
+			// todo: consider border and 1.5px pad
 			return get_textHeight();
 		}
 	}
