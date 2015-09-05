@@ -75,6 +75,13 @@ class FileReference extends flash.events.EventDispatcher {
 		// Blob+URL is a newer approach, but may not work 
 		try {
 			b = new Blob([d.byteView], { type: t } );
+			// Current versions of IE/Edge:
+			var nav:Dynamic = js.Browser.navigator;
+			if (nav["msSaveBlob"] != null) {
+				nav["msSaveBlob"](b, n);
+				return;
+			}
+			// Regular browsers:
 			#if (haxe_ver >= 3.2)
 			q.href = js.html.URL.createObjectURL(b);
 			#else
