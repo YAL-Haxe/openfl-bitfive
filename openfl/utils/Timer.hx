@@ -1,4 +1,4 @@
-package flash.utils;
+package openfl.utils;
 #if js
 import flash.events.EventDispatcher;
 import flash.events.TimerEvent;

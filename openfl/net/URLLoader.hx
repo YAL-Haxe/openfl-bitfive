@@ -1,4 +1,4 @@
-package flash.net;
+package openfl.net;
 #if js
 import flash.events.Event;
 import flash.events.EventDispatcher;

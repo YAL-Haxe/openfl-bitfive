@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 
 class EventDispatcher implements IEventDispatcher {
 	private var eventList:Map<String, Array<Dynamic->Void>>; // Map<EventType, EventList>

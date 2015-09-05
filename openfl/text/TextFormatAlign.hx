@@ -1,4 +1,4 @@
-package flash.text;
+package openfl.text;
 #if js
 abstract TextFormatAlign(String) {
 	@:extern public static inline var LEFT:TextFormatAlign = "LEFT";

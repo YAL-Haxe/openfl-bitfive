@@ -1,4 +1,4 @@
-package flash.geom;
+package openfl.geom;
 
 class Rectangle {
 	// Properties:

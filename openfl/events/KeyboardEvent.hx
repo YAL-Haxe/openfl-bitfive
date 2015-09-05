@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 class KeyboardEvent extends Event {
 	@:extern public static inline var KEY_DOWN = "keydown";

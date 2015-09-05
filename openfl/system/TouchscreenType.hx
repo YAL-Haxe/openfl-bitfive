@@ -1,4 +1,4 @@
-package flash.system;
+package openfl.system;
 #if js
 class TouchscreenType {
 	@:extern public static inline var NONE:String = "none";

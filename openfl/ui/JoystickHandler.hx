@@ -1,4 +1,4 @@
-package flash.ui;
+package openfl.ui;
 #if (js && bitfive_gamepads)
 import flash.display.Stage;
 import js.Browser;

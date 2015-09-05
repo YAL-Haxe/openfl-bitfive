@@ -1,4 +1,4 @@
-package flash.filters;
+package openfl.filters;
 #if js
 class BlurFilter extends BitmapFilter {
 	public var blurX:Float;

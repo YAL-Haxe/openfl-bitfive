@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 abstract StageAlign(String) {
 	@:extern public static inline var TOP_RIGHT:StageAlign = "TOP_RIGHT";

@@ -1,4 +1,4 @@
-package flash.filters;
+package openfl.filters;
 #if js
 class ColorMatrixFilter extends BitmapFilter {
 	public var matrix:Array<Float>;

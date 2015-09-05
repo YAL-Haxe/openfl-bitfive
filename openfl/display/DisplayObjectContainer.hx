@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 import flash.geom.Matrix;
 import flash.display.Stage;
 import flash.events.Event;

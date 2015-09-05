@@ -1,4 +1,4 @@
-package flash.media;
+package openfl.media;
 #if js
 extern class ID3Info {
 	

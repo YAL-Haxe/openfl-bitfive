@@ -1,4 +1,4 @@
-package flash.errors;
+package openfl.errors;
 #if js
 class ArgumentError extends Error {
 	public function new(inMessage:String = "") {

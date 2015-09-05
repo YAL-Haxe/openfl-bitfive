@@ -1,4 +1,4 @@
-package flash.geom;
+package openfl.geom;
 #if js
 
 

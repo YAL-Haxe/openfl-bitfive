@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 class ErrorEvent extends TextEvent {
 	@:extern public static inline var ERROR:String = "error";

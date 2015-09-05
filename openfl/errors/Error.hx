@@ -1,4 +1,4 @@
-package flash.errors;
+package openfl.errors;
 #if js
 
 class Error {

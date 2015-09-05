@@ -1,4 +1,4 @@
-package flash.net;
+package openfl.net;
 #if js
 
 

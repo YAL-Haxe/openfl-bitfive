@@ -1,4 +1,4 @@
-package flash.text;
+package openfl.text;
 #if js
 #if bitfive_enums
 @:fakeEnum(String) enum TextFieldAutoSize {

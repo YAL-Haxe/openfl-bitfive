@@ -1,4 +1,4 @@
-package flash.text;
+package openfl.text;
 #if js
 import flash.utils.UInt;
 

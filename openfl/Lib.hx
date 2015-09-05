@@ -1,4 +1,4 @@
-package flash;
+package openfl;
 #if js
 import flash.display.MovieClip;
 import flash.display.Sprite;

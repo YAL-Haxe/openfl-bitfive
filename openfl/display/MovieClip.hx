@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 class MovieClip extends Sprite implements Dynamic<Dynamic> {
 	public var enabled:Bool;

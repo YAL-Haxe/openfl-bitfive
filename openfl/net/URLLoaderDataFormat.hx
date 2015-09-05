@@ -1,4 +1,4 @@
-package flash.net;
+package openfl.net;
 #if js
 abstract URLLoaderDataFormat(Int) {
 	@:extern public static inline var BINARY:URLLoaderDataFormat = 0;

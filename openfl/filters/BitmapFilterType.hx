@@ -1,4 +1,4 @@
-package flash.filters;
+package openfl.filters;
 #if js
 class BitmapFilterType {
 	public static inline var FULL = "full";

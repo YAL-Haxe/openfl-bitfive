@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 import openfl.geom.Rectangle;
 import openfl.display.DisplayObject;
 #if js

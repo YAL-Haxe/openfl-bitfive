@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 class StageQuality {
 	@:extern public static inline var BEST = "best";

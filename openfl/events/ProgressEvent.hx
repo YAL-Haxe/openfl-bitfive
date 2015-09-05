@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 /**
  * I wonder if .PROGRESS ever gets dispatched under JS-HTML5...

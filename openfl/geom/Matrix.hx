@@ -1,4 +1,4 @@
-package flash.geom;
+package openfl.geom;
 
 /**
  * Not necessarily very well documented Matrix class implementation.

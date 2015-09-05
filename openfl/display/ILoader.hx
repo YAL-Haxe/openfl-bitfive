@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if (js && !display)
 import flash.net.URLRequest;
 import flash.utils.ByteArray;

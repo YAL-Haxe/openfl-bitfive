@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 abstract StageDisplayState(String) {
 	@:extern public static inline var FULL_SCREEN:StageDisplayState = "FULL_SCREEN";

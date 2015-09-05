@@ -1,4 +1,4 @@
-package flash.net;
+package openfl.net;
 #if (js && !display)
 interface IURLLoader extends flash.events.IEventDispatcher {
 	var bytesLoaded:Int;

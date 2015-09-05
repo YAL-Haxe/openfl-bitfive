@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 import js.html.CanvasGradient;
 import flash.geom.Point;
 #if js

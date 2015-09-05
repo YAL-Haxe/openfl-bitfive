@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 class SecurityErrorEvent extends ErrorEvent {
 	@:extern public static inline var SECURITY_ERROR:String = "securityError";

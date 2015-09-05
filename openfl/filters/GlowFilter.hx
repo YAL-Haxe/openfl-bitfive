@@ -1,4 +1,4 @@
-package flash.filters;
+package openfl.filters;
 #if js
 class GlowFilter extends BitmapFilter {
 	public var color:Int;

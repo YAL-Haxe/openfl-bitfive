@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 import haxe.ds.ObjectMap;
 import js.html.Element;

@@ -1,4 +1,4 @@
-package flash.net;
+package openfl.net;
 import flash.Lib;
 #if js
 class URLVariables implements Dynamic {

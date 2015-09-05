@@ -1,4 +1,4 @@
-package flash.ui;
+package openfl.ui;
 #if js
 class Multitouch {
 	public static var inputMode:MultitouchInputMode;

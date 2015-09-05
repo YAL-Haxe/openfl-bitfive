@@ -1,4 +1,4 @@
-package flash.system;
+package openfl.system;
 #if js
 import flash.Lib;
 //

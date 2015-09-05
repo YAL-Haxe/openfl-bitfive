@@ -1,4 +1,4 @@
-package flash.filters;
+package openfl.filters;
 #if js
 class BitmapFilterQuality {
 	public static inline var HIGH = 3;

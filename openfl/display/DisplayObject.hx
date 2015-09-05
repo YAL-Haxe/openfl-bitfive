@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 import flash.filters.BitmapFilter;
 import openfl.events.TouchEvent;
 #if js

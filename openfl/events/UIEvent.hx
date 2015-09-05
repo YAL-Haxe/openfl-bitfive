@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 import flash.display.InteractiveObject;
 /// Non-standard. Mouse and touch events are based on this.

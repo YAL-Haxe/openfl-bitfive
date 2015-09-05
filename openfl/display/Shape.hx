@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 
 class Shape extends DisplayObject implements IBitmapDrawable {

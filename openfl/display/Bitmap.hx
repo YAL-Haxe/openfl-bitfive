@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 class Bitmap extends DisplayObject implements IBitmapDrawable {
 	public var bitmapData(default, set):BitmapData;

@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 import js.html.Event;
 class Event {

@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 @:fakeEnum(String) enum LineScaleMode {
 	HORIZONTAL;

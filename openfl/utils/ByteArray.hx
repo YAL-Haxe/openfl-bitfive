@@ -1,4 +1,4 @@
-package flash.utils;
+package openfl.utils;
 #if js
 
 import flash.errors.IOError;

@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 #if bitfive_enums
 @:fakeEnum(String) enum BlendMode {

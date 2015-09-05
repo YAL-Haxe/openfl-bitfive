@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 abstract StageScaleMode(String) {
 	@:extern public static inline var SHOW_ALL:StageScaleMode = "SHOW_ALL";

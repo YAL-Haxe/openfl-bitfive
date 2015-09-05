@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 class IOErrorEvent extends Event {
 	@:extern public static inline var IO_ERROR = "ioError";

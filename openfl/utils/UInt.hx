@@ -1,4 +1,4 @@
-package flash.utils;
+package openfl.utils;
 #if js
 typedef UInt = Int;
 #end

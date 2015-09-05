@@ -1,4 +1,4 @@
-package flash.utils;
+package openfl.utils;
 #if js
 class Endian {
 	@:extern public static inline var BIG_ENDIAN:String = "bigEndian";

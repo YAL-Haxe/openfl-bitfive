@@ -1,4 +1,4 @@
-package flash.events;
+package openfl.events;
 #if js
 class HTTPStatusEvent extends Event {
 	@:extern public static inline var HTTP_RESPONSE_STATUS:String = "httpResponseStatus";

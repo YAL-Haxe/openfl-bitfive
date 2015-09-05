@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 class InteractiveObject extends DisplayObject {
 	public var doubleClickEnabled:Bool;

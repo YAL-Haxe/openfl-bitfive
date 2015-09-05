@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if (js && !display)
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;

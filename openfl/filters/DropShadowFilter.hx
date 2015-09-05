@@ -1,4 +1,4 @@
-package flash.filters;
+package openfl.filters;
 #if js
 import flash.Lib;
 class DropShadowFilter extends BitmapFilter {

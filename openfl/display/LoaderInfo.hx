@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 import flash.events.EventDispatcher;
 import flash.events.EventWrapper;

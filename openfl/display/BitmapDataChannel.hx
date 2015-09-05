@@ -1,4 +1,4 @@
-package flash.display;
+package openfl.display;
 #if js
 class BitmapDataChannel {
 	@:extern public static inline var RED = 1;
