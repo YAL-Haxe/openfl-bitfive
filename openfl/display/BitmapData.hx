@@ -15,7 +15,7 @@ import openfl.geom.Matrix;
 import openfl.geom.Point;
 
 typedef LoadData = {
-	var image : ImageElement;
+	var image:ImageElement;
 	var texture:CanvasElement;
 	var inLoader:Null<LoaderInfo>;
 	var bitmapData:BitmapData;
@@ -29,7 +29,11 @@ typedef LoadData = {
  */
 @:autoBuild(openfl.Assets.embedBitmap())
 class BitmapData implements IBitmapDrawable {
+	/** The associated HTML5 <canvas> element */
 	public var component:CanvasElement;
+	/** The rendering context of the associated <canvas> element */
+	public var context:CanvasRenderingContext2D;
+	//
 	public var width(get, null):Int;
 	public var height(get, null):Int;
 	public var transparent(get, null):Bool;
@@ -38,7 +42,6 @@ class BitmapData implements IBitmapDrawable {
 	inline function get_rect() return __rect.clone();
 	private var __rect:Rectangle;
 	//}
-	private var __context:CanvasRenderingContext2D;
 	private var __imageData:ImageData;
 	/// A single-pixel ImageData for setPixel/setPixel32
 	private var __pixelData:ImageData;
@@ -71,15 +74,15 @@ class BitmapData implements IBitmapDrawable {
 		__revision = 0;
 		__rect = new Rectangle(0, 0, w, h);
 		// create canvas:
-		component = openfl.Lib.jsCanvas();
+		component = openfl.bitfive.NodeTools.createCanvasElement();
 		#if debug
 			component.setAttribute("node", Type.getClassName(Type.getClass(this)));
 		#end
 		component.width = w;
 		component.height = h;
-		__context = component.getContext('2d');
-		setSmoothing(__context, true);
-		__pixelData = __context.createImageData(1, 1);
+		context = component.getContext('2d');
+		setSmoothing(context, true);
+		__pixelData = context.createImageData(1, 1);
 		// fill with white by default:
 		if (c == null) c = 0xFFFFFFFF;
 		// make fill opaque if not transparent:
@@ -102,12 +105,12 @@ class BitmapData implements IBitmapDrawable {
 			color |= 0xFF000000;
 		} else if ((color & 0xFF000000) != 0xFF000000) {
 			// clear what was below the rectangle in transparent ones
-			__context.clearRect(area.x, area.y, area.width, area.height);
+			context.clearRect(area.x, area.y, area.width, area.height);
 		}
 		// now actually just draw a rectangle:
 		if ((color & 0xFF000000) != 0) {
-			__context.fillStyle = makeColor(color);
-			__context.fillRect(area.x, area.y, area.width, area.height);
+			context.fillStyle = makeColor(color);
+			context.fillRect(area.x, area.y, area.width, area.height);
 		}
 		__sync |= SY_CANVAS | SY_CHANGE;
 	}
@@ -115,7 +118,7 @@ class BitmapData implements IBitmapDrawable {
 	public function clone():BitmapData {
 		syncCanvas();
 		var r:BitmapData = new BitmapData(width, height, __transparent, 0x0);
-		r.__context.drawImage(component, 0, 0);
+		r.context.drawImage(component, 0, 0);
 		r.__sync |= SY_CANVAS | SY_CHANGE;
 		return r;
 	}
@@ -187,10 +190,10 @@ class BitmapData implements IBitmapDrawable {
 		if (sw <= 0 || sh <= 0) return;
 		// clear area before drawing if needed:
 		if (__transparent && !mergeAlpha) {
-			__context.clearRect(dx, dy, sw, sh);
+			context.clearRect(dx, dy, sw, sh);
 		}
 		// draw:
-		__context.drawImage(bit, sx, sy, sw, sh, dx, dy, sw, sh);
+		context.drawImage(bit, sx, sy, sw, sh, dx, dy, sw, sh);
 		//
 		__sync |= SY_CANVAS | SY_CHANGE;
 	}
@@ -199,23 +202,23 @@ class BitmapData implements IBitmapDrawable {
 			?clipRect:Rectangle, ?smoothing):Void {
 		syncCanvas();
 		var a:Float = 0;
-		__context.save();
+		context.save();
 		if (colorTransform != null) {
 			// currently only alpha channel of colorTransforms is supported.
 			// use .colorTransform to "bake" colored versions.
 			a = colorTransform.alphaMultiplier;
 			colorTransform.alphaMultiplier = 1;
-			__context.globalAlpha *= a;
+			context.globalAlpha *= a;
 		}
 		if (clipRect != null) {
-			__context.beginPath();
-			__context.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
-			__context.clip();
-			__context.beginPath();
+			context.beginPath();
+			context.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
+			context.clip();
+			context.beginPath();
 		}
-		if (smoothing != null) setSmoothing(__context, smoothing);
-		source.drawToSurface(handle(), __context, matrix, colorTransform, blendMode, clipRect, null);
-		__context.restore();
+		if (smoothing != null) setSmoothing(context, smoothing);
+		source.drawToSurface(handle(), context, matrix, colorTransform, blendMode, clipRect, null);
+		context.restore();
 		if (colorTransform != null) {
 			colorTransform.alphaMultiplier = a;
 		}
@@ -238,7 +241,7 @@ class BitmapData implements IBitmapDrawable {
 	public function hitTestLocal(x:Float, y:Float):Bool {
 		if (x >= 0 && y >= 0 && x < width && y < height) {
 			try {
-				return __context.getImageData(x, y, 1, 1).data[3] != 0;
+				return context.getImageData(x, y, 1, 1).data[3] != 0;
 			} catch (_:Dynamic) {
 				return true;
 			}
@@ -248,7 +251,7 @@ class BitmapData implements IBitmapDrawable {
 	public function getPixel(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
 		if (!hasImData()) {
-			var d = __context.getImageData(x, y, 1, 1).data;
+			var d = context.getImageData(x, y, 1, 1).data;
 			return (d[0] << 16) | (d[1] << 8) | d[2];
 		} else {
 			var o = (y * width + x) << 2;
@@ -258,7 +261,7 @@ class BitmapData implements IBitmapDrawable {
 	public function getPixel32(x:Int, y:Int):Int {
 		if (x < 0 || y < 0 || x >= width || y >= height) return 0;
 		if (!hasImData()) {
-			var d = __context.getImageData(x, y, 1, 1).data;
+			var d = context.getImageData(x, y, 1, 1).data;
 			return (__transparent ? d[3] << 24 : 0xFF000000) | (d[0] << 16) | (d[1] << 8) | d[2];
 		} else {
 			var o = (y * width + x) << 2;
@@ -275,7 +278,7 @@ class BitmapData implements IBitmapDrawable {
 			__pixelData.data[1] = (color >>> 8) & 0xFF;
 			__pixelData.data[2] = color & 0xFF;
 			__pixelData.data[3] = 0xFF;
-			__context.putImageData(__pixelData, x, y);
+			context.putImageData(__pixelData, x, y);
 			__sync |= SY_CHANGE | SY_CANVAS;
 		} else {
 			var o = (y * width + x) << 2;
@@ -293,7 +296,7 @@ class BitmapData implements IBitmapDrawable {
 			__pixelData.data[1] = (color >>> 8) & 0xFF;
 			__pixelData.data[2] = color & 0xFF;
 			__pixelData.data[3] = (color >>> 24) & 0xFF;
-			__context.putImageData(__pixelData, x, y);
+			context.putImageData(__pixelData, x, y);
 			__sync |= SY_CHANGE | SY_CANVAS;
 		} else {
 			var o = (y * width + x) << 2;
@@ -313,7 +316,7 @@ class BitmapData implements IBitmapDrawable {
 		r.length = l;
 		v = r.data;
 		if (!hasImData()) {
-			d = __context.getImageData(qx, qy, qw, qh);
+			d = context.getImageData(qx, qy, qw, qh);
 			u = d.data;
 			while (i < l) {
 				r.writeUnsignedInt((u[i++] << 16) | (u[i++] << 8) | u[i++] | (u[i++] << 24));
@@ -341,7 +344,7 @@ class BitmapData implements IBitmapDrawable {
 			i:Int = 0, j:Int, l:Int = qw * qh * 4, p:Int, w:Int = width,
 			d:ImageData, u:Uint8ClampedArray;
 		if (hasCanvas()) {
-			d = __context.createImageData(qw, qh);
+			d = context.createImageData(qw, qh);
 			u = d.data;
 			while (i < l) {
 				p = r.readUnsignedInt();
@@ -351,7 +354,7 @@ class BitmapData implements IBitmapDrawable {
 				u[i + 3] = (p >>> 24) & 255;
 				i += 4;
 			}
-			__context.putImageData(d, qx, qy);
+			context.putImageData(d, qx, qy);
 		} else {
 			u = __imageData.data;
 			while (qh-- > 0) {
@@ -451,7 +454,7 @@ class BitmapData implements IBitmapDrawable {
 		var x:Int = untyped ~~q.x, y:Int = untyped ~~q.y,
 			w:Int = untyped ~~q.width, h:Int = untyped ~~q.height,
 			tw:Int = this.width, th:Int = this.height,
-			f:String = __context.globalCompositeOperation, a:Float = __context.globalAlpha;
+			f:String = context.globalCompositeOperation, a:Float = context.globalAlpha;
 		// Recoloring something outside bounds may be a bad idea:
 		if (x < 0) { w += x; x = 0; }
 		if (y < 0) { h += y; y = 0; }
@@ -464,31 +467,31 @@ class BitmapData implements IBitmapDrawable {
 			// "Oh, the easy case!"
 			syncCanvas();
 			// May need to use an extra canvas if GCO is not supported?
-			__context.globalCompositeOperation = "copy";
-			__context.globalAlpha *= o.alphaMultiplier;
-			__context.drawImage(component, x, y, w, h, x, y, w, h);
+			context.globalCompositeOperation = "copy";
+			context.globalAlpha *= o.alphaMultiplier;
+			context.drawImage(component, x, y, w, h, x, y, w, h);
 			//
 			__sync |= 5;
 		} else if (o.isColorSetter()) {
 			// 
-			var s = __context.fillStyle;
+			var s = context.fillStyle;
 			if (o.alphaMultiplier != 0) {
 				// replace, multiply
-				__context.globalCompositeOperation = "source-in";
-				__context.fillStyle = untyped "rgb(" + ~~o.redOffset + "," + ~~o.greenOffset
+				context.globalCompositeOperation = "source-in";
+				context.fillStyle = untyped "rgb(" + ~~o.redOffset + "," + ~~o.greenOffset
 					+ "," + ~~o.blueOffset + ")";
-				__context.fillRect(x, y, w, h);
-				__context.globalCompositeOperation = "copy";
-				__context.globalAlpha = o.alphaMultiplier;
-				__context.drawImage(component, x, y, w, h, x, y, w, h);
+				context.fillRect(x, y, w, h);
+				context.globalCompositeOperation = "copy";
+				context.globalAlpha = o.alphaMultiplier;
+				context.drawImage(component, x, y, w, h, x, y, w, h);
 			} else {
 				// replace
-				__context.globalCompositeOperation = "copy";
-				__context.fillStyle = untyped "rgba(" + ~~o.redOffset + "," + ~~o.greenOffset
+				context.globalCompositeOperation = "copy";
+				context.fillStyle = untyped "rgba(" + ~~o.redOffset + "," + ~~o.greenOffset
 					+ "," + ~~o.blueOffset + "," + ~~o.alphaOffset + ")";
-				__context.fillRect(x, y, w, h);
+				context.fillRect(x, y, w, h);
 			}
-			__context.fillStyle = s;
+			context.fillStyle = s;
 		} else {
 			// the long way around
 			var wasCanvas = hasCanvas();
@@ -523,8 +526,8 @@ class BitmapData implements IBitmapDrawable {
 			__sync |= SY_CHANGE | SY_IMDATA;
 			if (wasCanvas) unlock();
 		}
-		__context.globalCompositeOperation = f;
-		__context.globalAlpha = a;
+		context.globalCompositeOperation = f;
+		context.globalAlpha = a;
 	}
 	public function copyChannel(o:BitmapData, q:Rectangle, p:Point,
 	sourceChannel:Int, destChannel:Int):Void {
@@ -549,21 +552,21 @@ class BitmapData implements IBitmapDrawable {
 		//
 		if (sc == BitmapDataChannel.ALPHA && dc == BitmapDataChannel.ALPHA) {
 			// ridiculous, but still 10x faster than ImageData...
-			var f = __context.globalCompositeOperation, s = __context.fillStyle;
+			var f = context.globalCompositeOperation, s = context.fillStyle;
 			// draw image into itself 8 times to max out opacity:
-			__context.globalCompositeOperation = "darker";
+			context.globalCompositeOperation = "darker";
 			i = 0; while (i++ < 8)
-			__context.drawImage(component, px, py, w, h, px, py, w, h);
+			context.drawImage(component, px, py, w, h, px, py, w, h);
 			// replace fully transparent areas with black (flash behaviour):
-			__context.globalCompositeOperation = "destination-over";
-			__context.fillStyle = "black";
-			__context.fillRect(x, y, w, h);
+			context.globalCompositeOperation = "destination-over";
+			context.fillStyle = "black";
+			context.fillRect(x, y, w, h);
 			// "multiply" alpha channels of images:
-			__context.globalCompositeOperation = "destination-atop";
-			__context.drawImage(o.handle(), x, y, w, h, px, py, w, h);
+			context.globalCompositeOperation = "destination-atop";
+			context.drawImage(o.handle(), x, y, w, h, px, py, w, h);
 			// restore state:
-			__context.globalCompositeOperation = f;
-			__context.fillStyle = s;
+			context.globalCompositeOperation = f;
+			context.fillStyle = s;
 		} else {
 			var wasCanvas = hasCanvas(), ds:Uint8ClampedArray, dd:Uint8ClampedArray;
 			lock(); dd = __imageData.data;
@@ -665,14 +668,14 @@ class BitmapData implements IBitmapDrawable {
 	// ensures that Canvas element is up-to-date:
 	function syncCanvas():Void {
 		if (!hasCanvas()) {
-			__context.putImageData(__imageData, 0, 0);
+			context.putImageData(__imageData, 0, 0);
 			__sync = (__sync & 0xFFFFFFFC);
 		}
 	}
 	// ensures that ImageData is up-to-date:
 	function syncData():Void {
 		if (!hasImData()) {
-			__imageData = __context.getImageData(0, 0,
+			__imageData = context.getImageData(0, 0,
 				component.width, component.height);
 			__sync = (__sync & 0xFFFFFFFC);
 		}
@@ -715,7 +718,7 @@ class BitmapData implements IBitmapDrawable {
 			//
 			__rect.width = n.width = o.width;
 			__rect.height = n.height = o.height;
-			q = __context = n.getContext("2d");
+			q = context = n.getContext("2d");
 			//
 			q.drawImage(o, 0, 0);
 			// load alpha from a 8-bit collection, if provided:
