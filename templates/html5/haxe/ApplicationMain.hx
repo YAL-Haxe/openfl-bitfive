@@ -16,8 +16,37 @@ import js.html.ProgressEvent;
 
 @:build(ApplicationMain.build())
 class ApplicationMain {
-	#if (openfl >= "2.1")
-	public static var config = {
+	#if (lime >= "2.6.0")
+	public static var config:lime.app.Config = {
+		build: "::meta.buildNumber::",
+		company: "::meta.company::",
+		file: "::APP_FILE::",
+		fps: ::WIN_FPS::,
+		name: "::meta.title::",
+		orientation: "::WIN_ORIENTATION::",
+		packageName: "::meta.packageName::",
+		version: "::meta.version::",
+		windows: [ ::foreach windows::{
+			antialiasing: ::antialiasing::,
+			background: ::background::,
+			borderless: ::borderless::,
+			depthBuffer: ::depthBuffer::,
+			display: ::display::,
+			fullscreen: ::fullscreen::,
+			hardware: ::hardware::,
+			height: ::height::,
+			parameters: "::parameters::",
+			resizable: ::resizable::,
+			stencilBuffer: ::stencilBuffer::,
+			title: "::title::",
+			vsync: ::vsync::,
+			width: ::width::,
+			x: ::x::,
+			y: ::y::
+		}, ::end::],
+	};
+	#elseif (openfl >= "2.1")
+	public static var config:lime.app.Config = {
 		antialiasing: Std.int(::WIN_ANTIALIASING::),
 		background: Std.int(::WIN_BACKGROUND::),
 		borderless: ::WIN_BORDERLESS::,
