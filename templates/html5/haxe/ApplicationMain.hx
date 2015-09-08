@@ -17,7 +17,7 @@ import js.html.ProgressEvent;
 @:build(ApplicationMain.build())
 class ApplicationMain {
 	#if (openfl >= "2.1")
-	public static var config:lime.app.Config = {
+	public static var config = {
 		antialiasing: Std.int(::WIN_ANTIALIASING::),
 		background: Std.int(::WIN_BACKGROUND::),
 		borderless: ::WIN_BORDERLESS::,
