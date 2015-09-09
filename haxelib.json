@@ -5,7 +5,7 @@
 	"tags": ["flash", "html5", "nme", "openfl"],
 	"description": "Alternative blitting-targeted HTML5 backend for OpenFL.",
 	"version": "3.3.3",
-	"releasenote": "Sep 09, 2015: OpenFL 3.3.3 \ Haxe 3.2.0 compatibility.",
+	"releasenote": "Sep 09, 2015: OpenFL 3.3.3 / Haxe 3.2.0 compatibility.",
 	"contributors": ["YellowAfterlife"],
 	"dependencies": {}
 }
