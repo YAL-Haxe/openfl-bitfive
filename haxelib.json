@@ -4,8 +4,8 @@
 	"license": "MIT",
 	"tags": ["flash", "html5", "nme", "openfl"],
 	"description": "Alternative blitting-targeted HTML5 backend for OpenFL.",
-	"version": "3.0.0",
-	"releasenote": "Mar 31, 2015: OpenFL 3.0.0 compatibility, rewritten textfields, bugfixes.",
+	"version": "3.3.3",
+	"releasenote": "Sep 09, 2015: OpenFL 3.3.3 \ Haxe 3.2.0 compatibility.",
 	"contributors": ["YellowAfterlife"],
 	"dependencies": {}
 }
