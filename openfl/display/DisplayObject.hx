@@ -253,7 +253,6 @@ class DisplayObject extends EventWrapper {
 	}
 	//
 	private var eventRemap:Map<String, Dynamic->Void>;
-	static private var routedEvents:Map<String, Int>;
 	override public function addEventListener(type:String, listener:Dynamic -> Void, useCapture:Bool = false, priority:Int = 0, weak:Bool = false):Void {
 		super.addEventListener(type, listener, useCapture, priority, weak);
 	}
@@ -313,9 +312,15 @@ class DisplayObject extends EventWrapper {
 	override public function dispatchEvent(event:Event):Bool {
 		var r:Bool = super.dispatchEvent(event);
 		// some events will not bubble naturally, thus:
-		if (r && routedEvents.exists(event.type) && event.bubbles) {
-			var o:DisplayObjectContainer = parent;
-			if (o != null) o.dispatchEvent(event);
+		if (r && event.bubbles) switch (event.type) {
+		case MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_OVER, MouseEvent.MOUSE_OUT,
+			MouseEvent.CLICK, MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_UP,
+			MouseEvent.RIGHT_CLICK, MouseEvent.RIGHT_MOUSE_DOWN, MouseEvent.RIGHT_MOUSE_UP,
+			MouseEvent.MIDDLE_CLICK, MouseEvent.MIDDLE_MOUSE_DOWN, MouseEvent.MIDDLE_MOUSE_UP,
+			MouseEvent.MOUSE_WHEEL,
+			TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_END:
+				var parent = this.parent;
+				if (parent != null) parent.dispatchEvent(event);
 		}
 		return r;
 	}
@@ -323,19 +328,5 @@ class DisplayObject extends EventWrapper {
 	public function toString():String {
 		return Type.getClassName(Type.getClass(this));
 	}
-	//
-	private static function __init():Void {
-		routedEvents = new Map();
-		var m = [
-			MouseEvent.MOUSE_MOVE, MouseEvent.MOUSE_OVER, MouseEvent.MOUSE_OUT,
-			MouseEvent.CLICK, MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_UP,
-			MouseEvent.RIGHT_CLICK, MouseEvent.RIGHT_MOUSE_DOWN, MouseEvent.RIGHT_MOUSE_UP,
-			MouseEvent.MIDDLE_CLICK, MouseEvent.MIDDLE_MOUSE_DOWN, MouseEvent.MIDDLE_MOUSE_UP,
-			MouseEvent.MOUSE_WHEEL,
-			TouchEvent.TOUCH_MOVE, TouchEvent.TOUCH_BEGIN, TouchEvent.TOUCH_END,
-			], i:Int = -1, l:Int = m.length;
-		while (++i < l) routedEvents.set(m[i], 1);
-	}
-	private static function __init__() __init();
 }
 #end
