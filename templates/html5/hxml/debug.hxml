@@ -3,5 +3,5 @@
 -cp ::OUTPUT_DIR::/haxe
 -D html5
 -D html
---remap flash:flash
+--remap flash:openfl
 -debug
