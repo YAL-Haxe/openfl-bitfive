@@ -43,7 +43,24 @@ class ApplicationMain {
 			width: ::width::,
 			x: ::x::,
 			y: ::y::
-		}, ::end::::end::],
+		}, ::end::::else::{
+			antialiasing: ::WIN_ANTIALIASING::,
+			background: ::WIN_BACKGROUND::,
+			borderless: ::WIN_BORDERLESS::,
+			depthBuffer: ::WIN_DEPTH_BUFFER::,
+			display: ::WIN_DISPLAY::,
+			fullscreen: ::WIN_FULLSCREEN::,
+			hardware: ::WIN_HARDWARE::,
+			height: ::WIN_HEIGHT::,
+			parameters: "::WIN_PARAMETERS::",
+			resizable: ::WIN_RESIZABLE::,
+			stencilBuffer: ::WIN_STENCIL_BUFFER::,
+			title: "::APP_TITLE::",
+			vsync: ::WIN_VSYNC::,
+			width: ::WIN_WIDTH::,
+			x: ::WIN_X::,
+			y: ::WIN_Y::
+		} ::end::],
 	};
 	#elseif (openfl >= "2.1")
 	public static var config:lime.app.Config = {
