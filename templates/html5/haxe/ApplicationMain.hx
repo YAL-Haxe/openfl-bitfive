@@ -26,7 +26,7 @@ class ApplicationMain {
 		orientation: "::WIN_ORIENTATION::",
 		packageName: "::meta.packageName::",
 		version: "::meta.version::",
-		windows: [ ::foreach windows::{
+		windows: [ ::if (windows)::::foreach windows::{
 			antialiasing: ::antialiasing::,
 			background: ::background::,
 			borderless: ::borderless::,
@@ -43,7 +43,7 @@ class ApplicationMain {
 			width: ::width::,
 			x: ::x::,
 			y: ::y::
-		}, ::end::],
+		}, ::end::::end::],
 	};
 	#elseif (openfl >= "2.1")
 	public static var config:lime.app.Config = {
