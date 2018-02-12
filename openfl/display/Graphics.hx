@@ -369,7 +369,7 @@ class Graphics implements IBitmapDrawable implements IGraphics {
 			d:Float, // float
 			n:Int = 0, // number of operations in current path
 			tex:ImageElement = null,
-			ir:Array<Int> = irec, ip:Int = -1, il:Int = ir.length - 1,
+			ir:Array<Int> = irec, ip:Int = -1, il:Int = ilen-1,
 			ar:Array<Dynamic> = arec, ap:Int = -1,
 			nr:Array<Float> = frec, np:Int = -1;
 		// helpers:
@@ -380,7 +380,7 @@ class Graphics implements IBitmapDrawable implements IGraphics {
 		if (m == null) _drawMatrix = m = new Matrix();
 		ctx.save();
 		while (ip < il) switch (i = nextInt()) {
-		//case GFX_STOP: break;// ()
+		case GFX_STOP: break;// ()
 		case GFX_LINESTYLE: // (width:Float, style:String[, cap:Int, join:Int])
 			if (n > 0) f = _closePath(cnv, ctx, f, m, tex);
 			ctx.lineWidth = d = nextFloat();
